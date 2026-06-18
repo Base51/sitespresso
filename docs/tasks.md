@@ -29,9 +29,9 @@
 | T-001 | Initialize Next.js 14 project with App Router and TypeScript | P0 | — | ✅ |
 | T-002 | Configure Tailwind CSS | P0 | T-001 | ✅ |
 | T-003 | Set up ESLint + Prettier with project conventions | P1 | T-001 | ✅ |
-| T-004 | Create Vercel project, connect GitHub repo | P0 | T-001 | ☐ |
+| T-004 | Create Vercel project, connect GitHub repo | P0 | T-001 | ✅ |
 | T-005 | Configure wildcard domain `*.sitespresso.com` in Vercel | P0 | T-004 | ☐ |
-| T-006 | Create Supabase project (production) | P0 | — | ☐ |
+| T-006 | Create Supabase project (production) | P0 | — | ✅ |
 | T-007 | Store all secrets in Vercel environment variables | P0 | T-004, T-006 | ☐ |
 | T-008 | Create `.env.local` template with required variables (no secrets) | P1 | T-007 | ✅ |
 
