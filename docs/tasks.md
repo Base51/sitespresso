@@ -11,7 +11,7 @@
 | # | Milestone | Target | Status |
 |---|---|---|---|
 | M1 | Project scaffold & infrastructure | Week 1 | In Progress |
-| M2 | Auth + Supabase integration | Week 2 | Not Started |
+| M2 | Auth + Supabase integration | Week 2 | In Progress |
 | M3 | AI generation pipeline | Week 3 | Not Started |
 | M4 | Site preview & editor | Week 4 | Not Started |
 | M5 | Publishing & subdomain routing | Week 5 | Not Started |
@@ -41,15 +41,15 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-010 | Run Supabase DB migrations: `profiles`, `sites`, `subscriptions` tables | P0 | T-006 | ☐ |
-| T-011 | Enable Row-Level Security and create all RLS policies | P0 | T-010 | ☐ |
-| T-012 | Create Supabase trigger to auto-insert `profiles` row on user sign-up | P0 | T-010 | ☐ |
-| T-013 | Install and configure `@supabase/ssr` for Next.js App Router | P0 | T-001, T-006 | ☐ |
-| T-014 | Implement Next.js middleware for session refresh and route protection | P0 | T-013 | ☐ |
-| T-015 | Build `/login` page with Google OAuth and magic link sign-in | P0 | T-013 | ☐ |
-| T-016 | Build `/auth/callback` route handler for OAuth redirect | P0 | T-015 | ☐ |
-| T-017 | Implement sign-out action and clear session cookie | P0 | T-015 | ☐ |
-| T-018 | Test: full auth flow (sign-up → dashboard → sign-out → sign-in) | P0 | T-017 | ☐ |
+| T-010 | Run Supabase DB migrations: `profiles`, `sites`, `subscriptions` tables | P0 | T-006 | ✅ |
+| T-011 | Enable Row-Level Security and create all RLS policies | P0 | T-010 | ✅ |
+| T-012 | Create Supabase trigger to auto-insert `profiles` row on user sign-up | P0 | T-010 | ✅ |
+| T-013 | Install and configure `@supabase/ssr` for Next.js App Router | P0 | T-001, T-006 | ✅ |
+| T-014 | Implement Next.js middleware for session refresh and route protection | P0 | T-013 | ✅ |
+| T-015 | Build `/login` page with Google OAuth and magic link sign-in | P0 | T-013 | ✅ |
+| T-016 | Build `/auth/callback` route handler for OAuth redirect | P0 | T-015 | ✅ |
+| T-017 | Implement sign-out action and clear session cookie | P0 | T-015 | ✅ |
+| T-018 | Test: full auth flow (sign-up → dashboard → sign-out → sign-in) | P0 | T-017 | 🔄 |
 
 ---
 
