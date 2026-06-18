@@ -1,21 +1,7 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --color-primary: #0070f3;
-  --color-text: #1a1a1a;
-  --color-bg: #ffffff;
-  --font-base: system-ui, -apple-system, sans-serif;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
-  font-family: var(--font-base);
-  color: var(--color-text);
-  background-color: var(--color-bg);
-  line-height: 1.6;
+  @apply bg-slate-950 text-slate-100 antialiased;
 }
