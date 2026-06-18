@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Static Website ─────────────────────────────────────────────────────────
+  static-website:
+    name: Static Website – Validate HTML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check index.html exists
+        run: test -f templates/static-website/index.html
+
+  # ── React App ──────────────────────────────────────────────────────────────
+  react-app:
+    name: React App – Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/react-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: templates/react-app/package.json
+      - run: npm install
+      - run: npm run build
+
+  # ── Next.js App ────────────────────────────────────────────────────────────
+  nextjs-app:
+    name: Next.js App – Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/nextjs-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: templates/nextjs-app/package.json
+      - run: npm install
+      - run: npm run build

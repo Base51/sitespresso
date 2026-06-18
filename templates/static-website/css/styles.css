@@ -1,0 +1,66 @@
+/* ============================================
+   Base Reset
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================
+   Typography & Colors
+   ============================================ */
+:root {
+  --color-primary: #0070f3;
+  --color-text: #1a1a1a;
+  --color-bg: #ffffff;
+  --color-muted: #6b7280;
+  --font-base: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  line-height: 1.6;
+}
+
+/* ============================================
+   Layout
+   ============================================ */
+header,
+main,
+footer {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+nav a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+footer {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 2rem;
+}
