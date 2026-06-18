@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const code = request.nextUrl.searchParams.get('code');
@@ -32,7 +33,36 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   });
 
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      const fallback = new URL('/login?error=oauth_exchange_failed', request.url);
+      return NextResponse.redirect(fallback);
+    }
+
+    const user = data.user;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (user && serviceRoleKey) {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      });
+
+      await adminClient.from('profiles').upsert(
+        {
+          id: user.id,
+          email: user.email ?? '',
+          full_name: (user.user_metadata?.full_name as string | undefined) ??
+            (user.user_metadata?.name as string | undefined) ??
+            null
+        },
+        { onConflict: 'id' }
+      );
+    }
+
     return response;
   }
 

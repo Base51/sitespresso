@@ -10,8 +10,8 @@
 
 | # | Milestone | Target | Status |
 |---|---|---|---|
-| M1 | Project scaffold & infrastructure | Week 1 | In Progress |
-| M2 | Auth + Supabase integration | Week 2 | In Progress |
+| M1 | Project scaffold & infrastructure | Week 1 | Complete |
+| M2 | Auth + Supabase integration | Week 2 | Complete |
 | M3 | AI generation pipeline | Week 3 | Not Started |
 | M4 | Site preview & editor | Week 4 | Not Started |
 | M5 | Publishing & subdomain routing | Week 5 | Not Started |
@@ -49,7 +49,7 @@
 | T-015 | Build `/login` page with Google OAuth and magic link sign-in | P0 | T-013 | ✅ |
 | T-016 | Build `/auth/callback` route handler for OAuth redirect | P0 | T-015 | ✅ |
 | T-017 | Implement sign-out action and clear session cookie | P0 | T-015 | ✅ |
-| T-018 | Test: full auth flow (sign-up → dashboard → sign-out → sign-in) | P0 | T-017 | 🔄 |
+| T-018 | Test: full auth flow (sign-up → dashboard → sign-out → sign-in) | P0 | T-017 | ✅ |
 
 ---
 
