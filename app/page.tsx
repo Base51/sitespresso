@@ -60,7 +60,10 @@ export default function Home() {
   }, [stage]);
 
   async function publishSite(draftId: string | null) {
-    if (!draftId) return;
+    if (!draftId) {
+      alert('Draft is not saved yet. Make one edit and wait for "Saved" before publishing.');
+      return;
+    }
     const startTime = performance.now();
     setPublishTime(null);
     try {

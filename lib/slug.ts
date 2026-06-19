@@ -55,7 +55,6 @@ export function isReservedSlug(slug: string): boolean {
  */
 export async function findUniqueSlug(
   baseSlug: string,
-  userId: string,
   maxAttempts = 10,
 ): Promise<string | null> {
   if (isReservedSlug(baseSlug)) return null;
@@ -67,7 +66,6 @@ export async function findUniqueSlug(
     .from('sites')
     .select('id')
     .eq('slug', baseSlug)
-    .eq('user_id', userId)
     .limit(1);
 
   if (!existing || existing.length === 0) {
@@ -81,7 +79,6 @@ export async function findUniqueSlug(
       .from('sites')
       .select('id')
       .eq('slug', candidateSlug)
-      .eq('user_id', userId)
       .limit(1);
 
     if (!exists || exists.length === 0) {

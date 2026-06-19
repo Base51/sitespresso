@@ -11,13 +11,13 @@ async function getSiteBySlug(slug: string): Promise<Website | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('sites')
-    .select('data, published')
+    .select('content, status')
     .eq('slug', slug)
-    .eq('published', true)
+    .eq('status', 'published')
     .single();
 
   if (error || !data) return null;
-  return data.data as Website;
+  return data.content as Website;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

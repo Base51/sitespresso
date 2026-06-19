@@ -44,17 +44,26 @@ export default function SitePreview({
         if (savedId) {
           await supabase
             .from('sites')
-            .update({ data, updated_at: new Date().toISOString() })
+            .update({ content: data, updated_at: new Date().toISOString() })
             .eq('id', savedId);
         } else {
-          const slug = data.business_name
+          const baseSlug = data.business_name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
-          console.log(`📝 Inserting new draft with slug: ${slug}`);
+          const draftSlug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
+          console.log(`📝 Inserting new draft with slug: ${draftSlug}`);
           const { data: row, error: insertError } = await supabase
             .from('sites')
-            .insert({ user_id: user.id, slug, data, published: false })
+            .insert({
+              user_id: user.id,
+              slug: draftSlug,
+              business_name: data.business_name,
+              business_type: data.business_type,
+              city: data.city,
+              content: data,
+              status: 'draft',
+            })
             .select('id')
             .single();
           if (insertError) {

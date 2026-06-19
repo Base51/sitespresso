@@ -23,7 +23,7 @@ export async function POST(
     // Fetch the site and verify ownership
     const { data: site, error: fetchError } = await supabase
       .from('sites')
-      .select('id, user_id, slug, published, data')
+      .select('id, user_id, slug, status, business_name, content')
       .eq('id', siteId)
       .single();
 
@@ -35,17 +35,18 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Generate slug if not already set
     let finalSlug = site.slug;
-    if (!finalSlug) {
-      const baseSlug = generateSlug(site.data.business_name);
+
+    // Keep current slug if already published, otherwise generate a clean business-name slug.
+    if (site.status !== 'published') {
+      const baseSlug = generateSlug(site.business_name);
       if (isReservedSlug(baseSlug)) {
         return NextResponse.json(
           { error: 'Business name resolves to a reserved slug. Please choose a different name.' },
           { status: 400 },
         );
       }
-      const uniqueSlug = await findUniqueSlug(baseSlug, user.id);
+      const uniqueSlug = await findUniqueSlug(baseSlug);
       if (!uniqueSlug) {
         return NextResponse.json(
           { error: 'Could not generate a unique slug. Please try again.' },
@@ -60,7 +61,7 @@ export async function POST(
       .from('sites')
       .update({
         slug: finalSlug,
-        published: true,
+        status: 'published',
         published_at: new Date().toISOString(),
       })
       .eq('id', siteId);
