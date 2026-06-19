@@ -14,7 +14,7 @@
 | M2 | Auth + Supabase integration | Week 2 | Complete |
 | M3 | AI generation pipeline | Week 3 | Complete |
 | M4 | Site preview & editor | Week 4 | Complete |
-| M5 | Publishing & subdomain routing | Week 5 | Not Started |
+| M5 | Publishing & subdomain routing | Week 5 | Complete |
 | M6 | Billing (Stripe) | Week 5–6 | Not Started |
 | M7 | Dashboard & account management | Week 6 | Not Started |
 | M8 | QA, performance, security review | Week 6 | Not Started |
@@ -92,16 +92,16 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-050 | Implement slug generation utility (business name → URL-safe slug) | P0 | T-001 | ☐ |
-| T-051 | Add reserved slug blocklist (www, app, api, admin, etc.) | P0 | T-050 | ☐ |
-| T-052 | Handle slug conflicts (append `-2`, `-3` or prompt user) | P0 | T-050 | ☐ |
-| T-053 | Implement `POST /api/sites/[id]/publish` route handler | P0 | T-010, T-013 | ☐ |
-| T-054 | Implement Next.js middleware for subdomain → `/sites/[slug]` rewrite | P0 | T-005 | ☐ |
-| T-055 | Build `/app/sites/[slug]/page.tsx` server component (published site renderer) | P0 | T-034 | ☐ |
-| T-056 | Return 404 page for unpublished or unknown slugs | P0 | T-055 | ☐ |
-| T-057 | Optimize published site for Edge rendering (no heavy client-side JS) | P1 | T-055 | ☐ |
-| T-058 | Test: publish flow end-to-end, verify `{slug}.sitespresso.com` is live | P0 | T-053, T-054, T-055 | ☐ |
-| T-059 | Add SEO meta tags to published site (title, description, og:image) | P1 | T-055 | ☐ |
+| T-050 | Implement slug generation utility (business name → URL-safe slug) | P0 | T-001 | ✅ |
+| T-051 | Add reserved slug blocklist (www, app, api, admin, etc.) | P0 | T-050 | ✅ |
+| T-052 | Handle slug conflicts (append `-2`, `-3` or prompt user) | P0 | T-050 | ✅ |
+| T-053 | Implement `POST /api/sites/[id]/publish` route handler | P0 | T-010, T-013 | ✅ |
+| T-054 | Implement Next.js middleware for subdomain → `/sites/[slug]` rewrite | P0 | T-005 | ✅ |
+| T-055 | Build `/app/sites/[slug]/page.tsx` server component (published site renderer) | P0 | T-034 | ✅ |
+| T-056 | Return 404 page for unpublished or unknown slugs | P0 | T-055 | ✅ |
+| T-057 | Optimize published site for Edge rendering (no heavy client-side JS) | P1 | T-055 | ✅ |
+| T-058 | Test: publish flow end-to-end, verify `{slug}.sitespresso.com` is live | P0 | T-053, T-054, T-055 | ✅ |
+| T-059 | Add SEO meta tags to published site (title, description, og:image) | P1 | T-055 | ✅ |
 
 ---
 

@@ -1,11 +1,80 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { generateSlug, isReservedSlug, findUniqueSlug } from '@/lib/slug';
 
-export async function POST(): Promise<NextResponse> {
-  return NextResponse.json(
-    {
-      error: 'Not implemented yet.',
-      nextStep: 'Implement site publishing and slug validation in M5.'
-    },
-    { status: 501 }
-  );
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const supabase = await createClient();
+
+    // Check authentication
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const siteId = params.id;
+
+    // Fetch the site and verify ownership
+    const { data: site, error: fetchError } = await supabase
+      .from('sites')
+      .select('id, user_id, slug, published, data')
+      .eq('id', siteId)
+      .single();
+
+    if (fetchError || !site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    if (site.user_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Generate slug if not already set
+    let finalSlug = site.slug;
+    if (!finalSlug) {
+      const baseSlug = generateSlug(site.data.business_name);
+      if (isReservedSlug(baseSlug)) {
+        return NextResponse.json(
+          { error: 'Business name resolves to a reserved slug. Please choose a different name.' },
+          { status: 400 },
+        );
+      }
+      const uniqueSlug = await findUniqueSlug(baseSlug, user.id);
+      if (!uniqueSlug) {
+        return NextResponse.json(
+          { error: 'Could not generate a unique slug. Please try again.' },
+          { status: 500 },
+        );
+      }
+      finalSlug = uniqueSlug;
+    }
+
+    // Mark as published
+    const { error: updateError } = await supabase
+      .from('sites')
+      .update({
+        slug: finalSlug,
+        published: true,
+        published_at: new Date().toISOString(),
+      })
+      .eq('id', siteId);
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Failed to publish' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      slug: finalSlug,
+      url: `https://${finalSlug}.sitespresso.com`,
+    });
+  } catch (err) {
+    console.error('Publish error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
