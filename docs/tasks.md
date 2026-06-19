@@ -16,7 +16,7 @@
 | M4 | Site preview & editor | Week 4 | Complete |
 | M5 | Publishing & subdomain routing | Week 5 | Complete |
 | M6 | Billing (Stripe) | Week 5–6 | In Progress |
-| M7 | Dashboard & account management | Week 6 | Not Started |
+| M7 | Dashboard & account management | Week 6 | In Progress |
 | M8 | QA, performance, security review | Week 6 | Not Started |
 | M9 | Production launch | Week 6 | Not Started |
 
@@ -126,11 +126,11 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-070 | Build `/dashboard` page (protected route) | P0 | T-014 | ☐ |
-| T-071 | Display user's site card(s) with status badge (Draft / Published / Unpublished) | P0 | T-070 | ☐ |
-| T-072 | Add "Edit Site" link from dashboard to site editor | P0 | T-071 | ☐ |
-| T-073 | Add "View Live Site" link for published sites | P0 | T-071 | ☐ |
-| T-074 | Display subscription plan and renewal date on dashboard | P1 | T-070, T-066 | ☐ |
+| T-070 | Build `/dashboard` page (protected route) | P0 | T-014 | ✅ |
+| T-071 | Display user's site card(s) with status badge (Draft / Published / Unpublished) | P0 | T-070 | ✅ |
+| T-072 | Add "Edit Site" link from dashboard to site editor | P0 | T-071 | ✅ |
+| T-073 | Add "View Live Site" link for published sites | P0 | T-071 | ✅ |
+| T-074 | Display subscription plan and renewal date on dashboard | P1 | T-070, T-066 | ✅ |
 | T-075 | Add "Manage Billing" button linking to Stripe Billing Portal | P1 | T-063 | ✅ |
 | T-076 | Build account settings page (display name, email) | P2 | T-070 | ☐ |
 
