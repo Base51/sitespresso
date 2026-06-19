@@ -63,11 +63,19 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-16">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
-        <form action={signOut}>
-          <button className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100" type="submit">
-            Sign out
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/account"
+            className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100 transition hover:border-slate-500"
+          >
+            Account
+          </Link>
+          <form action={signOut}>
+            <button className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100" type="submit">
+              Sign out
+            </button>
+          </form>
+        </div>
       </div>
 
       <p className="text-slate-300">Signed in as {user.email ?? 'unknown user'}.</p>
