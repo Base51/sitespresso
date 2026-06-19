@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { WebsiteSchema, GenerateInputSchema } from '../../../lib/schemas/website';
 import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
 import { checkRateLimit } from '../../../lib/ai/rate-limiter';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
@@ -229,36 +229,28 @@ export async function POST(request: NextRequest) {
 
     const input = GenerateInputSchema.parse(sanitized);
 
-    // Optionally get authenticated user ID for per-user rate limiting
-    let userId: string | undefined;
-    try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-      );
-      const {
-        data: { user },
-      } = await supabase.auth.getUser(request.cookies.get('sb-access-token')?.value);
-      userId = user?.id;
-    } catch {
-      // User not authenticated, continue with IP-only rate limiting
+    // Require authenticated user for generation requests.
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check user-level rate limit if authenticated
-    if (userId) {
-      const userRateLimit = checkRateLimit(ip, userId);
-      if (!userRateLimit.allowed) {
-        return NextResponse.json(
-          {
-            error: 'Too many generation requests. Try again later.',
-            resetIn: userRateLimit.resetIn,
-          },
-          {
-            status: 429,
-            headers: { 'Retry-After': `${userRateLimit.resetIn}` },
-          }
-        );
-      }
+    const userRateLimit = checkRateLimit(ip, user.id);
+    if (!userRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many generation requests. Try again later.',
+          resetIn: userRateLimit.resetIn,
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': `${userRateLimit.resetIn}` },
+        }
+      );
     }
 
     // Call OpenAI with retry logic
