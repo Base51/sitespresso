@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm';
 import SitePreview from '@/components/SitePreview';
 import type { Website } from '@/lib/schemas/website';
@@ -13,11 +13,18 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState('');
   const [lastInput, setLastInput] = useState<GenerateFormValues | null>(null);
   const [draftId, setDraftId] = useState<string | null>(null);
+  const [generationTime, setGenerationTime] = useState<number | null>(null);
+  const [publishTime, setPublishTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const startTimeRef = useRef<number | null>(null);
 
   async function generate(values: GenerateFormValues) {
+    startTimeRef.current = performance.now();
+    setElapsedTime(0);
     setLastInput(values);
     setStage('loading');
     setErrorMessage('');
+    setGenerationTime(null);
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -28,11 +35,49 @@ export default function Home() {
       if (!res.ok || !json.success) {
         throw new Error(json.error ?? `HTTP ${res.status}`);
       }
+      const elapsed = performance.now() - (startTimeRef.current || 0);
+      setGenerationTime(Math.round(elapsed));
+      console.log(`⏱️ Generation completed in ${Math.round(elapsed)}ms`);
       setWebsite(json.website as Website);
       setStage('preview');
     } catch (err) {
+      const elapsed = performance.now() - (startTimeRef.current || 0);
+      setGenerationTime(Math.round(elapsed));
+      console.error(`❌ Generation failed after ${Math.round(elapsed)}ms:`, err);
       setErrorMessage(err instanceof Error ? err.message : 'Generation failed. Please try again.');
       setStage('error');
+    }
+  }
+
+  useEffect(() => {
+    if (stage !== 'loading') return;
+    const timer = setInterval(() => {
+      if (startTimeRef.current) {
+        setElapsedTime(Math.round((performance.now() - startTimeRef.current) / 1000));
+      }
+    }, 100);
+    return () => clearInterval(timer);
+  }, [stage]);
+
+  async function publishSite(draftId: string | null) {
+    if (!draftId) return;
+    const startTime = performance.now();
+    setPublishTime(null);
+    try {
+      const res = await fetch(`/api/sites/${draftId}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const json = await res.json();
+      const elapsed = performance.now() - startTime;
+      setPublishTime(Math.round(elapsed));
+      console.log(`⏱️ Publishing completed in ${Math.round(elapsed)}ms`);
+      console.log(`✅ Live at: https://${json.slug}.sitespresso.com`);
+      alert(`✅ Published!\n\nYour site is live at:\nhttps://${json.slug}.sitespresso.com`);
+    } catch (err) {
+      const elapsed = performance.now() - startTime;
+      console.error(`❌ Publishing failed after ${Math.round(elapsed)}ms:`, err);
+      alert('Publishing failed. Please try again.');
     }
   }
 
@@ -72,6 +117,7 @@ export default function Home() {
             Our AI is crafting content, selecting colors, and writing your copy. This takes about
             10–15 seconds.
           </p>
+          <p className="text-xs text-slate-500 font-mono">⏱️ {elapsedTime}s elapsed</p>
         </div>
         <div className="mt-2 flex gap-2">
           {['Writing copy', 'Choosing colors', 'Building sections'].map((step) => (
@@ -124,7 +170,14 @@ export default function Home() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-white">{website?.business_name}</h2>
-          <p className="text-sm text-slate-400">Your AI-generated website preview</p>
+          <p className="text-sm text-slate-400">
+            Your AI-generated website preview
+            {generationTime && (
+              <span className="ml-2 text-slate-500">
+                (Generated in {(generationTime / 1000).toFixed(2)}s)
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex gap-3">
           <button
@@ -132,17 +185,18 @@ export default function Home() {
               setStage('form');
               setWebsite(null);
               setDraftId(null);
+              setGenerationTime(null);
+              setPublishTime(null);
             }}
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
           >
             ← New website
           </button>
           <button
-            disabled
-            title="Publishing coming in M5"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-60 cursor-not-allowed"
+            onClick={() => publishSite(draftId)}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
           >
-            Publish
+            {publishTime ? `Published (${(publishTime / 1000).toFixed(2)}s)` : 'Publish'}
           </button>
         </div>
       </div>

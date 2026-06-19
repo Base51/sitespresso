@@ -21,6 +21,7 @@ export default function SitePreview({
   const [draft, setDraft] = useState<Website>(website);
   const [savedId, setSavedId] = useState<string | null>(initialDraftId ?? null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [lastSaveTime, setLastSaveTime] = useState<number | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMounted = useRef(true);
 
@@ -29,6 +30,7 @@ export default function SitePreview({
   const save = useCallback(
     async (data: Website) => {
       if (!isMounted.current) return;
+      const startTime = performance.now();
       setSaveStatus('saving');
       try {
         const supabase = createClient();
@@ -59,8 +61,12 @@ export default function SitePreview({
             onDraftSaved?.(row.id);
           }
         }
+        const elapsed = performance.now() - startTime;
+        setLastSaveTime(Math.round(elapsed));
+        console.log(`✅ Draft auto-saved in ${Math.round(elapsed)}ms`);
         if (isMounted.current) setSaveStatus('saved');
-      } catch {
+      } catch (err) {
+        console.error(`❌ Auto-save failed:`, err);
         if (isMounted.current) setSaveStatus('error');
       }
     },
@@ -90,7 +96,7 @@ export default function SitePreview({
   const saveLabel: Record<SaveStatus, string> = {
     idle: '',
     saving: 'Saving…',
-    saved: '✓ Draft saved',
+    saved: lastSaveTime ? `✓ Saved (${lastSaveTime}ms)` : '✓ Draft saved',
     unauthenticated: '⚠ Sign in to save your draft',
     error: '✕ Save failed — try again',
   };

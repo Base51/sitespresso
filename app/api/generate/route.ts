@@ -195,6 +195,7 @@ function sanitizeInput(input: unknown): unknown {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
   try {
     // Check if OpenAI API key is configured
     if (!process.env.OPENAI_API_KEY) {
@@ -267,7 +268,10 @@ export async function POST(request: NextRequest) {
     const parsed = JSON.parse(extractJsonObject(jsonResponse));
     const website = WebsiteSchema.parse(parsed);
 
-    return NextResponse.json(
+    const duration = Date.now() - startTime;
+    console.log(`✅ Generation for ${input.business_name} (${input.business_type}) completed in ${duration}ms`);
+
+    const response = NextResponse.json(
       {
         success: true,
         website,
@@ -275,47 +279,18 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    response.headers.set('X-Generation-Time-Ms', duration.toString());
+    return response;
   } catch (error) {
-    console.error('Generate error:', error);
-
-    if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        { error: 'Invalid request format' },
-        { status: 400 }
-      );
-    }
-
-    const errorMsg = error instanceof Error ? error.message : String(error);
-
-    if (errorMsg.includes('validation')) {
-      return NextResponse.json(
-        {
-          error: 'Generated content validation failed. Please try again.',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (errorMsg.includes('rate_limit')) {
-      return NextResponse.json(
-        { error: 'OpenAI API rate limited. Try again in a moment.' },
-        { status: 429 }
-      );
-    }
-
-    if (errorMsg.includes('OPENAI_API_KEY') || errorMsg.includes('401')) {
-      return NextResponse.json(
-        { error: 'AI service configuration error.' },
-        { status: 503 }
-      );
-    }
-
+    const duration = Date.now() - startTime;
+    console.error(`❌ Generation failed after ${duration}ms:`, error);
     return NextResponse.json(
       {
-        error: 'Generation failed. Please try again.',
-        details: process.env.NODE_ENV === 'development' ? errorMsg : undefined,
+        success: false,
+        error: error instanceof Error ? error.message : 'Generation failed'
       },
-      { status: 500 }
+      { status: 500, headers: { 'X-Generation-Time-Ms': duration.toString() } }
     );
   }
 }

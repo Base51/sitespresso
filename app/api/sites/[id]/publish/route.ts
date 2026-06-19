@@ -6,6 +6,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   try {
     const supabase = await createClient();
 
@@ -68,13 +69,23 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to publish' }, { status: 500 });
     }
 
-    return NextResponse.json({
+    const duration = Date.now() - startTime;
+    console.log(`✅ Site published (${finalSlug}) in ${duration}ms`);
+
+    const response = NextResponse.json({
       success: true,
       slug: finalSlug,
       url: `https://${finalSlug}.sitespresso.com`,
     });
+
+    response.headers.set('X-Publish-Time-Ms', duration.toString());
+    return response;
   } catch (err) {
-    console.error('Publish error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const duration = Date.now() - startTime;
+    console.error(`❌ Publish error after ${duration}ms:`, err);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: { 'X-Publish-Time-Ms': duration.toString() } }
+    );
   }
 }
