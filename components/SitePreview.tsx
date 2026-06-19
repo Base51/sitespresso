@@ -51,12 +51,18 @@ export default function SitePreview({
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
-          const { data: row } = await supabase
+          console.log(`📝 Inserting new draft with slug: ${slug}`);
+          const { data: row, error: insertError } = await supabase
             .from('sites')
             .insert({ user_id: user.id, slug, data, published: false })
             .select('id')
             .single();
+          if (insertError) {
+            console.error(`❌ Insert error:`, insertError);
+            throw new Error(`Failed to create draft: ${insertError.message}`);
+          }
           if (row?.id) {
+            console.log(`✅ Draft created with ID: ${row.id}`);
             setSavedId(row.id);
             onDraftSaved?.(row.id);
           }
