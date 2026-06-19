@@ -13,7 +13,7 @@
 | M1 | Project scaffold & infrastructure | Week 1 | Complete |
 | M2 | Auth + Supabase integration | Week 2 | Complete |
 | M3 | AI generation pipeline | Week 3 | Complete |
-| M4 | Site preview & editor | Week 4 | Not Started |
+| M4 | Site preview & editor | Week 4 | Complete |
 | M5 | Publishing & subdomain routing | Week 5 | Not Started |
 | M6 | Billing (Stripe) | Week 5–6 | Not Started |
 | M7 | Dashboard & account management | Week 6 | Not Started |
@@ -73,18 +73,18 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-030 | Build intake form page (`/` or `/new`) with Business Name, Type, City fields | P0 | T-001 | ☐ |
-| T-031 | Add business type dropdown with 20+ local business categories | P0 | T-030 | ☐ |
-| T-032 | Implement form validation (required fields, length limits) | P0 | T-030 | ☐ |
-| T-033 | Build loading/generation screen with progress feedback UI | P0 | T-030 | ☐ |
-| T-034 | Build website preview renderer component (`SitePreview`) | P0 | T-021 | ☐ |
-| T-035 | Implement `SitePreview` sections: Hero, About, Services, Contact | P0 | T-034 | ☐ |
-| T-036 | Make `SitePreview` mobile-responsive | P0 | T-035 | ☐ |
-| T-037 | Implement inline click-to-edit for text fields in preview | P0 | T-034 | ☐ |
-| T-038 | Auto-save edited site content to Supabase (1s debounce) | P0 | T-037, T-013 | ☐ |
-| T-039 | Persist draft site to Supabase on generation (unauthenticated → prompt sign-in) | P0 | T-038 | ☐ |
-| T-040 | Build error state UI for generation failure with retry CTA | P0 | T-033 | ☐ |
-| T-041 | Add "Revert section" option to restore original AI content | P1 | T-037 | ☐ |
+| T-030 | Build intake form page (`/` or `/new`) with Business Name, Type, City fields | P0 | T-001 | ✅ |
+| T-031 | Add business type dropdown with 20+ local business categories | P0 | T-030 | ✅ |
+| T-032 | Implement form validation (required fields, length limits) | P0 | T-030 | ✅ |
+| T-033 | Build loading/generation screen with progress feedback UI | P0 | T-030 | ✅ |
+| T-034 | Build website preview renderer component (`SitePreview`) | P0 | T-021 | ✅ |
+| T-035 | Implement `SitePreview` sections: Hero, About, Services, Contact | P0 | T-034 | ✅ |
+| T-036 | Make `SitePreview` mobile-responsive | P0 | T-035 | ✅ |
+| T-037 | Implement inline click-to-edit for text fields in preview | P0 | T-034 | ✅ |
+| T-038 | Auto-save edited site content to Supabase (1s debounce) | P0 | T-037, T-013 | ✅ |
+| T-039 | Persist draft site to Supabase on generation (unauthenticated → prompt sign-in) | P0 | T-038 | ✅ |
+| T-040 | Build error state UI for generation failure with retry CTA | P0 | T-033 | ✅ |
+| T-041 | Add "Revert section" option to restore original AI content | P1 | T-037 | ✅ |
 
 ---
 

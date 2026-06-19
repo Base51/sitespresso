@@ -1,16 +1,158 @@
-export default function Home(): JSX.Element {
+'use client';
+
+import { useState } from 'react';
+import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm';
+import SitePreview from '@/components/SitePreview';
+import type { Website } from '@/lib/schemas/website';
+
+type Stage = 'form' | 'loading' | 'preview' | 'error';
+
+export default function Home() {
+  const [stage, setStage] = useState<Stage>('form');
+  const [website, setWebsite] = useState<Website | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [lastInput, setLastInput] = useState<GenerateFormValues | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
+
+  async function generate(values: GenerateFormValues) {
+    setLastInput(values);
+    setStage('loading');
+    setErrorMessage('');
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      setWebsite(json.website as Website);
+      setStage('preview');
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Generation failed. Please try again.');
+      setStage('error');
+    }
+  }
+
+  // ── Form stage ────────────────────────────────────────────────────────────
+  if (stage === 'form') {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+        <div className="space-y-3">
+          <p className="rounded-full border border-slate-700 bg-slate-900/60 px-4 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
+            AI-Powered Website Builder
+          </p>
+          <h1 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-5xl">
+            Build your local business website
+            <br className="hidden md:block" /> in seconds.
+          </h1>
+          <p className="mx-auto max-w-xl text-base text-slate-400">
+            Enter your business details and our AI will generate a complete, editable website — no
+            design skills required.
+          </p>
+        </div>
+        <GenerateForm onSubmit={generate} />
+      </main>
+    );
+  }
+
+  // ── Loading stage ─────────────────────────────────────────────────────────
+  if (stage === 'loading') {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center gap-6 px-6 text-center">
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-30" />
+          <span className="relative inline-flex h-10 w-10 rounded-full bg-blue-600" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-white">Generating your website…</h2>
+          <p className="text-sm text-slate-400">
+            Our AI is crafting content, selecting colors, and writing your copy. This takes about
+            10–15 seconds.
+          </p>
+        </div>
+        <div className="mt-2 flex gap-2">
+          {['Writing copy', 'Choosing colors', 'Building sections'].map((step) => (
+            <span
+              key={step}
+              className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-400"
+            >
+              {step}
+            </span>
+          ))}
+        </div>
+      </main>
+    );
+  }
+
+  // ── Error stage ───────────────────────────────────────────────────────────
+  if (stage === 'error') {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center gap-6 px-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-900/40 text-2xl">
+          ✕
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-white">Generation failed</h2>
+          <p className="text-sm text-slate-400">{errorMessage}</p>
+        </div>
+        <div className="flex gap-3">
+          {lastInput && (
+            <button
+              onClick={() => generate(lastInput)}
+              className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white transition hover:bg-blue-500"
+            >
+              Try again
+            </button>
+          )}
+          <button
+            onClick={() => setStage('form')}
+            className="rounded-lg border border-slate-600 px-5 py-2.5 font-medium text-slate-300 transition hover:border-slate-500"
+          >
+            Start over
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Preview stage ─────────────────────────────────────────────────────────
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="rounded-full border border-slate-700 bg-slate-900/60 px-4 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
-        SiteSpresso MVP Template
-      </p>
-      <h1 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-5xl">
-        Build your AI-powered local business website in minutes.
-      </h1>
-      <p className="max-w-2xl text-pretty text-base text-slate-300 md:text-lg">
-        This starter includes TypeScript, Tailwind, middleware, and API route scaffolding for the
-        SiteSpresso roadmap.
-      </p>
+    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-white">{website?.business_name}</h2>
+          <p className="text-sm text-slate-400">Your AI-generated website preview</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              setStage('form');
+              setWebsite(null);
+              setDraftId(null);
+            }}
+            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+          >
+            ← New website
+          </button>
+          <button
+            disabled
+            title="Publishing coming in M5"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white opacity-60 cursor-not-allowed"
+          >
+            Publish
+          </button>
+        </div>
+      </div>
+      {website && (
+        <SitePreview
+          website={website}
+          initialDraftId={draftId}
+          onDraftSaved={(id) => setDraftId(id)}
+        />
+      )}
     </main>
   );
 }
