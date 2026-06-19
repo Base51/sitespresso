@@ -117,7 +117,7 @@
 | T-065 | Handle `checkout.session.completed`: activate subscription, publish site | P0 | T-064, T-053 | ✅ |
 | T-066 | Handle `customer.subscription.updated`: sync status to Supabase | P0 | T-064 | ✅ |
 | T-067 | Handle `customer.subscription.deleted`: set plan to free, queue unpublish | P0 | T-064 | ✅ |
-| T-068 | Build paywall modal (shown when free user attempts to publish) | P0 | T-062 | ☐ |
+| T-068 | Build paywall modal (shown when free user attempts to publish) | P0 | T-062 | ✅ |
 | T-069 | Test: full billing flow (checkout → activation → portal → cancellation) | P0 | T-065, T-066, T-067 | ☐ |
 
 ---
@@ -131,7 +131,7 @@
 | T-072 | Add "Edit Site" link from dashboard to site editor | P0 | T-071 | ☐ |
 | T-073 | Add "View Live Site" link for published sites | P0 | T-071 | ☐ |
 | T-074 | Display subscription plan and renewal date on dashboard | P1 | T-070, T-066 | ☐ |
-| T-075 | Add "Manage Billing" button linking to Stripe Billing Portal | P1 | T-063 | ☐ |
+| T-075 | Add "Manage Billing" button linking to Stripe Billing Portal | P1 | T-063 | ✅ |
 | T-076 | Build account settings page (display name, email) | P2 | T-070 | ☐ |
 
 ---

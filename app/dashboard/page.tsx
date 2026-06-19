@@ -1,6 +1,7 @@
 import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
+import ManageBillingButton from '@/components/ManageBillingButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,15 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     data: { user }
   } = await supabase.auth.getUser();
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('plan, stripe_customer_id')
+    .eq('id', user?.id ?? '')
+    .single();
+
+  const plan = (profile?.plan as string | undefined) ?? 'free';
+  const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-16">
       <div className="flex items-center justify-between gap-4">
@@ -31,7 +41,22 @@ export default async function DashboardPage(): Promise<JSX.Element> {
       </div>
 
       <p className="text-slate-300">Signed in as {user?.email ?? 'unknown user'}.</p>
-      <p className="text-slate-400">M2 complete: auth and protected route scaffold is active.</p>
+
+      <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-5">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-slate-400">Current plan</p>
+            <p className="text-lg font-semibold text-white capitalize">{plan}</p>
+          </div>
+          <ManageBillingButton disabled={!hasStripeCustomer} />
+        </div>
+
+        <p className="text-sm text-slate-400">
+          {hasStripeCustomer
+            ? 'Manage your subscription, billing details, and invoices in Stripe Billing Portal.'
+            : 'Complete checkout once to create your billing profile and enable billing portal access.'}
+        </p>
+      </div>
     </main>
   );
 }

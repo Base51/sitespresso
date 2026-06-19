@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm';
 import SitePreview from '@/components/SitePreview';
+import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
 
 type Stage = 'form' | 'loading' | 'preview' | 'error';
@@ -15,6 +16,8 @@ export default function Home() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [generationTime, setGenerationTime] = useState<number | null>(null);
   const [publishTime, setPublishTime] = useState<number | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const startTimeRef = useRef<number | null>(null);
 
@@ -74,16 +77,7 @@ export default function Home() {
       const json = await res.json();
 
       if (json?.requiresBilling) {
-        const checkoutRes = await fetch('/api/billing/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ siteId: draftId }),
-        });
-        const checkoutJson = await checkoutRes.json();
-        if (!checkoutRes.ok || !checkoutJson.checkoutUrl) {
-          throw new Error(checkoutJson.error ?? 'Failed to start checkout flow.');
-        }
-        window.location.href = checkoutJson.checkoutUrl as string;
+        setPaywallOpen(true);
         return;
       }
 
@@ -100,6 +94,30 @@ export default function Home() {
       const elapsed = performance.now() - startTime;
       console.error(`❌ Publishing failed after ${Math.round(elapsed)}ms:`, err);
       alert('Publishing failed. Please try again.');
+    }
+  }
+
+  async function continueToCheckout() {
+    if (!draftId) return;
+
+    setCheckoutLoading(true);
+    try {
+      const checkoutRes = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: draftId }),
+      });
+      const checkoutJson = await checkoutRes.json();
+
+      if (!checkoutRes.ok || !checkoutJson.checkoutUrl) {
+        throw new Error(checkoutJson.error ?? 'Failed to start checkout flow.');
+      }
+
+      window.location.href = checkoutJson.checkoutUrl as string;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to start checkout flow.');
+    } finally {
+      setCheckoutLoading(false);
     }
   }
 
@@ -188,8 +206,9 @@ export default function Home() {
 
   // ── Preview stage ─────────────────────────────────────────────────────────
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <>
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-white">{website?.business_name}</h2>
           <p className="text-sm text-slate-400">
@@ -209,6 +228,7 @@ export default function Home() {
               setDraftId(null);
               setGenerationTime(null);
               setPublishTime(null);
+              setPaywallOpen(false);
             }}
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
           >
@@ -229,6 +249,14 @@ export default function Home() {
           onDraftSaved={(id) => setDraftId(id)}
         />
       )}
-    </main>
+      </main>
+
+      <PaywallModal
+        open={paywallOpen}
+        loading={checkoutLoading}
+        onClose={() => setPaywallOpen(false)}
+        onContinue={continueToCheckout}
+      />
+    </>
   );
 }
