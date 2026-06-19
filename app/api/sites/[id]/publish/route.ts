@@ -29,11 +29,12 @@ export async function POST(
     if (!profile || profile.plan === 'free') {
       return NextResponse.json(
         {
+          success: false,
           error: 'Billing required before publishing.',
           requiresBilling: true,
           siteId,
         },
-        { status: 402 },
+        { status: 200 },
       );
     }
 

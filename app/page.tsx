@@ -73,7 +73,7 @@ export default function Home() {
       });
       const json = await res.json();
 
-       if (res.status === 402 && json?.requiresBilling) {
+      if (json?.requiresBilling) {
         const checkoutRes = await fetch('/api/billing/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
