@@ -15,7 +15,7 @@
 | M3 | AI generation pipeline | Week 3 | Complete |
 | M4 | Site preview & editor | Week 4 | Complete |
 | M5 | Publishing & subdomain routing | Week 5 | Complete |
-| M6 | Billing (Stripe) | Week 5–6 | Not Started |
+| M6 | Billing (Stripe) | Week 5–6 | In Progress |
 | M7 | Dashboard & account management | Week 6 | Not Started |
 | M8 | QA, performance, security review | Week 6 | Not Started |
 | M9 | Production launch | Week 6 | Not Started |
@@ -110,13 +110,13 @@
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
 | T-060 | Create Stripe product and price (Starter $9/mo) | P0 | — | ☐ |
-| T-061 | Install Stripe Node.js SDK | P0 | T-001 | ☐ |
-| T-062 | Implement `POST /api/billing/checkout` route handler | P0 | T-061, T-013 | ☐ |
-| T-063 | Implement `POST /api/billing/portal` route handler | P0 | T-061, T-013 | ☐ |
-| T-064 | Implement `POST /api/webhooks/stripe` route handler with signature verification | P0 | T-061 | ☐ |
-| T-065 | Handle `checkout.session.completed`: activate subscription, publish site | P0 | T-064, T-053 | ☐ |
-| T-066 | Handle `customer.subscription.updated`: sync status to Supabase | P0 | T-064 | ☐ |
-| T-067 | Handle `customer.subscription.deleted`: set plan to free, queue unpublish | P0 | T-064 | ☐ |
+| T-061 | Install Stripe Node.js SDK | P0 | T-001 | ✅ |
+| T-062 | Implement `POST /api/billing/checkout` route handler | P0 | T-061, T-013 | ✅ |
+| T-063 | Implement `POST /api/billing/portal` route handler | P0 | T-061, T-013 | ✅ |
+| T-064 | Implement `POST /api/webhooks/stripe` route handler with signature verification | P0 | T-061 | ✅ |
+| T-065 | Handle `checkout.session.completed`: activate subscription, publish site | P0 | T-064, T-053 | ✅ |
+| T-066 | Handle `customer.subscription.updated`: sync status to Supabase | P0 | T-064 | ✅ |
+| T-067 | Handle `customer.subscription.deleted`: set plan to free, queue unpublish | P0 | T-064 | ✅ |
 | T-068 | Build paywall modal (shown when free user attempts to publish) | P0 | T-062 | ☐ |
 | T-069 | Test: full billing flow (checkout → activation → portal → cancellation) | P0 | T-065, T-066, T-067 | ☐ |
 

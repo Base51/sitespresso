@@ -20,6 +20,23 @@ export async function POST(
 
     const siteId = params.id;
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.plan === 'free') {
+      return NextResponse.json(
+        {
+          error: 'Billing required before publishing.',
+          requiresBilling: true,
+          siteId,
+        },
+        { status: 402 },
+      );
+    }
+
     // Fetch the site and verify ownership
     const { data: site, error: fetchError } = await supabase
       .from('sites')

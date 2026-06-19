@@ -72,6 +72,25 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
       });
       const json = await res.json();
+
+       if (res.status === 402 && json?.requiresBilling) {
+        const checkoutRes = await fetch('/api/billing/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId: draftId }),
+        });
+        const checkoutJson = await checkoutRes.json();
+        if (!checkoutRes.ok || !checkoutJson.checkoutUrl) {
+          throw new Error(checkoutJson.error ?? 'Failed to start checkout flow.');
+        }
+        window.location.href = checkoutJson.checkoutUrl as string;
+        return;
+      }
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? 'Publish failed.');
+      }
+
       const elapsed = performance.now() - startTime;
       setPublishTime(Math.round(elapsed));
       console.log(`⏱️ Publishing completed in ${Math.round(elapsed)}ms`);
