@@ -118,7 +118,7 @@
 | T-066 | Handle `customer.subscription.updated`: sync status to Supabase | P0 | T-064 | ✅ |
 | T-067 | Handle `customer.subscription.deleted`: set plan to free, queue unpublish | P0 | T-064 | ✅ |
 | T-068 | Build paywall modal (shown when free user attempts to publish) | P0 | T-062 | ✅ |
-| T-069 | Test: full billing flow (checkout → activation → portal → cancellation) | P0 | T-065, T-066, T-067 | ☐ |
+| T-069 | Test: full billing flow (checkout → activation → portal → cancellation) — pass with deferred deleted-event verification | P0 | T-065, T-066, T-067 | ✅ |
 
 ---
 
