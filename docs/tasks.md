@@ -12,7 +12,7 @@
 |---|---|---|---|
 | M1 | Project scaffold & infrastructure | Week 1 | Complete |
 | M2 | Auth + Supabase integration | Week 2 | Complete |
-| M3 | AI generation pipeline | Week 3 | Not Started |
+| M3 | AI generation pipeline | Week 3 | In Progress |
 | M4 | Site preview & editor | Week 4 | Not Started |
 | M5 | Publishing & subdomain routing | Week 5 | Not Started |
 | M6 | Billing (Stripe) | Week 5–6 | Not Started |
@@ -57,15 +57,15 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-020 | Install OpenAI Node.js SDK | P0 | T-001 | ☐ |
-| T-021 | Define Zod schema for website JSON structure | P0 | T-001 | ☐ |
-| T-022 | Implement `POST /api/generate` route handler | P0 | T-020, T-021 | ☐ |
-| T-023 | Write system prompt template for local business content generation | P0 | T-022 | ☐ |
-| T-024 | Enforce `response_format: json_object` and validate against Zod schema | P0 | T-022, T-021 | ☐ |
-| T-025 | Sanitize and length-cap user inputs before prompt injection | P0 | T-022 | ☐ |
-| T-026 | Implement rate limiting on `/api/generate` (IP + user-level) | P0 | T-022 | ☐ |
-| T-027 | Implement retry logic on OpenAI API failures (max 2 retries) | P1 | T-022 | ☐ |
-| T-028 | Test: generation for 5 business types (restaurant, barbershop, gym, salon, repair) | P0 | T-024 | ☐ |
+| T-020 | Install OpenAI Node.js SDK | P0 | T-001 | ✅ |
+| T-021 | Define Zod schema for website JSON structure | P0 | T-001 | ✅ |
+| T-022 | Implement `POST /api/generate` route handler | P0 | T-020, T-021 | ✅ |
+| T-023 | Write system prompt template for local business content generation | P0 | T-022 | ✅ |
+| T-024 | Enforce `response_format: json_object` and validate against Zod schema | P0 | T-022, T-021 | ✅ |
+| T-025 | Sanitize and length-cap user inputs before prompt injection | P0 | T-022 | ✅ |
+| T-026 | Implement rate limiting on `/api/generate` (IP + user-level) | P0 | T-022 | ✅ |
+| T-027 | Implement retry logic on OpenAI API failures (max 2 retries) | P1 | T-022 | ✅ |
+| T-028 | Test: generation for 5 business types (restaurant, barbershop, gym, salon, repair) | P0 | T-024 | 🔄 |
 
 ---
 

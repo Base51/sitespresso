@@ -1,8 +1,8 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { hasSupabaseConfig } from '@/lib/supabase/config';
+import { createClient } from '../../lib/supabase/client';
+import { hasSupabaseConfig } from '../../lib/supabase/config';
 
 type LoginPageProps = {
   searchParams?: {

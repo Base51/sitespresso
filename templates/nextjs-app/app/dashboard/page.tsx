@@ -1,6 +1,6 @@
-import { signOut } from '@/app/actions/auth';
-import { hasSupabaseConfig } from '@/lib/supabase/config';
-import { createClient } from '@/lib/supabase/server';
+import { signOut } from '../actions/auth';
+import { hasSupabaseConfig } from '../../lib/supabase/config';
+import { createClient } from '../../lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "next": "^14.2.35"
+  },
+  "scripts": {
+    "vercel-build": "npm --prefix templates/nextjs-app ci --include=dev && npm --prefix templates/nextjs-app run build && rm -rf .next && cp -R templates/nextjs-app/.next ./.next"
+  }
+}
