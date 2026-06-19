@@ -29,10 +29,10 @@ export const WebsiteSchema = z.object({
   }),
   contact: z.object({
     title: z.string().min(1).max(100),
-    phone: z.string().min(10).max(20).optional(),
-    email: z.string().email().optional(),
-    address: z.string().min(5).max(150).optional(),
-    hours: z.string().min(5).max(200).optional(),
+    phone: z.string().optional(),
+    email: z.string().optional(),
+    address: z.string().optional(),
+    hours: z.string().optional(),
   }),
   color_scheme: z.object({
     primary: z.string().regex(/^#[0-9A-F]{6}$/i),

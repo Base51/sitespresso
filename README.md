@@ -2,6 +2,8 @@
 
 A GitHub template repository that serves as the base for all future projects.
 
+The deployable SiteSpresso app now lives at the repository root. The `templates/` folder remains as scaffold/source material for future projects.
+
 ## Structure
 
 ```

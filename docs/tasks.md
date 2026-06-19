@@ -12,7 +12,7 @@
 |---|---|---|---|
 | M1 | Project scaffold & infrastructure | Week 1 | Complete |
 | M2 | Auth + Supabase integration | Week 2 | Complete |
-| M3 | AI generation pipeline | Week 3 | In Progress |
+| M3 | AI generation pipeline | Week 3 | Complete |
 | M4 | Site preview & editor | Week 4 | Not Started |
 | M5 | Publishing & subdomain routing | Week 5 | Not Started |
 | M6 | Billing (Stripe) | Week 5–6 | Not Started |
@@ -65,7 +65,7 @@
 | T-025 | Sanitize and length-cap user inputs before prompt injection | P0 | T-022 | ✅ |
 | T-026 | Implement rate limiting on `/api/generate` (IP + user-level) | P0 | T-022 | ✅ |
 | T-027 | Implement retry logic on OpenAI API failures (max 2 retries) | P1 | T-022 | ✅ |
-| T-028 | Test: generation for 5 business types (restaurant, barbershop, gym, salon, repair) | P0 | T-024 | 🔄 |
+| T-028 | Test: generation for 5 business types (restaurant, barbershop, gym, salon, repair) | P0 | T-024 | ✅ |
 
 ---
 

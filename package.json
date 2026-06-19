@@ -1,9 +1,37 @@
 {
+  "name": "sitespresso",
+  "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "next": "^14.2.35"
-  },
   "scripts": {
-    "vercel-build": "npm --prefix templates/nextjs-app ci --include=dev && npm --prefix templates/nextjs-app run build && rm -rf .next && cp -R templates/nextjs-app/.next ./.next"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "vercel-build": "next build"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "next": "^14.2.0",
+    "openai": "^6.44.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.16",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.2"
   }
 }
