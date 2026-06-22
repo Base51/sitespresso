@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "vercel-build": "next build",
-    "clean": "powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; Write-Host '✓ Cleaned'\""
+    "clean": "powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; Write-Host '✓ Cleaned'\"",
+    "test:edges": "node scripts/test-slug-edge-cases.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
