@@ -1,0 +1,44 @@
+name: Build Verification
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Clean build cache
+        run: |
+          rm -rf .next .turbo tsconfig.tsbuildinfo
+          echo "✓ Cleaned build cache"
+      
+      - name: Run type check
+        run: npx tsc --noEmit
+      
+      - name: Run lint
+        run: npm run lint
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Verify build artifacts
+        run: |
+          if [ ! -d ".next/static" ]; then
+            echo "❌ ERROR: Next.js static assets not found!"
+            exit 1
+          fi
+          echo "✓ Build artifacts verified"

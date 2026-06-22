@@ -88,7 +88,7 @@ Reach $1,000 MRR within 90 days of launch through self-serve subscriptions from 
 |---|---|---|
 | FR-11 | User shall be able to sign up and sign in with Google OAuth | P0 |
 | FR-12 | User shall be able to sign up and sign in with magic link (email) | P0 |
-| FR-13 | Unauthenticated users may generate and preview but must sign in to publish | P0 |
+| FR-13 | Unauthenticated users may generate one free preview; they must sign in to continue generating and to publish | P0 |
 | FR-14 | Session shall persist across browser refreshes | P0 |
 
 ### 4.4 Publishing
@@ -147,6 +147,7 @@ Reach $1,000 MRR within 90 days of launch through self-serve subscriptions from 
 | ID | Requirement | Priority |
 |---|---|---|
 | UX-01 | Intake form shall be the first screen — no sign-in wall before generation | P0 |
+| UX-10 | Home page shall expose a clear auth CTA (Sign In for guests, Dashboard for authenticated users) | P1 |
 | UX-02 | Generation loading screen shall show progress feedback (spinner + copy) | P0 |
 | UX-03 | Preview shall render in a simulated browser frame to feel real | P1 |
 | UX-04 | Editable fields shall be visually highlighted on hover | P0 |

@@ -45,3 +45,26 @@ project-factory/
 
 Add new templates under `templates/`, each with its own `README.md` describing setup and usage.
 
+## Local Development
+
+### Quick Start
+
+```bash
+npm install
+npm run dev:clean  # Recommended first run (cleans cache + starts server)
+```
+
+Then open [http://localhost:3000](http://localhost:3000)
+
+### Commands
+
+- **`npm run dev`** — Start dev server
+- **`npm run dev:clean`** — Clean cache + start fresh dev server (use this after pulling code)
+- **`npm run build`** — Build for production
+- **`npm start`** — Run production build locally
+- **`npm run clean`** — Clean cache without restarting
+
+### Troubleshooting
+
+If you see a white page, missing styles, or 404 errors on `/_next/static/`, see [docs/DEVELOPMENT_CACHE.md](docs/DEVELOPMENT_CACHE.md) for solutions.
+

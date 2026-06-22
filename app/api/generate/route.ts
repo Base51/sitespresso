@@ -211,18 +211,6 @@ export async function POST(request: NextRequest) {
       request.headers.get('x-real-ip') ||
       'unknown';
 
-    // Check rate limit
-    const rateLimit = checkRateLimit(ip);
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded. Try again later.',
-          resetIn: rateLimit.resetIn,
-        },
-        { status: 429, headers: { 'Retry-After': `${rateLimit.resetIn}` } }
-      );
-    }
-
     // Parse and validate request body
     const body = await request.json();
     const sanitized = sanitizeInput(body);
@@ -263,7 +251,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         website,
-        remaining: rateLimit.remaining,
+        remaining: userRateLimit.remaining,
       },
       { status: 200 }
     );

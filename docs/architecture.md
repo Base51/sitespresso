@@ -140,7 +140,7 @@ create policy "Own subscriptions" on public.subscriptions
 All routes are Next.js Route Handlers under `/app/api/`.
 
 ### `POST /api/generate`
-Calls OpenAI and returns website JSON. Requires auth.
+Calls OpenAI and returns website JSON. Available to guests for initial preview; repeat generation is gated in the client flow until sign-in.
 
 **Request:**
 ```json
@@ -223,7 +223,7 @@ Do not include placeholder or fake data. Use realistic content appropriate for t
 - Use `response_format: { type: "json_object" }` to enforce valid JSON.
 - Validate the returned JSON against a Zod schema before saving.
 - If validation fails, return a 422 error and prompt the user to retry.
-- Rate-limit the `/api/generate` endpoint: 3 requests per hour per unauthenticated IP, 10 per hour per authenticated user on free plan.
+- Rate-limit the `/api/generate` endpoint by IP and user context to control abuse while preserving onboarding UX.
 
 ---
 

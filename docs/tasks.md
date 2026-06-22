@@ -1,6 +1,6 @@
 # SiteSpresso — Implementation Backlog
 
-> Version: 1.0 | Status: Active | Date: 2026-06-18
+> Version: 1.1 | Status: Active | Date: 2026-06-22
 > Format: `[PRIORITY] Task — Status`
 > Priorities: **P0** (launch blocker) | **P1** (launch target) | **P2** (post-MVP)
 
@@ -15,9 +15,9 @@
 | M3 | AI generation pipeline | Week 3 | Complete |
 | M4 | Site preview & editor | Week 4 | Complete |
 | M5 | Publishing & subdomain routing | Week 5 | Complete |
-| M6 | Billing (Stripe) | Week 5–6 | In Progress |
+| M6 | Billing (Stripe) | Week 5–6 | Complete |
 | M7 | Dashboard & account management | Week 6 | In Progress |
-| M8 | QA, performance, security review | Week 6 | Not Started |
+| M8 | QA, performance, security review | Week 6 | In Progress |
 | M9 | Production launch | Week 6 | Not Started |
 
 ---
@@ -85,6 +85,8 @@
 | T-039 | Persist draft site to Supabase on generation (unauthenticated → prompt sign-in) | P0 | T-038 | ✅ |
 | T-040 | Build error state UI for generation failure with retry CTA | P0 | T-033 | ✅ |
 | T-041 | Add "Revert section" option to restore original AI content | P1 | T-037 | ✅ |
+| T-042 | Add one-free-preview auth gate (trial flag + redirect to login) | P0 | T-030, T-040 | ✅ |
+| T-043 | Add home-page auth CTA (Sign In / Go to Dashboard) | P1 | T-015, T-070 | ✅ |
 
 ---
 
@@ -109,7 +111,7 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-060 | Create Stripe product and price (Starter $9/mo) | P0 | — | ☐ |
+| T-060 | Create Stripe product and price (Starter $9/mo) | P0 | — | ✅ |
 | T-061 | Install Stripe Node.js SDK | P0 | T-001 | ✅ |
 | T-062 | Implement `POST /api/billing/checkout` route handler | P0 | T-061, T-013 | ✅ |
 | T-063 | Implement `POST /api/billing/portal` route handler | P0 | T-061, T-013 | ✅ |
@@ -141,9 +143,10 @@
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
 | T-080 | Run Lighthouse audit on published site — target ≥ 90 mobile | P1 | T-057 | ☐ |
-| T-081 | Review all API routes for missing auth checks | P0 | All API tasks | ☐ |
+| T-081 | Review all API routes for missing auth checks | P0 | All API tasks | ✅ |
 | T-082 | Review all Supabase queries — confirm RLS is enforced | P0 | T-011 | ☐ |
-| T-083 | Verify OpenAI and Stripe keys are never in client bundles | P0 | All API tasks | ☐ |
+| T-083 | Verify OpenAI and Stripe keys are never in client bundles | P0 | All API tasks | 🔄 |
+| T-083a | Implement automatic cache cleanup to prevent dev server stale assets | P1 | T-001 | ✅ |
 | T-084 | Test slug conflict and reserved slug edge cases | P0 | T-051, T-052 | ☐ |
 | T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ☐ |
 | T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ☐ |

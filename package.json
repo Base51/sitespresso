@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "powershell -ExecutionPolicy Bypass -File scripts/clean-dev.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "clean": "powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; Write-Host '✓ Cleaned'\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
