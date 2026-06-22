@@ -1,14 +1,19 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import type { User } from '@supabase/supabase-js';
 import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm';
 import SitePreview from '@/components/SitePreview';
 import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
+import { isTrialUsed, markTrialUsed } from '@/lib/trial';
+import { createClient } from '@/lib/supabase/client';
 
 type Stage = 'form' | 'loading' | 'preview' | 'error';
 
 export default function Home() {
+  const router = useRouter();
   const [stage, setStage] = useState<Stage>('form');
   const [website, setWebsite] = useState<Website | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,9 +24,30 @@ export default function Home() {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(false);
   const startTimeRef = useRef<number | null>(null);
 
+  // Check auth and trial status on mount
+  useEffect(() => {
+    async function checkAuth() {
+      const supabase = createClient();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
+      setTrialUsed(isTrialUsed());
+      setAuthLoaded(true);
+    }
+    checkAuth();
+  }, []);
+
   async function generate(values: GenerateFormValues) {
+    // Check if unauthenticated user has exhausted free trial
+    if (authLoaded && !user && isTrialUsed()) {
+      router.push('/login?redirect=/&reason=trial_exhausted');
+      return;
+    }
+
     startTimeRef.current = performance.now();
     setElapsedTime(0);
     setLastInput(values);
@@ -41,6 +67,13 @@ export default function Home() {
       const elapsed = performance.now() - (startTimeRef.current || 0);
       setGenerationTime(Math.round(elapsed));
       console.log(`⏱️ Generation completed in ${Math.round(elapsed)}ms`);
+      
+      // Mark trial as used if this is first generation by unauthenticated user
+      if (!user) {
+        markTrialUsed();
+        setTrialUsed(true);
+      }
+      
       setWebsite(json.website as Website);
       setStage('preview');
     } catch (err) {
@@ -207,6 +240,13 @@ export default function Home() {
   // ── Preview stage ─────────────────────────────────────────────────────────
   return (
     <>
+      {!user && trialUsed && (
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600/90 to-blue-500/90 px-6 py-3 text-center backdrop-blur">
+          <p className="text-sm font-medium text-white">
+            ✓ Free preview generated! <button onClick={() => router.push('/login?redirect=/&reason=trial_exhausted')} className="underline hover:text-blue-100 transition">Sign up to publish and generate more.</button>
+          </p>
+        </div>
+      )}
       <main className="mx-auto w-full max-w-5xl px-4 py-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>

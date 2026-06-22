@@ -7,11 +7,13 @@ import { hasSupabaseConfig } from '../../lib/supabase/config';
 type LoginPageProps = {
   searchParams?: {
     next?: string;
+    reason?: string;
   };
 };
 
 export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element {
   const next = searchParams?.next ?? '/dashboard';
+  const reason = searchParams?.reason;
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +78,13 @@ export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-6 px-6">
       <h1 className="text-3xl font-semibold text-white">Sign in to SiteSpresso</h1>
-      <p className="text-sm text-slate-300">Continue to manage your website and publishing settings.</p>
+      {reason === 'trial_exhausted' ? (
+        <p className="text-sm text-slate-300">
+          Your free preview is used. Sign up to unlock unlimited generations and publish your site.
+        </p>
+      ) : (
+        <p className="text-sm text-slate-300">Continue to manage your website and publishing settings.</p>
+      )}
 
       <button
         className="rounded-md bg-white px-4 py-2 font-medium text-slate-900 disabled:opacity-70"

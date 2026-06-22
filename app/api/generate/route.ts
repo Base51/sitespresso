@@ -229,17 +229,13 @@ export async function POST(request: NextRequest) {
 
     const input = GenerateInputSchema.parse(sanitized);
 
-    // Require authenticated user for generation requests.
     const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const userRateLimit = checkRateLimit(ip, user.id);
+    // Rate limiting: pass user ID if authenticated, otherwise IP-only limit applies
+    const userRateLimit = checkRateLimit(ip, user?.id);
     if (!userRateLimit.allowed) {
       return NextResponse.json(
         {
