@@ -98,36 +98,39 @@ export default function DashboardContent({ sites }: DashboardContentProps): JSX.
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-sm">
-                  <Link href={`/editor/${site.id}`} className="inline-flex">
-                    <Button variant="secondary" size="sm">
-                      Edit site
-                    </Button>
-                  </Link>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <Link href={`/editor/${site.id}`} className="inline-flex">
+                      <Button variant="secondary" size="sm">
+                        Edit site
+                      </Button>
+                    </Link>
 
-                  {site.status === 'published' && site.slug ? (
-                    <a
-                      href={`https://${site.slug}.sitespresso.com`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex"
+                    {site.status === 'published' && site.slug ? (
+                      <a
+                        href={`https://${site.slug}.sitespresso.com`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex"
+                      >
+                        <span className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-3 py-2 text-sm font-medium text-slate-950 transition hover:bg-brand-primary-strong">
+                          View live site
+                        </span>
+                      </a>
+                    ) : (
+                      <span className="text-brand-muted">Publish to get live link</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-brand-muted">{formatDate(site.updated_at)}</span>
+                    <button
+                      onClick={() => openDeleteModal(site)}
+                      className="inline-flex text-xs font-medium text-rose-400 transition hover:text-rose-300"
                     >
-                      <span className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-3 py-2 text-sm font-medium text-slate-950 transition hover:bg-brand-primary-strong">
-                        View live site
-                      </span>
-                    </a>
-                  ) : (
-                    <span className="text-brand-muted">Publish to get live link</span>
-                  )}
-
-                  <button
-                    onClick={() => openDeleteModal(site)}
-                    className="ml-auto text-xs text-brand-muted/60 transition hover:text-rose-400"
-                  >
-                    Delete
-                  </button>
-
-                  <span className="text-xs text-brand-muted">{formatDate(site.updated_at)}</span>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}
