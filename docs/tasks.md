@@ -142,7 +142,7 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-080 | Run Lighthouse audit on published site — target ≥ 90 mobile | P1 | T-057 | ☐ |
+| T-080 | Run Lighthouse audit on published site — target ≥ 90 mobile | P1 | T-057 | ✅ (Prod: Perf 98, A11y 100, BP 100, SEO 100) |
 | T-081 | Review all API routes for missing auth checks | P0 | All API tasks | ✅ |
 | T-082 | Review all Supabase queries — confirm RLS is enforced | P0 | T-011 | ✅ |
 | T-083 | Verify OpenAI and Stripe keys are never in client bundles | P0 | All API tasks | ✅ |
@@ -151,8 +151,8 @@
 | T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ⚠️ (Manual testing) |
 | T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ⚠️ (Manual testing) |
 | T-087 | Test generation failure and retry UX | P0 | T-040 | ⚠️ (Manual testing) |
-| T-088 | Cross-browser test: Chrome, Safari, Firefox (mobile + desktop) | P1 | All UI tasks | ☐ |
-| T-089 | WCAG 2.1 AA accessibility audit on intake form and dashboard | P1 | All UI tasks | ☐ |
+| T-088 | Cross-browser test: Chrome, Safari, Firefox (mobile + desktop) | P1 | All UI tasks | 🔄 (Chromium responsive pass; Safari/Firefox manual pending) |
+| T-089 | WCAG 2.1 AA accessibility audit on intake form and dashboard | P1 | All UI tasks | 🔄 (Lighthouse home page a11y 100; dashboard/manual audit pending) |
 
 ---
 
