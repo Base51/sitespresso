@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Website } from '@/lib/schemas/website';
 import EditableField from './EditableField';
+import EditorSidebar from './EditorSidebar';
+import LogoDisplay from './LogoDisplay';
 import { createClient } from '@/lib/supabase/client';
 
 interface SitePreviewProps {
@@ -12,6 +14,16 @@ interface SitePreviewProps {
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'unauthenticated' | 'error';
+
+// Map font names to Google Fonts family names for CSS
+const fontMap: Record<string, string> = {
+  'Playfair Display': '"Playfair Display", serif',
+  'Lora': '"Lora", serif',
+  'Georgia': '"Georgia", serif',
+  'Inter': '"Inter", sans-serif',
+  'Roboto': '"Roboto", sans-serif',
+  'Poppins': '"Poppins", sans-serif',
+};
 
 export default function SitePreview({
   website,
@@ -108,6 +120,18 @@ export default function SitePreview({
   const primary = color_scheme.primary;
   const secondary = color_scheme.secondary;
 
+  // Build Google Fonts URL for selected fonts
+  const googleFontsUrl = useMemo(() => {
+    const headingFont = draft.fonts?.heading || 'Playfair Display';
+    const bodyFont = draft.fonts?.body || 'Inter';
+    const googleFonts = ['Playfair Display', 'Lora', 'Inter', 'Roboto', 'Poppins'];
+    const families: string[] = [];
+    if (googleFonts.includes(headingFont)) families.push(headingFont.replace(' ', '+') + ':ital,wght@0,400;0,700;1,400');
+    if (googleFonts.includes(bodyFont) && bodyFont !== headingFont) families.push(bodyFont.replace(' ', '+') + ':wght@400;500;600');
+    if (!families.length) return null;
+    return `https://fonts.googleapis.com/css2?${families.map(f => `family=${f}`).join('&')}&display=swap`;
+  }, [draft.fonts?.heading, draft.fonts?.body]);
+
   const saveLabel: Record<SaveStatus, string> = {
     idle: '',
     saving: 'Saving…',
@@ -125,12 +149,28 @@ export default function SitePreview({
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-700 shadow-2xl">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between bg-slate-900 px-4 py-2 text-xs">
-        <span className="text-slate-400">Preview · click any text to edit</span>
-        <span className={saveLabelClass[saveStatus]}>{saveLabel[saveStatus]}</span>
-      </div>
+    <div className="w-full space-y-4">
+      {/* Customization Sidebar */}
+      {savedId && (
+        <EditorSidebar
+          siteId={savedId}
+          website={draft}
+          onWebsiteChange={(updatedWebsite) => update(() => updatedWebsite)}
+        />
+      )}
+
+      {/* Preview */}
+      <div className="w-full overflow-hidden rounded-xl border border-slate-700 shadow-2xl">
+        {/* Load Google Fonts dynamically */}
+        {googleFontsUrl && (
+          // eslint-disable-next-line @next/next/no-page-custom-font
+          <link rel="stylesheet" href={googleFontsUrl} />
+        )}
+        {/* Toolbar */}
+        <div className="flex items-center justify-between bg-slate-900 px-4 py-2 text-xs">
+          <span className="text-slate-400">Preview · click any text to edit</span>
+          <span className={saveLabelClass[saveStatus]}>{saveLabel[saveStatus]}</span>
+        </div>
 
       {/* Hero */}
       <section
@@ -139,12 +179,16 @@ export default function SitePreview({
           background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
         }}
       >
+        {draft.logo?.url && (
+          <LogoDisplay website={draft} />
+        )}
         <EditableField
           tag="h1"
           value={draft.hero.title}
           original={website.hero.title}
           onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, title: v } }))}
           className="text-4xl font-bold leading-tight md:text-5xl"
+          style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
         />
         <EditableField
           tag="p"
@@ -152,6 +196,7 @@ export default function SitePreview({
           original={website.tagline}
           onChange={(v) => update((d) => ({ ...d, tagline: v }))}
           className="max-w-xl text-lg opacity-90"
+          style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
           multiline
         />
         <EditableField
@@ -160,6 +205,7 @@ export default function SitePreview({
           original={website.hero.content}
           onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, content: v } }))}
           className="max-w-2xl text-base opacity-80"
+          style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
           multiline
         />
         {draft.hero.cta_text && (
@@ -181,7 +227,10 @@ export default function SitePreview({
             original={website.about.title}
             onChange={(v) => update((d) => ({ ...d, about: { ...d.about, title: v } }))}
             className="text-2xl font-bold"
-            style={{ color: primary }}
+            style={{ 
+              color: primary,
+              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
+            }}
           />
           <EditableField
             tag="p"
@@ -189,6 +238,7 @@ export default function SitePreview({
             original={website.about.content}
             onChange={(v) => update((d) => ({ ...d, about: { ...d.about, content: v } }))}
             className="leading-relaxed text-slate-600"
+            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
             multiline
           />
           {draft.about.cta_text && (
@@ -212,6 +262,7 @@ export default function SitePreview({
             original={website.services.title}
             onChange={(v) => update((d) => ({ ...d, services: { ...d.services, title: v } }))}
             className="mb-3 block text-center text-2xl font-bold text-slate-800"
+            style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
           />
           <EditableField
             tag="p"
@@ -221,6 +272,7 @@ export default function SitePreview({
               update((d) => ({ ...d, services: { ...d.services, description: v } }))
             }
             className="mb-8 block text-center text-slate-500"
+            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
             multiline
           />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -246,6 +298,7 @@ export default function SitePreview({
                     }))
                   }
                   className="mb-1 block font-semibold text-slate-800"
+                  style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
                 />
                 <EditableField
                   tag="p"
@@ -263,6 +316,7 @@ export default function SitePreview({
                     }))
                   }
                   className="text-sm text-slate-500"
+                  style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
                   multiline
                 />
               </div>
@@ -280,9 +334,12 @@ export default function SitePreview({
             original={website.contact.title}
             onChange={(v) => update((d) => ({ ...d, contact: { ...d.contact, title: v } }))}
             className="mb-6 block text-2xl font-bold"
-            style={{ color: primary }}
+            style={{ 
+              color: primary,
+              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
+            }}
           />
-          <div className="space-y-3 text-slate-600">
+          <div className="space-y-3 text-slate-600" style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}>
             {draft.contact.phone && (
               <div className="flex gap-2">
                 <span>📞</span>
@@ -347,6 +404,7 @@ export default function SitePreview({
         © {new Date().getFullYear()} {draft.business_name}. Powered by{' '}
         <span className="font-semibold text-white">SiteSpresso</span>
       </footer>
+      </div>
     </div>
   );
 }

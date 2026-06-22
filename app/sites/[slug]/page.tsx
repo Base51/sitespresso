@@ -54,8 +54,32 @@ export default async function PublishedSitePage({ params }: PageProps) {
   const primary = color_scheme.primary;
   const secondary = color_scheme.secondary;
 
+  // Google Fonts for selected fonts
+  const fontFamilyMap: Record<string, string> = {
+    'Playfair Display': '"Playfair Display", serif',
+    'Lora': '"Lora", serif',
+    'Georgia': '"Georgia", serif',
+    'Inter': '"Inter", sans-serif',
+    'Roboto': '"Roboto", sans-serif',
+    'Poppins': '"Poppins", sans-serif',
+  };
+  const googleFontsSet = new Set(['Playfair Display', 'Lora', 'Inter', 'Roboto', 'Poppins']);
+  const headingFont = site.fonts?.heading || 'Playfair Display';
+  const bodyFont = site.fonts?.body || 'Inter';
+  const headingCss = fontFamilyMap[headingFont] || '"Playfair Display", serif';
+  const bodyCss = fontFamilyMap[bodyFont] || '"Inter", sans-serif';
+  const googleFamilies: string[] = [];
+  if (googleFontsSet.has(headingFont)) googleFamilies.push(headingFont.replace(' ', '+') + ':ital,wght@0,400;0,700;1,400');
+  if (googleFontsSet.has(bodyFont) && bodyFont !== headingFont) googleFamilies.push(bodyFont.replace(' ', '+') + ':wght@400;500;600');
+  const googleFontsUrl = googleFamilies.length
+    ? `https://fonts.googleapis.com/css2?${googleFamilies.map(f => `family=${f}`).join('&')}&display=swap`
+    : null;
+
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
+      {/* Load Google Fonts */}
+      {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
+
       {/* Hero */}
       <section
         className="flex min-h-[380px] flex-col items-center justify-center gap-4 px-6 py-16 text-center text-white"
@@ -63,11 +87,24 @@ export default async function PublishedSitePage({ params }: PageProps) {
           background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
         }}
       >
-        <h1 className="text-balance text-4xl font-bold leading-tight md:text-5xl">
+        {site.logo?.url && (
+          <img
+            src={site.logo.url}
+            alt={`${site.business_name} logo`}
+            width={site.logo.width || 100}
+            style={{ 
+              maxWidth: `${site.logo.width || 100}px`,
+              height: 'auto',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+              ...(site.logo.position === 'left' ? { alignSelf: 'flex-start' } : {}),
+            }}
+          />
+        )}
+        <h1 className="text-balance text-4xl font-bold leading-tight md:text-5xl" style={{ fontFamily: headingCss }}>
           {site.hero.title}
         </h1>
-        <p className="max-w-xl text-lg opacity-90">{site.tagline}</p>
-        <p className="max-w-2xl text-base opacity-80">{site.hero.content}</p>
+        <p className="max-w-xl text-lg opacity-90" style={{ fontFamily: bodyCss }}>{site.tagline}</p>
+        <p className="max-w-2xl text-base opacity-80" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
         {site.hero.cta_text && (
           <a
             href={site.hero.cta_url || '#'}
@@ -81,10 +118,10 @@ export default async function PublishedSitePage({ params }: PageProps) {
       {/* About */}
       <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
         <div className="mx-auto max-w-3xl space-y-4">
-          <h2 className="text-2xl font-bold" style={{ color: primary }}>
+          <h2 className="text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
             {site.about.title}
           </h2>
-          <p className="leading-relaxed text-slate-600">{site.about.content}</p>
+          <p className="leading-relaxed text-slate-600" style={{ fontFamily: bodyCss }}>{site.about.content}</p>
           {site.about.cta_text && (
             <a
               href={site.about.cta_url || '#'}
@@ -100,10 +137,10 @@ export default async function PublishedSitePage({ params }: PageProps) {
       {/* Services */}
       <section className="bg-slate-50 px-6 py-14 md:px-16">
         <div className="mx-auto max-w-5xl">
-          <h2 className="mb-3 text-center text-2xl font-bold text-slate-800">
+          <h2 className="mb-3 text-center text-2xl font-bold text-slate-800" style={{ fontFamily: headingCss }}>
             {site.services.title}
           </h2>
-          <p className="mb-8 text-center text-slate-500">{site.services.description}</p>
+          <p className="mb-8 text-center text-slate-500" style={{ fontFamily: bodyCss }}>{site.services.description}</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {site.services.items.map((item, idx) => (
               <div
@@ -111,8 +148,8 @@ export default async function PublishedSitePage({ params }: PageProps) {
                 className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                 style={{ borderTop: `3px solid ${primary}` }}
               >
-                <h3 className="mb-1 font-semibold text-slate-800">{item.name}</h3>
-                <p className="text-sm text-slate-500">{item.description}</p>
+                <h3 className="mb-1 font-semibold text-slate-800" style={{ fontFamily: headingCss }}>{item.name}</h3>
+                <p className="text-sm text-slate-500" style={{ fontFamily: bodyCss }}>{item.description}</p>
               </div>
             ))}
           </div>
@@ -122,10 +159,10 @@ export default async function PublishedSitePage({ params }: PageProps) {
       {/* Contact */}
       <section className="bg-white px-6 py-14 md:px-16">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-2xl font-bold" style={{ color: primary }}>
+          <h2 className="mb-6 text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
             {site.contact.title}
           </h2>
-          <div className="space-y-3 text-slate-600">
+          <div className="space-y-3 text-slate-600" style={{ fontFamily: bodyCss }}>
             {site.contact.phone && (
               <div className="flex gap-2">
                 <span>📞</span>
