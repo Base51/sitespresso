@@ -157,22 +157,46 @@ export default function Home() {
   // ── Form stage ────────────────────────────────────────────────────────────
   if (stage === 'form') {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
-        <div className="space-y-3">
-          <p className="rounded-full border border-slate-700 bg-slate-900/60 px-4 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
-            AI-Powered Website Builder
-          </p>
-          <h1 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-5xl">
-            Build your local business website
-            <br className="hidden md:block" /> in seconds.
-          </h1>
-          <p className="mx-auto max-w-xl text-base text-slate-400">
-            Enter your business details and our AI will generate a complete, editable website — no
-            design skills required.
-          </p>
-        </div>
-        <GenerateForm onSubmit={generate} />
-      </main>
+      <>
+        {authLoaded && (
+          <div className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+            <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+              <h1 className="text-lg font-semibold text-white">SiteSpresso</h1>
+              {user ? (
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+                >
+                  Go to Dashboard
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push('/login')}
+                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+          <div className="space-y-3">
+            <p className="rounded-full border border-slate-700 bg-slate-900/60 px-4 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
+              AI-Powered Website Builder
+            </p>
+            <h1 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-5xl">
+              Build your local business website
+              <br className="hidden md:block" /> in seconds.
+            </h1>
+            <p className="mx-auto max-w-xl text-base text-slate-400">
+              Enter your business details and our AI will generate a complete, editable website — no
+              design skills required.
+            </p>
+          </div>
+          <GenerateForm onSubmit={generate} />
+        </main>
+      </>
     );
   }
 
