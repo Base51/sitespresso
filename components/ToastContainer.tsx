@@ -20,14 +20,14 @@ function getIcon(type: string): string {
 function getColor(type: string): string {
   switch (type) {
     case 'success':
-      return 'border-emerald-500/35 bg-emerald-500/15 text-emerald-200';
+      return 'border-emerald-500 bg-emerald-950 text-emerald-50';
     case 'error':
-      return 'border-rose-500/35 bg-rose-500/15 text-rose-200';
+      return 'border-rose-500 bg-rose-950 text-rose-50';
     case 'warning':
-      return 'border-amber-500/35 bg-amber-500/15 text-amber-200';
+      return 'border-amber-500 bg-amber-950 text-amber-50';
     case 'info':
     default:
-      return 'border-blue-500/35 bg-blue-500/15 text-blue-200';
+      return 'border-blue-500 bg-blue-950 text-blue-50';
   }
 }
 
