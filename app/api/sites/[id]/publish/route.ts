@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateSlug, isReservedSlug, findUniqueSlug } from '@/lib/slug';
+import { checkRateLimit } from '@/lib/redis/rate-limiter';
 
 export async function POST(
   request: NextRequest,
@@ -16,6 +17,22 @@ export async function POST(
     } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting: max 20 publish operations per hour per user
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
+    const publishLimit = await checkRateLimit(`publish:${user.id}`, 'free', ip);
+    if (!publishLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many publish requests. Please try again in a few minutes.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': `${publishLimit.retryAfter ?? 60}` },
+        }
+      );
     }
 
     const siteId = params.id;

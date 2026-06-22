@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WebsiteSchema, GenerateInputSchema } from '../../../lib/schemas/website';
 import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
-import { checkRateLimit } from '../../../lib/ai/rate-limiter';
+import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
 
 const MAX_RETRIES = 2;
@@ -222,17 +222,28 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Rate limiting: pass user ID if authenticated, otherwise IP-only limit applies
-    const userRateLimit = checkRateLimit(ip, user?.id);
-    if (!userRateLimit.allowed) {
+    // Get user profile for plan info if authenticated
+    let userPlan: 'free' | 'starter' | 'pro' | 'agency' = 'free';
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', user.id)
+        .single();
+      userPlan = (profile?.plan as typeof userPlan) ?? 'free';
+    }
+
+    // Rate limiting with plan-based quota
+    const rateLimit = await checkRateLimit(user?.id ?? null, userPlan, ip);
+    if (!rateLimit.allowed) {
       return NextResponse.json(
         {
-          error: 'Too many generation requests. Try again later.',
-          resetIn: userRateLimit.resetIn,
+          error: 'Generation quota exceeded. Check your plan limits or try again next month.',
+          retryAfter: rateLimit.retryAfter,
         },
         {
           status: 429,
-          headers: { 'Retry-After': `${userRateLimit.resetIn}` },
+          headers: { 'Retry-After': `${rateLimit.retryAfter ?? 60}` },
         }
       );
     }
@@ -251,7 +262,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         website,
-        remaining: userRateLimit.remaining,
+        remaining: rateLimit.remaining,
+        resetTime: rateLimit.resetTime,
       },
       { status: 200 }
     );
