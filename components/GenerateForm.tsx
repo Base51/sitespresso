@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 export const BUSINESS_TYPES = [
   { value: 'restaurant', label: 'Restaurant' },
@@ -65,79 +67,59 @@ export default function GenerateForm({ onSubmit, disabled }: GenerateFormProps) 
     onSubmit({ business_name: name.trim(), business_type: type, city: city.trim() });
   }
 
-  const inputClass =
-    'w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:opacity-50';
-
   return (
     <form onSubmit={handleSubmit} noValidate className="w-full max-w-md space-y-5">
-      <div className="space-y-1">
-        <label htmlFor="business_name" className="block text-sm font-medium text-slate-300">
-          Business Name
-        </label>
-        <input
-          id="business_name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Mario's Pizza"
-          maxLength={100}
-          disabled={disabled}
-          className={inputClass}
-        />
-        {errors.business_name && (
-          <p className="text-xs text-red-400">{errors.business_name}</p>
-        )}
-      </div>
+      <Input
+        id="business_name"
+        label="Business Name"
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="e.g. Mario's Pizza"
+        maxLength={100}
+        disabled={disabled}
+        error={errors.business_name}
+      />
 
-      <div className="space-y-1">
-        <label htmlFor="business_type" className="block text-sm font-medium text-slate-300">
-          Business Type
-        </label>
-        <select
-          id="business_type"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          disabled={disabled}
-          className={inputClass}
-        >
-          <option value="" disabled>
-            Select a type…
+      <Input
+        as="select"
+        id="business_type"
+        label="Business Type"
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+        disabled={disabled}
+        error={errors.business_type}
+      >
+        <option value="" disabled>
+          Select a type…
+        </option>
+        {BUSINESS_TYPES.map((bt) => (
+          <option key={bt.value} value={bt.value}>
+            {bt.label}
           </option>
-          {BUSINESS_TYPES.map((bt) => (
-            <option key={bt.value} value={bt.value}>
-              {bt.label}
-            </option>
-          ))}
-        </select>
-        {errors.business_type && (
-          <p className="text-xs text-red-400">{errors.business_type}</p>
-        )}
-      </div>
+        ))}
+      </Input>
 
-      <div className="space-y-1">
-        <label htmlFor="city" className="block text-sm font-medium text-slate-300">
-          City
-        </label>
-        <input
-          id="city"
-          type="text"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="e.g. Austin, TX"
-          maxLength={50}
-          disabled={disabled}
-          className={inputClass}
-        />
-        {errors.city && <p className="text-xs text-red-400">{errors.city}</p>}
-      </div>
+      <Input
+        id="city"
+        label="City"
+        type="text"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        placeholder="e.g. Austin, TX"
+        maxLength={50}
+        disabled={disabled}
+        error={errors.city}
+      />
 
-      <button
+      <Button
         type="submit"
         disabled={disabled}
-        className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+        size="lg"
+        fullWidth
       >
         {disabled ? 'Generating…' : 'Generate My Website ✦'}
-      </button>
+      </Button>
     </form>
   );
 }

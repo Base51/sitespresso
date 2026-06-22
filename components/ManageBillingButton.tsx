@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Button from '@/components/ui/Button';
 
 type ManageBillingButtonProps = {
   disabled?: boolean;
@@ -31,14 +32,14 @@ export default function ManageBillingButton({ disabled = false }: ManageBillingB
   }
 
   return (
-    <button
-      type="button"
+    <Button
       disabled={disabled || loading}
       onClick={openPortal}
-      className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
+      variant="secondary"
+      size="md"
       title={disabled ? 'Complete checkout first to enable billing portal.' : 'Open Stripe Billing Portal'}
     >
       {loading ? 'Opening…' : 'Manage Billing'}
-    </button>
+    </Button>
   );
 }

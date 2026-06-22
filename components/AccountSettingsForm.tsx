@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 type AccountSettingsFormProps = {
   initialFullName: string;
@@ -57,44 +59,34 @@ export default function AccountSettingsForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
-      <div className="space-y-2">
-        <label className="block text-sm text-slate-300" htmlFor="full_name">
-          Full name
-        </label>
-        <input
-          id="full_name"
-          type="text"
-          maxLength={120}
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-          placeholder="Your name"
-        />
-      </div>
+      <Input
+        id="full_name"
+        label="Full name"
+        type="text"
+        maxLength={120}
+        value={fullName}
+        onChange={(event) => setFullName(event.target.value)}
+        placeholder="Your name"
+      />
 
-      <div className="space-y-2">
-        <label className="block text-sm text-slate-300" htmlFor="email">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
-          placeholder="owner@business.com"
-        />
-        <p className="text-xs text-slate-500">Changing email may require confirmation via inbox.</p>
-      </div>
+      <Input
+        id="email"
+        label="Email"
+        type="email"
+        required
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="owner@business.com"
+        hint="Changing email may require confirmation via inbox."
+      />
 
-      <button
+      <Button
         type="submit"
         disabled={!dirty || loading}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+        variant="primary"
       >
         {loading ? 'Saving...' : 'Save changes'}
-      </button>
+      </Button>
 
       {message ? <p className="text-sm text-emerald-300">{message}</p> : null}
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}

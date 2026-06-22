@@ -2,6 +2,9 @@ import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
 import ManageBillingButton from '@/components/ManageBillingButton';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Logo from '@/components/Logo';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -13,8 +16,8 @@ function formatDate(value: string | null | undefined): string {
 }
 
 function statusBadge(status: string): string {
-  if (status === 'published') return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40';
-  return 'bg-slate-500/15 text-slate-300 border-slate-500/40';
+  if (status === 'published') return 'border-emerald-500/35 bg-emerald-500/15 text-emerald-200';
+  return 'border-white/10 bg-white/5 text-brand-muted-strong';
 }
 
 export default async function DashboardPage(): Promise<JSX.Element> {
@@ -60,71 +63,70 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const latestSubscription = subscriptions?.[0];
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-16">
+    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-12">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold text-white">Dashboard</h1>
+        <div className="space-y-3">
+          <Logo href="/dashboard" compact />
+          <div>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Dashboard</h1>
+            <p className="text-sm text-brand-muted">Signed in as {user.email ?? 'unknown user'}.</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Link
             href="/account"
-            className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100 transition hover:border-slate-500"
+            className="inline-flex"
           >
-            Account
+            <Button variant="secondary" size="sm">Account</Button>
           </Link>
           <form action={signOut}>
-            <button className="rounded-md border border-slate-600 px-4 py-2 text-sm text-slate-100" type="submit">
-              Sign out
-            </button>
+            <Button variant="ghost" size="sm" type="submit">Sign out</Button>
           </form>
         </div>
       </div>
 
-      <p className="text-slate-300">Signed in as {user.email ?? 'unknown user'}.</p>
-
-      <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-5">
+      <Card className="p-5">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-slate-400">Current plan</p>
+            <p className="text-sm uppercase tracking-[0.18em] text-brand-muted">Current plan</p>
             <p className="text-lg font-semibold text-white capitalize">{plan}</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-brand-muted">
               Renewal date: {formatDate(latestSubscription?.current_period_end)}
             </p>
           </div>
           <ManageBillingButton disabled={!hasStripeCustomer} />
         </div>
 
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-brand-muted">
           {hasStripeCustomer
             ? 'Manage your subscription, billing details, and invoices in Stripe Billing Portal.'
             : 'Complete checkout once to create your billing profile and enable billing portal access.'}
         </p>
-      </div>
+      </Card>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Your sites</h2>
+          <h2 className="font-display text-2xl font-semibold text-white">Your sites</h2>
           <Link
             href="/"
-            className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200 transition hover:border-slate-500"
+            className="inline-flex"
           >
-            + New site
+            <Button variant="secondary" size="sm">+ New site</Button>
           </Link>
         </div>
 
         {!sites || sites.length === 0 ? (
-          <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-6 text-sm text-slate-400">
+          <Card className="text-sm text-brand-muted">
             No sites yet. Generate your first site to get started.
-          </div>
+          </Card>
         ) : (
           <div className="space-y-3">
             {sites.map((site) => (
-              <article
-                key={site.id}
-                className="rounded-xl border border-slate-700 bg-slate-900/40 p-5"
-              >
+              <Card key={site.id} className="p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold text-white">{site.business_name}</h3>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-brand-muted">
                       {site.business_type} • {site.city}
                     </p>
                   </div>
@@ -138,9 +140,9 @@ export default async function DashboardPage(): Promise<JSX.Element> {
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   <Link
                     href={`/editor/${site.id}`}
-                    className="rounded-md border border-slate-600 px-3 py-1.5 text-slate-100 transition hover:border-slate-500"
+                    className="inline-flex"
                   >
-                    Edit site
+                    <Button variant="secondary" size="sm">Edit site</Button>
                   </Link>
 
                   {site.status === 'published' && site.slug ? (
@@ -148,19 +150,21 @@ export default async function DashboardPage(): Promise<JSX.Element> {
                       href={`https://${site.slug}.sitespresso.com`}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-md bg-blue-600 px-3 py-1.5 text-white transition hover:bg-blue-500"
+                      className="inline-flex"
                     >
-                      View live site
+                      <span className="inline-flex items-center justify-center rounded-xl bg-brand-primary px-3 py-2 text-sm font-medium text-slate-950 transition hover:bg-brand-primary-strong">
+                        View live site
+                      </span>
                     </a>
                   ) : (
-                    <span className="text-slate-500">Publish to get live link</span>
+                    <span className="text-brand-muted">Publish to get live link</span>
                   )}
 
-                  <span className="ml-auto text-xs text-slate-500">
+                  <span className="ml-auto text-xs text-brand-muted">
                     Updated {formatDate(site.updated_at)}
                   </span>
                 </div>
-              </article>
+              </Card>
             ))}
           </div>
         )}

@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import AccountSettingsForm from '@/components/AccountSettingsForm';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Logo from '@/components/Logo';
 import { createClient } from '@/lib/supabase/server';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 
@@ -35,22 +38,26 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const initialEmail = (profile?.email as string | null | undefined) ?? user.email ?? '';
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-16">
+    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold text-white">Account settings</h1>
+        <div className="space-y-3">
+          <Logo href="/dashboard" compact />
+          <div>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Account settings</h1>
+            <p className="text-sm text-brand-muted">Manage your account profile details used across SiteSpresso.</p>
+          </div>
+        </div>
         <Link
           href="/dashboard"
-          className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-100 transition hover:border-slate-500"
+          className="inline-flex"
         >
-          Back to dashboard
+          <Button variant="secondary" size="sm">Back to dashboard</Button>
         </Link>
       </div>
 
-      <p className="text-sm text-slate-400">Manage your account profile details used across SiteSpresso.</p>
-
-      <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-6">
+      <Card>
         <AccountSettingsForm initialFullName={initialFullName} initialEmail={initialEmail} />
-      </section>
+      </Card>
     </main>
   );
 }

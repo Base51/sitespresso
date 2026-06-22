@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Logo from '@/components/Logo';
 import SitePreview from '@/components/SitePreview';
 import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
@@ -159,42 +162,46 @@ export default function Home() {
     return (
       <>
         {authLoaded && (
-          <div className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+          <div className="sticky top-0 z-50 border-b border-white/10 bg-brand-bg/70 backdrop-blur-xl">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-              <h1 className="text-lg font-semibold text-white">SiteSpresso</h1>
+              <Logo href="/" compact />
               {user ? (
-                <button
+                <Button
                   onClick={() => router.push('/dashboard')}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+                  variant="primary"
+                  size="sm"
                 >
                   Go to Dashboard
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={() => router.push('/login')}
-                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+                  variant="secondary"
+                  size="sm"
                 >
                   Sign In
-                </button>
+                </Button>
               )}
             </div>
           </div>
         )}
-        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
-          <div className="space-y-3">
-            <p className="rounded-full border border-slate-700 bg-slate-900/60 px-4 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-16 text-center">
+          <div className="space-y-5">
+            <p className="mx-auto w-fit rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-xs uppercase tracking-[0.24em] text-brand-muted-strong">
               AI-Powered Website Builder
             </p>
-            <h1 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-5xl">
+            <h1 className="text-balance font-display text-5xl font-semibold tracking-tight text-white md:text-6xl">
               Build your local business website
               <br className="hidden md:block" /> in seconds.
             </h1>
-            <p className="mx-auto max-w-xl text-base text-slate-400">
+            <p className="mx-auto max-w-2xl text-lg leading-8 text-brand-muted">
               Enter your business details and our AI will generate a complete, editable website — no
               design skills required.
             </p>
           </div>
-          <GenerateForm onSubmit={generate} />
+          <Card className="w-full max-w-xl p-6 text-left md:p-8">
+            <GenerateForm onSubmit={generate} />
+          </Card>
         </main>
       </>
     );
