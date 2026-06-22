@@ -81,8 +81,28 @@ const websiteResponseSchema = {
         properties: {
           primary: { type: 'string' },
           secondary: { type: 'string' },
+          accent: { type: 'string' },
+          neutral: { type: 'string' },
         },
-        required: ['primary', 'secondary'],
+        required: ['primary', 'secondary', 'accent', 'neutral'],
+      },
+      fonts: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          heading: { type: 'string' },
+          body: { type: 'string' },
+        },
+        required: ['heading', 'body'],
+      },
+      logo: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          position: { type: 'string', enum: ['left', 'center', 'top'] },
+          width: { type: 'number' },
+        },
+        required: ['position', 'width'],
       },
     },
     required: [
@@ -95,6 +115,8 @@ const websiteResponseSchema = {
       'services',
       'contact',
       'color_scheme',
+      'fonts',
+      'logo',
     ],
   },
 } as const;
