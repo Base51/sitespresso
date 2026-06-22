@@ -147,12 +147,12 @@
 | T-082 | Review all Supabase queries — confirm RLS is enforced | P0 | T-011 | ✅ |
 | T-083 | Verify OpenAI and Stripe keys are never in client bundles | P0 | All API tasks | ✅ |
 | T-083a | Implement automatic cache cleanup to prevent dev server stale assets | P1 | T-001 | ✅ |
-| T-084 | Test slug conflict and reserved slug edge cases | P0 | T-051, T-052 | 🔄 (Unit tests: ✅, Manual: ⚠️) |
-| T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ⚠️ (Manual testing) |
-| T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ⚠️ (Manual testing) |
-| T-087 | Test generation failure and retry UX | P0 | T-040 | ⚠️ (Manual testing) |
-| T-088 | Cross-browser test: Chrome, Safari, Firefox (mobile + desktop) | P1 | All UI tasks | 🔄 (Chromium responsive pass; Safari/Firefox manual pending) |
-| T-089 | WCAG 2.1 AA accessibility audit on intake form and dashboard | P1 | All UI tasks | 🔄 (Lighthouse home page a11y 100; dashboard/manual audit pending) |
+| T-084 | Test slug conflict and reserved slug edge cases | P0 | T-051, T-052 | ✅ |
+| T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ✅ |
+| T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ✅ |
+| T-087 | Test generation failure and retry UX | P0 | T-040 | ✅ |
+| T-088 | Cross-browser test: Chrome, Safari, Firefox (mobile + desktop) | P1 | All UI tasks | ✅ |
+| T-089 | WCAG 2.1 AA accessibility audit on intake form and dashboard | P1 | All UI tasks | ✅ |
 
 ---
 
