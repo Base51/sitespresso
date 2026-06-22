@@ -5,6 +5,7 @@ import ManageBillingButton from '@/components/ManageBillingButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
+import EmptyState from '@/components/EmptyState';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -116,9 +117,12 @@ export default async function DashboardPage(): Promise<JSX.Element> {
         </div>
 
         {!sites || sites.length === 0 ? (
-          <Card className="text-sm text-brand-muted">
-            No sites yet. Generate your first site to get started.
-          </Card>
+          <EmptyState
+            icon="✦"
+            title="No sites yet"
+            description="Generate your first AI website to get started. It takes less than a minute!"
+            action={<Link href="/" className="inline-flex"><Button variant="primary" size="md">Generate My Website</Button></Link>}
+          />
         ) : (
           <div className="space-y-3">
             {sites.map((site) => (

@@ -1,6 +1,9 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Logo from '@/components/Logo';
 import { createClient } from '../../lib/supabase/client';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 
@@ -76,45 +79,60 @@ export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-6 px-6">
-      <h1 className="text-3xl font-semibold text-white">Sign in to SiteSpresso</h1>
-      {reason === 'trial_exhausted' ? (
-        <p className="text-sm text-slate-300">
-          Your free preview is used. Sign up to unlock unlimited generations and publish your site.
-        </p>
-      ) : (
-        <p className="text-sm text-slate-300">Continue to manage your website and publishing settings.</p>
-      )}
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-8 px-6">
+      <div className="space-y-3">
+        <Logo />
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-white">Sign in</h1>
+          {reason === 'trial_exhausted' ? (
+            <p className="text-sm text-brand-muted">
+              Your free preview is used. Sign up to unlock unlimited generations and publish your site.
+            </p>
+          ) : (
+            <p className="text-sm text-brand-muted">Continue to manage your website and publishing settings.</p>
+          )}
+        </div>
+      </div>
 
-      <button
-        className="rounded-md bg-white px-4 py-2 font-medium text-slate-900 disabled:opacity-70"
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
         onClick={handleGoogleLogin}
         disabled={loading}
         type="button"
       >
         Continue with Google
-      </button>
+      </Button>
 
-      <form className="flex flex-col gap-3" onSubmit={handleMagicLink}>
-        <label className="text-sm text-slate-300" htmlFor="email">
-          Email for magic link
-        </label>
-        <input
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-white/10" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-brand-bg px-2 text-brand-muted">or</span>
+        </div>
+      </div>
+
+      <form className="flex flex-col gap-4" onSubmit={handleMagicLink}>
+        <Input
           id="email"
           type="email"
+          label="Email for magic link"
           required
-          className="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="owner@business.com"
         />
-        <button
-          className="rounded-md border border-slate-600 px-4 py-2 font-medium text-slate-100 disabled:opacity-70"
+        <Button
           type="submit"
           disabled={loading}
+          variant="secondary"
+          size="lg"
+          fullWidth
         >
-          Send magic link
-        </button>
+          {loading ? 'Sending link...' : 'Send magic link'}
+        </Button>
       </form>
 
       {message ? <p className="text-sm text-emerald-300">{message}</p> : null}

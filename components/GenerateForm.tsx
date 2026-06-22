@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Spinner from '@/components/Spinner';
 
 export const BUSINESS_TYPES = [
   { value: 'restaurant', label: 'Restaurant' },
@@ -117,8 +118,16 @@ export default function GenerateForm({ onSubmit, disabled }: GenerateFormProps) 
         disabled={disabled}
         size="lg"
         fullWidth
+        className="flex items-center justify-center gap-2"
       >
-        {disabled ? 'Generating…' : 'Generate My Website ✦'}
+        {disabled ? (
+          <>
+            <Spinner size="sm" />
+            <span>Generating…</span>
+          </>
+        ) : (
+          'Generate My Website ✦'
+        )}
       </Button>
     </form>
   );

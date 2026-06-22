@@ -7,6 +7,7 @@ import GenerateForm, { type GenerateFormValues } from '@/components/GenerateForm
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
+import { useToast } from '@/hooks/useToast';
 import SitePreview from '@/components/SitePreview';
 import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
@@ -17,6 +18,7 @@ type Stage = 'form' | 'loading' | 'preview' | 'error';
 
 export default function Home() {
   const router = useRouter();
+  const { toast } = useToast();
   const [stage, setStage] = useState<Stage>('form');
   const [website, setWebsite] = useState<Website | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -100,7 +102,11 @@ export default function Home() {
 
   async function publishSite(draftId: string | null) {
     if (!draftId) {
-      alert('Draft is not saved yet. Make one edit and wait for "Saved" before publishing.');
+      toast({
+        type: 'warning',
+        title: 'Draft not ready',
+        description: 'Make one edit and wait for "Saved" before publishing.',
+      });
       return;
     }
     const startTime = performance.now();
@@ -125,11 +131,19 @@ export default function Home() {
       setPublishTime(Math.round(elapsed));
       console.log(`⏱️ Publishing completed in ${Math.round(elapsed)}ms`);
       console.log(`✅ Live at: https://${json.slug}.sitespresso.com`);
-      alert(`✅ Published!\n\nYour site is live at:\nhttps://${json.slug}.sitespresso.com`);
+      toast({
+        type: 'success',
+        title: 'Published!',
+        description: `Your site is live at: https://${json.slug}.sitespresso.com`,
+      });
     } catch (err) {
       const elapsed = performance.now() - startTime;
       console.error(`❌ Publishing failed after ${Math.round(elapsed)}ms:`, err);
-      alert('Publishing failed. Please try again.');
+      toast({
+        type: 'error',
+        title: 'Publishing failed',
+        description: 'Please try again or contact support.',
+      });
     }
   }
 
@@ -151,7 +165,11 @@ export default function Home() {
 
       window.location.href = checkoutJson.checkoutUrl as string;
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to start checkout flow.');
+      toast({
+        type: 'error',
+        title: 'Checkout failed',
+        description: err instanceof Error ? err.message : 'Could not start checkout. Please try again.',
+      });
     } finally {
       setCheckoutLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
+import { useToast } from '@/hooks/useToast';
 
 type ManageBillingButtonProps = {
   disabled?: boolean;
@@ -9,6 +10,7 @@ type ManageBillingButtonProps = {
 
 export default function ManageBillingButton({ disabled = false }: ManageBillingButtonProps): JSX.Element {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   async function openPortal() {
     setLoading(true);
@@ -25,7 +27,11 @@ export default function ManageBillingButton({ disabled = false }: ManageBillingB
 
       window.location.href = json.portalUrl as string;
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to open billing portal.');
+      toast({
+        type: 'error',
+        title: 'Billing portal error',
+        description: error instanceof Error ? error.message : 'Could not open billing portal. Please try again.',
+      });
     } finally {
       setLoading(false);
     }
