@@ -4,8 +4,22 @@
 
 Write-Host "Cleaning build artifacts and cache..." -ForegroundColor Cyan
 
-# Kill any stale Node processes
-Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+# Stop only processes listening on common local dev ports.
+# Do not kill all node processes because npm itself runs on node.
+$devPorts = 3000..3010
+foreach ($port in $devPorts) {
+    try {
+        $listeners = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+        foreach ($listener in $listeners) {
+            if ($listener.OwningProcess -and $listener.OwningProcess -ne $PID) {
+                Stop-Process -Id $listener.OwningProcess -Force -ErrorAction SilentlyContinue
+                Write-Host "  Stopped process on port $port" -ForegroundColor Green
+            }
+        }
+    } catch {
+        # Ignore ports with no listeners or unsupported environments.
+    }
+}
 
 # Remove Next.js build cache
 if (Test-Path ".next") {
