@@ -10,6 +10,37 @@ interface FontSelectorProps {
 const HEADING_FONTS = ['Playfair Display', 'Lora', 'Georgia'];
 const BODY_FONTS = ['Inter', 'Roboto', 'Poppins'];
 
+const FONT_PRESETS = [
+  {
+    id: 'elegant',
+    label: 'Elegant',
+    heading: 'Playfair Display',
+    body: 'Inter',
+    hint: 'Refined serif with clean body text',
+  },
+  {
+    id: 'editorial',
+    label: 'Editorial',
+    heading: 'Lora',
+    body: 'Roboto',
+    hint: 'Classic reading rhythm for service pages',
+  },
+  {
+    id: 'modern',
+    label: 'Modern',
+    heading: 'Poppins',
+    body: 'Inter',
+    hint: 'Contemporary geometric look',
+  },
+  {
+    id: 'friendly',
+    label: 'Friendly',
+    heading: 'Georgia',
+    body: 'Poppins',
+    hint: 'Approachable, warm, and easy to scan',
+  },
+] as const;
+
 const FONT_DISPLAY_NAMES: Record<string, string> = {
   'Playfair Display': 'Playfair Display (Elegant)',
   'Lora': 'Lora (Serif)',
@@ -33,8 +64,40 @@ export default function FontSelector({ website, onFontsChange }: FontSelectorPro
   const headingFont = fonts?.heading ?? 'Playfair Display';
   const bodyFont = fonts?.body ?? 'Inter';
 
+  function handleApplyPreset(heading: string, body: string) {
+    onFontsChange({ heading, body });
+  }
+
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+        <p className="mb-2 text-[11px] uppercase tracking-wide text-slate-400">
+          Typography presets
+        </p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {FONT_PRESETS.map((preset) => {
+            const isActive = headingFont === preset.heading && bodyFont === preset.body;
+            return (
+              <button
+                key={preset.id}
+                onClick={() => handleApplyPreset(preset.heading, preset.body)}
+                className={`rounded-lg border px-3 py-2 text-left transition ${
+                  isActive
+                    ? 'border-cyan-500 bg-cyan-500/10'
+                    : 'border-slate-700 bg-slate-800/70 hover:border-slate-500'
+                }`}
+              >
+                <div className="text-sm font-semibold text-slate-200">{preset.label}</div>
+                <div className="text-[11px] text-slate-400">{preset.hint}</div>
+                <div className="mt-1 text-[11px] text-slate-500">
+                  {preset.heading} + {preset.body}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
         <p className="mb-2 text-[11px] uppercase tracking-wide text-slate-400">
           Live pair preview
