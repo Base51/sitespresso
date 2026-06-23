@@ -77,6 +77,9 @@ export default function EditorSidebar({
   const [savedStylePresets, setSavedStylePresets] = useState<SavedStylePreset[]>([]);
   const [newPresetName, setNewPresetName] = useState('');
   const [presetsReady, setPresetsReady] = useState(false);
+  const [presetStorageMode, setPresetStorageMode] = useState<'checking' | 'profile' | 'local'>(
+    'checking'
+  );
 
   function handleLogoUpload(url: string | null) {
     onWebsiteChange({
@@ -169,6 +172,7 @@ export default function EditorSidebar({
       } = await supabase.auth.getUser();
 
       if (!user) {
+        setPresetStorageMode('local');
         return 'local';
       }
 
@@ -178,11 +182,14 @@ export default function EditorSidebar({
         .eq('id', user.id);
 
       if (error) {
+        setPresetStorageMode('local');
         return 'local';
       }
 
+      setPresetStorageMode('profile');
       return 'profile';
     } catch {
+      setPresetStorageMode('local');
       return 'local';
     }
   }
@@ -212,6 +219,9 @@ export default function EditorSidebar({
         } = await supabase.auth.getUser();
 
         if (!user) {
+          if (mounted) {
+            setPresetStorageMode('local');
+          }
           return;
         }
 
@@ -224,9 +234,13 @@ export default function EditorSidebar({
         const profilePresets = (data?.style_presets as SavedStylePreset[] | null) || [];
         if (mounted && Array.isArray(profilePresets)) {
           setSavedStylePresets(profilePresets);
+          setPresetStorageMode('profile');
           localStorage.setItem(SAVED_STYLE_PRESETS_KEY, JSON.stringify(profilePresets));
         }
       } catch {
+        if (mounted) {
+          setPresetStorageMode('local');
+        }
         // Keep local fallback if profile column does not exist or request fails.
       } finally {
         if (mounted) {
@@ -622,7 +636,24 @@ export default function EditorSidebar({
               </div>
 
               <div className="space-y-2 border-t border-slate-700 pt-3">
-                <p className="text-xs font-medium text-slate-400">Saved custom presets</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-slate-400">Saved custom presets</p>
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                      presetStorageMode === 'profile'
+                        ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-300'
+                        : presetStorageMode === 'local'
+                          ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
+                          : 'border-slate-600 bg-slate-800/60 text-slate-400'
+                    }`}
+                  >
+                    {presetStorageMode === 'profile'
+                      ? 'Account sync'
+                      : presetStorageMode === 'local'
+                        ? 'Local only'
+                        : 'Checking sync'}
+                  </span>
+                </div>
 
                 <div className="flex gap-2">
                   <input
