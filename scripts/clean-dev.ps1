@@ -1,6 +1,10 @@
 # clean-dev.ps1
-# Safely clean build artifacts and restart dev server with fresh state
-# This prevents stale cache issues that cause white/unstyled pages
+# Safely clean build artifacts and optionally restart dev server with fresh state.
+# This prevents stale cache issues that cause white/unstyled pages.
+
+param(
+    [switch]$StartDev
+)
 
 Write-Host "Cleaning build artifacts and cache..." -ForegroundColor Cyan
 
@@ -39,8 +43,10 @@ if (Test-Path "tsconfig.tsbuildinfo") {
     Write-Host "  Removed TypeScript build info" -ForegroundColor Green
 }
 
-Write-Host "Cache clean. Starting dev server..." -ForegroundColor Cyan
-Write-Host ""
-
-# Start the dev server
-npm run dev
+if ($StartDev) {
+    Write-Host "Cache clean. Starting dev server..." -ForegroundColor Cyan
+    Write-Host ""
+    npm run dev
+} else {
+    Write-Host "Cache clean complete." -ForegroundColor Green
+}
