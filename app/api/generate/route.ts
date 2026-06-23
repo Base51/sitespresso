@@ -81,8 +81,28 @@ const websiteResponseSchema = {
         properties: {
           primary: { type: 'string' },
           secondary: { type: 'string' },
+          accent: { type: 'string' },
+          neutral: { type: 'string' },
         },
-        required: ['primary', 'secondary'],
+        required: ['primary', 'secondary', 'accent', 'neutral'],
+      },
+      fonts: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          heading: { type: 'string' },
+          body: { type: 'string' },
+        },
+        required: ['heading', 'body'],
+      },
+      logo: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          position: { type: 'string', enum: ['left', 'center', 'top'] },
+          width: { type: 'number' },
+        },
+        required: ['position', 'width'],
       },
     },
     required: [
@@ -95,6 +115,8 @@ const websiteResponseSchema = {
       'services',
       'contact',
       'color_scheme',
+      'fonts',
+      'logo',
     ],
   },
 } as const;
@@ -194,6 +216,25 @@ function sanitizeInput(input: unknown): unknown {
   return input;
 }
 
+function applyDefaults(website: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...website,
+    fonts: (website.fonts as Record<string, unknown>) || {
+      heading: 'Playfair Display',
+      body: 'Inter',
+    },
+    logo: (website.logo as Record<string, unknown>) || {
+      position: 'left',
+      width: 100,
+    },
+    color_scheme: {
+      ...(website.color_scheme as Record<string, unknown>),
+      accent: (website.color_scheme as Record<string, unknown>)?.accent || (website.color_scheme as Record<string, unknown>)?.primary,
+      neutral: (website.color_scheme as Record<string, unknown>)?.neutral || '#f8fafc',
+    },
+  };
+}
+
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   try {
@@ -253,7 +294,8 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate response
     const parsed = JSON.parse(extractJsonObject(jsonResponse));
-    const website = WebsiteSchema.parse(parsed);
+    const withDefaults = applyDefaults(parsed);
+    const website = WebsiteSchema.parse(withDefaults);
 
     const duration = Date.now() - startTime;
     console.log(`✅ Generation for ${input.business_name} (${input.business_type}) completed in ${duration}ms`);

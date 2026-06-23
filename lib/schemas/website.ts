@@ -37,6 +37,17 @@ export const WebsiteSchema = z.object({
   color_scheme: z.object({
     primary: z.string().regex(/^#[0-9A-F]{6}$/i),
     secondary: z.string().regex(/^#[0-9A-F]{6}$/i),
+    accent: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+    neutral: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
+  }),
+  fonts: z.object({
+    heading: z.string().default('Playfair Display'),
+    body: z.string().default('Inter'),
+  }),
+  logo: z.object({
+    url: z.string().optional(),
+    position: z.enum(['left', 'center', 'top']).default('left'),
+    width: z.number().min(30).max(200).default(100),
   }),
 });
 

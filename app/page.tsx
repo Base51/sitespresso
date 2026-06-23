@@ -26,6 +26,7 @@ export default function Home() {
   const [draftId, setDraftId] = useState<string | null>(null);
   const [generationTime, setGenerationTime] = useState<number | null>(null);
   const [publishTime, setPublishTime] = useState<number | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -129,12 +130,13 @@ export default function Home() {
 
       const elapsed = performance.now() - startTime;
       setPublishTime(Math.round(elapsed));
+      setPublishedUrl(json.url);
       console.log(`⏱️ Publishing completed in ${Math.round(elapsed)}ms`);
-      console.log(`✅ Live at: https://${json.slug}.sitespresso.com`);
+      console.log(`✅ Live at: ${json.url}`);
       toast({
         type: 'success',
         title: 'Published!',
-        description: `Your site is live at: https://${json.slug}.sitespresso.com`,
+        description: `Your site is live at: ${json.url}`,
       });
     } catch (err) {
       const elapsed = performance.now() - startTime;
@@ -308,27 +310,67 @@ export default function Home() {
               </span>
             )}
           </p>
+          {publishedUrl && (
+            <p className="mt-2 text-sm font-medium text-emerald-400">
+              ✓ Published at: <a href={publishedUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-300 transition">{publishedUrl}</a>
+            </p>
+          )}
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              setStage('form');
-              setWebsite(null);
-              setDraftId(null);
-              setGenerationTime(null);
-              setPublishTime(null);
-              setPaywallOpen(false);
-            }}
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
-          >
-            ← New website
-          </button>
-          <button
-            onClick={() => publishSite(draftId)}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
-          >
-            {publishTime ? `Published (${(publishTime / 1000).toFixed(2)}s)` : 'Publish'}
-          </button>
+        <div className="flex flex-wrap gap-3">
+          {publishedUrl ? (
+            <>
+              <a
+                href={publishedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500"
+              >
+                Visit Live Site ↗
+              </a>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+              >
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  setStage('form');
+                  setWebsite(null);
+                  setDraftId(null);
+                  setGenerationTime(null);
+                  setPublishTime(null);
+                  setPublishedUrl(null);
+                  setPaywallOpen(false);
+                }}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+              >
+                ← New Website
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setStage('form');
+                  setWebsite(null);
+                  setDraftId(null);
+                  setGenerationTime(null);
+                  setPublishTime(null);
+                  setPaywallOpen(false);
+                }}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+              >
+                ← New website
+              </button>
+              <button
+                onClick={() => publishSite(draftId)}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
+              >
+                {publishTime ? `Published (${(publishTime / 1000).toFixed(2)}s)` : 'Publish'}
+              </button>
+            </>
+          )}
         </div>
       </div>
       {website && (
