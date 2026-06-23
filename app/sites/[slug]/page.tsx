@@ -222,8 +222,32 @@ export default async function PublishedSitePage({ params }: PageProps) {
     ),
   };
 
+  // Build LocalBusiness JSON-LD for search engines
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: site.business_name,
+    url: `${baseUrl}/sites/${params.slug}`,
+    ...(site.tagline && { description: site.tagline }),
+    ...(site.contact.phone && { telephone: site.contact.phone }),
+    ...(site.contact.email && { email: site.contact.email }),
+    ...(site.contact.address && {
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: site.contact.address,
+      },
+    }),
+  };
+
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
+      {/* Structured data for search engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+      />
+
       {/* Load Google Fonts */}
       {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
 
