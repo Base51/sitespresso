@@ -1,6 +1,7 @@
 import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
+import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -66,6 +67,10 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
 
+  // Get actual remaining quota for this month
+  const rateLimit = await checkRateLimit(user.id, plan as 'free' | 'starter' | 'pro' | 'agency');
+  const totalQuota = PLAN_QUOTAS[plan as keyof typeof PLAN_QUOTAS] || 0;
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-12">
       <div className="flex items-center justify-between gap-4">
@@ -102,8 +107,8 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
         <div className="mt-4 border-t border-white/10 pt-4">
           <QuotaDisplay
-            remaining={PLAN_QUOTAS[plan as keyof typeof PLAN_QUOTAS] || 0}
-            total={PLAN_QUOTAS[plan as keyof typeof PLAN_QUOTAS] || 0}
+            remaining={rateLimit.remaining}
+            total={totalQuota}
             label="Generation quota this month"
           />
         </div>
