@@ -173,6 +173,15 @@ export default function SitePreview({
     return deduped;
   }, [draft.layout?.section_order]);
 
+  const heroCtaHref = useMemo(() => {
+    const raw = draft.hero.cta_url?.trim();
+    if (!raw) return '#';
+    if (raw.startsWith('#') || raw.startsWith('/')) return raw;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^javascript:/i.test(raw)) return '#';
+    return `https://${raw}`;
+  }, [draft.hero.cta_url]);
+
   const contentSections: Record<SectionKey, ReactNode> = {
     about: (
       <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
@@ -409,6 +418,23 @@ export default function SitePreview({
                 style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
                 multiline
               />
+              <EditableField
+                tag="p"
+                value={draft.hero.content}
+                original={website.hero.content}
+                onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, content: v } }))}
+                className="max-w-xl text-base opacity-80 text-left"
+                style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+                multiline
+              />
+              {draft.hero.cta_text && (
+                <a
+                  href={heroCtaHref}
+                  className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  {draft.hero.cta_text}
+                </a>
+              )}
             </div>
           </div>
         ) : draft.logo?.position === 'right' ? (
@@ -432,6 +458,23 @@ export default function SitePreview({
                 style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
                 multiline
               />
+              <EditableField
+                tag="p"
+                value={draft.hero.content}
+                original={website.hero.content}
+                onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, content: v } }))}
+                className="max-w-xl text-base opacity-80 text-right"
+                style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+                multiline
+              />
+              {draft.hero.cta_text && (
+                <a
+                  href={heroCtaHref}
+                  className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  {draft.hero.cta_text}
+                </a>
+              )}
             </div>
             {draft.logo?.url && (
               <LogoDisplay website={draft} />
@@ -460,6 +503,23 @@ export default function SitePreview({
               style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
               multiline
             />
+            <EditableField
+              tag="p"
+              value={draft.hero.content}
+              original={website.hero.content}
+              onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, content: v } }))}
+              className="max-w-2xl text-base opacity-80"
+              style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+              multiline
+            />
+            {draft.hero.cta_text && (
+              <a
+                href={heroCtaHref}
+                className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+              >
+                {draft.hero.cta_text}
+              </a>
+            )}
           </div>
         )}
         </section>

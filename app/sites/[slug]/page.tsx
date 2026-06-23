@@ -79,6 +79,15 @@ export default async function PublishedSitePage({ params }: PageProps) {
     ? `https://fonts.googleapis.com/css2?${googleFamilies.map(f => `family=${f}`).join('&')}&display=swap`
     : null;
 
+  const heroCtaHref = (() => {
+    const raw = site.hero.cta_url?.trim();
+    if (!raw) return '#';
+    if (raw.startsWith('#') || raw.startsWith('/')) return raw;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^javascript:/i.test(raw)) return '#';
+    return `https://${raw}`;
+  })();
+
   const sectionOrder = (() => {
     const customOrder = site.layout?.section_order;
     if (!customOrder || customOrder.length !== DEFAULT_SECTION_ORDER.length) {
@@ -218,7 +227,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
               <p className="max-w-xl text-base opacity-80 text-left" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
               {site.hero.cta_text && (
                 <a
-                  href={site.hero.cta_url || '#'}
+                  href={heroCtaHref}
                   className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
                 >
                   {site.hero.cta_text}
@@ -237,7 +246,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
               <p className="max-w-xl text-base opacity-80 text-right" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
               {site.hero.cta_text && (
                 <a
-                  href={site.hero.cta_url || '#'}
+                  href={heroCtaHref}
                   className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
                 >
                   {site.hero.cta_text}
@@ -280,7 +289,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
             <p className="max-w-2xl text-base opacity-80" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
             {site.hero.cta_text && (
               <a
-                href={site.hero.cta_url || '#'}
+                href={heroCtaHref}
                 className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
               >
                 {site.hero.cta_text}

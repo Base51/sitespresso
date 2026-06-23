@@ -12,7 +12,7 @@ interface EditorSidebarProps {
   onWebsiteChange: (website: Website) => void;
 }
 
-type Panel = 'logo' | 'layout' | 'fonts' | 'colors' | null;
+type Panel = 'logo' | 'layout' | 'hero' | 'fonts' | 'colors' | null;
 type SectionKey = 'about' | 'services' | 'contact';
 
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
@@ -114,6 +114,38 @@ export default function EditorSidebar({
         neutral: colors.neutral || '#f8fafc',
       },
     });
+  }
+
+  const isHeroCtaEnabled = Boolean(website.hero?.cta_text?.trim());
+
+  function updateHeroCta(ctaText: string | undefined, ctaUrl: string | undefined) {
+    onWebsiteChange({
+      ...website,
+      hero: {
+        ...website.hero,
+        cta_text: ctaText,
+        cta_url: ctaUrl,
+      },
+    });
+  }
+
+  function handleHeroCtaEnabledChange(enabled: boolean) {
+    if (!enabled) {
+      updateHeroCta(undefined, undefined);
+      return;
+    }
+
+    updateHeroCta(website.hero.cta_text?.trim() || 'Get Started', website.hero.cta_url || '#');
+  }
+
+  function handleHeroCtaTextChange(value: string) {
+    const nextText = value.trim().length ? value : undefined;
+    updateHeroCta(nextText, website.hero.cta_url || '#');
+  }
+
+  function handleHeroCtaUrlChange(value: string) {
+    const nextUrl = value.trim().length ? value.trim() : undefined;
+    updateHeroCta(website.hero.cta_text || 'Get Started', nextUrl);
   }
 
   return (
@@ -242,6 +274,64 @@ export default function EditorSidebar({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Hero CTA Panel */}
+          <button
+            onClick={() => setActivePanel(activePanel === 'hero' ? null : 'hero')}
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              activePanel === 'hero'
+                ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            {activePanel === 'hero' ? '▼' : '▶'} 🚀 Hero CTA
+          </button>
+          {activePanel === 'hero' && (
+            <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
+              <label className="flex items-center justify-between rounded border border-slate-700 bg-slate-800/70 px-3 py-2">
+                <span className="text-sm font-medium text-slate-200">Show CTA button</span>
+                <input
+                  type="checkbox"
+                  checked={isHeroCtaEnabled}
+                  onChange={(e) => handleHeroCtaEnabledChange(e.target.checked)}
+                  className="h-4 w-4 accent-cyan-500"
+                  aria-label="Show hero CTA"
+                />
+              </label>
+
+              {isHeroCtaEnabled && (
+                <div className="space-y-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">Button text</label>
+                    <input
+                      type="text"
+                      value={website.hero.cta_text || ''}
+                      onChange={(e) => handleHeroCtaTextChange(e.target.value)}
+                      placeholder="Get Started"
+                      className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">Button URL</label>
+                    <input
+                      type="text"
+                      value={website.hero.cta_url || ''}
+                      onChange={(e) => handleHeroCtaUrlChange(e.target.value)}
+                      placeholder="https://example.com"
+                      className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {!website.hero.cta_url?.trim() && (
+                    <p className="text-[11px] text-amber-400">
+                      URL is empty. The button will point to # until you provide a link.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
