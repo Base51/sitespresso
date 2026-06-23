@@ -70,7 +70,7 @@ async function upsertSubscriptionFromStripe(
       { onConflict: 'stripe_subscription_id' },
     );
 
-  const nextPlan = planFromStripeStatus(subscription.status);
+  const nextPlan = planFromStripeStatus(subscription.status, priceId);
 
   await (admin.from('profiles') as unknown as Updatable)
     .update({

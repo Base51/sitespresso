@@ -2,6 +2,25 @@ import Stripe from 'stripe';
 
 let stripeClient: Stripe | null = null;
 
+export type PaidPlan = 'starter' | 'pro' | 'agency';
+export type Plan = 'free' | PaidPlan;
+export type BillingInterval = 'monthly' | 'annual';
+
+const STRIPE_PRICE_ENV_KEYS: Record<PaidPlan, Record<BillingInterval, string>> = {
+  starter: {
+    monthly: 'STRIPE_STARTER_PRICE_ID',
+    annual: 'STRIPE_STARTER_ANNUAL_PRICE_ID',
+  },
+  pro: {
+    monthly: 'STRIPE_PRO_PRICE_ID',
+    annual: 'STRIPE_PRO_ANNUAL_PRICE_ID',
+  },
+  agency: {
+    monthly: 'STRIPE_AGENCY_PRICE_ID',
+    annual: 'STRIPE_AGENCY_ANNUAL_PRICE_ID',
+  },
+};
+
 export function getStripe(): Stripe {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is not configured.');
@@ -17,11 +36,41 @@ export function getStripe(): Stripe {
 }
 
 export function getStripeStarterPriceId(): string {
-  const priceId = process.env.STRIPE_STARTER_PRICE_ID;
+  return getStripePriceId('starter', 'monthly');
+}
+
+export function getStripePriceId(plan: PaidPlan, billing: BillingInterval = 'monthly'): string {
+  const envKey = STRIPE_PRICE_ENV_KEYS[plan][billing];
+  const priceId = process.env[envKey];
   if (!priceId) {
-    throw new Error('STRIPE_STARTER_PRICE_ID is not configured.');
+    throw new Error(`${envKey} is not configured.`);
   }
+
   return priceId;
+}
+
+export function isPaidPlan(value: string): value is PaidPlan {
+  return value === 'starter' || value === 'pro' || value === 'agency';
+}
+
+export function isBillingInterval(value: string): value is BillingInterval {
+  return value === 'monthly' || value === 'annual';
+}
+
+export function planFromPriceId(priceId: string | null | undefined): Plan {
+  if (!priceId) return 'free';
+
+  for (const [plan, billingMap] of Object.entries(STRIPE_PRICE_ENV_KEYS) as Array<
+    [PaidPlan, Record<BillingInterval, string>]
+  >) {
+    for (const envKey of Object.values(billingMap)) {
+      if (process.env[envKey] === priceId) {
+        return plan;
+      }
+    }
+  }
+
+  return 'free';
 }
 
 export function getWebhookSecret(): string {
@@ -32,6 +81,10 @@ export function getWebhookSecret(): string {
   return secret;
 }
 
-export function planFromStripeStatus(status: string): 'free' | 'starter' {
-  return status === 'active' || status === 'trialing' ? 'starter' : 'free';
+export function planFromStripeStatus(status: string, priceId?: string | null): Plan {
+  if (status !== 'active' && status !== 'trialing') {
+    return 'free';
+  }
+
+  return planFromPriceId(priceId);
 }
