@@ -21,6 +21,35 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   services: '#f8fafc',
   contact: '#ffffff',
 };
+const SECTION_STYLE_PRESETS = [
+  {
+    id: 'clean',
+    label: 'Clean',
+    colors: {
+      about: '#ffffff',
+      services: '#f8fafc',
+      contact: '#ffffff',
+    } as Record<SectionKey, string>,
+  },
+  {
+    id: 'soft',
+    label: 'Soft',
+    colors: {
+      about: '#fff7ed',
+      services: '#f1f5f9',
+      contact: '#fff1f2',
+    } as Record<SectionKey, string>,
+  },
+  {
+    id: 'bold',
+    label: 'Bold',
+    colors: {
+      about: '#f8fafc',
+      services: '#e0f2fe',
+      contact: '#ecfccb',
+    } as Record<SectionKey, string>,
+  },
+] as const;
 const SECTION_LABELS: Record<SectionKey, string> = {
   about: 'About',
   services: 'Services',
@@ -127,6 +156,25 @@ export default function EditorSidebar({
         },
       },
     });
+  }
+
+  function applySectionStylePreset(colors: Record<SectionKey, string>) {
+    onWebsiteChange({
+      ...website,
+      layout: {
+        ...website.layout,
+        section_backgrounds: colors,
+      },
+    });
+  }
+
+  function isPresetActive(colors: Record<SectionKey, string>) {
+    const current = getSectionBackgrounds();
+    return (
+      current.about.toLowerCase() === colors.about.toLowerCase() &&
+      current.services.toLowerCase() === colors.services.toLowerCase() &&
+      current.contact.toLowerCase() === colors.contact.toLowerCase()
+    );
   }
 
   function handleFontsChange(fonts: { heading: string; body: string }) {
@@ -398,6 +446,25 @@ export default function EditorSidebar({
           {activePanel === 'colors' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
               <ColorPicker website={website} onColorsChange={handleColorsChange} />
+
+              <div className="space-y-2 border-t border-slate-700 pt-3">
+                <p className="text-xs font-medium text-slate-400">Section style presets</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {SECTION_STYLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => applySectionStylePreset(preset.colors)}
+                      className={`rounded border px-2 py-2 text-xs font-medium transition ${
+                        isPresetActive(preset.colors)
+                          ? 'border-purple-400 bg-purple-500/15 text-purple-200'
+                          : 'border-slate-600 bg-slate-800/70 text-slate-300 hover:border-slate-500'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div className="space-y-2 border-t border-slate-700 pt-3">
                 <p className="text-xs font-medium text-slate-400">Section backgrounds</p>
