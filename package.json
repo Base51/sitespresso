@@ -8,6 +8,7 @@
     "dev:clean:start": "powershell -ExecutionPolicy Bypass -File scripts/clean-dev.ps1 -StartDev",
     "dev:health": "powershell -ExecutionPolicy Bypass -File scripts/dev-health.ps1",
     "test:smoke": "powershell -ExecutionPolicy Bypass -File scripts/smoke-check.ps1",
+    "test:reliability": "powershell -ExecutionPolicy Bypass -File scripts/reliability-check.ps1",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
