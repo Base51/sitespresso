@@ -6,6 +6,7 @@ import LogoUpload from './LogoUpload';
 import FontSelector from './FontSelector';
 import ColorPicker from './ColorPicker';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/hooks/useToast';
 
 interface EditorSidebarProps {
   siteId: string;
@@ -70,6 +71,7 @@ export default function EditorSidebar({
   website,
   onWebsiteChange,
 }: EditorSidebarProps) {
+  const { toast } = useToast();
   const [activePanel, setActivePanel] = useState<Panel>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [savedStylePresets, setSavedStylePresets] = useState<SavedStylePreset[]>([]);
@@ -157,7 +159,7 @@ export default function EditorSidebar({
     };
   }
 
-  async function savePresetsToStorage(presets: SavedStylePreset[]) {
+  async function savePresetsToStorage(presets: SavedStylePreset[]): Promise<'profile' | 'local'> {
     localStorage.setItem(SAVED_STYLE_PRESETS_KEY, JSON.stringify(presets));
 
     try {
@@ -167,15 +169,21 @@ export default function EditorSidebar({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        return;
+        return 'local';
       }
 
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ style_presets: presets })
         .eq('id', user.id);
+
+      if (error) {
+        return 'local';
+      }
+
+      return 'profile';
     } catch {
-      // Local fallback is already persisted. Ignore profile persistence errors.
+      return 'local';
     }
   }
 
@@ -273,13 +281,46 @@ export default function EditorSidebar({
     const next = [nextPreset, ...savedStylePresets].slice(0, 8);
     setSavedStylePresets(next);
     setNewPresetName('');
-    void savePresetsToStorage(next);
+    void savePresetsToStorage(next).then((mode) => {
+      if (mode === 'profile') {
+        toast({
+          type: 'success',
+          title: 'Preset saved',
+          description: `"${nextPreset.name}" saved to your account.`,
+        });
+      } else {
+        toast({
+          type: 'warning',
+          title: 'Saved locally',
+          description: `"${nextPreset.name}" saved on this browser only until account sync is available.`,
+        });
+      }
+    });
   }
 
   function deleteSavedPreset(id: string) {
+    const removed = savedStylePresets.find((preset) => preset.id === id);
     const next = savedStylePresets.filter((preset) => preset.id !== id);
     setSavedStylePresets(next);
-    void savePresetsToStorage(next);
+    void savePresetsToStorage(next).then((mode) => {
+      if (!removed) {
+        return;
+      }
+
+      if (mode === 'profile') {
+        toast({
+          type: 'info',
+          title: 'Preset deleted',
+          description: `"${removed.name}" removed from your account presets.`,
+        });
+      } else {
+        toast({
+          type: 'warning',
+          title: 'Preset deleted locally',
+          description: `"${removed.name}" removed from this browser.`,
+        });
+      }
+    });
   }
 
   function isPresetActive(colors: Record<SectionKey, string>) {
