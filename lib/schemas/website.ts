@@ -49,6 +49,9 @@ export const WebsiteSchema = z.object({
     position: z.enum(['left', 'center', 'right']).default('left'),
     width: z.number().min(30).max(200).default(100),
   }),
+  layout: z.object({
+    section_order: z.array(z.enum(['about', 'services', 'contact'])).optional(),
+  }).optional(),
 });
 
 export type Website = z.infer<typeof WebsiteSchema>;

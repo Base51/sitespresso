@@ -12,7 +12,15 @@ interface EditorSidebarProps {
   onWebsiteChange: (website: Website) => void;
 }
 
-type Panel = 'logo' | 'fonts' | 'colors' | null;
+type Panel = 'logo' | 'layout' | 'fonts' | 'colors' | null;
+type SectionKey = 'about' | 'services' | 'contact';
+
+const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
+const SECTION_LABELS: Record<SectionKey, string> = {
+  about: 'About',
+  services: 'Services',
+  contact: 'Contact',
+};
 
 export default function EditorSidebar({
   siteId,
@@ -51,6 +59,40 @@ export default function EditorSidebar({
         position: website.logo?.position ?? 'left',
         width,
         url: website.logo?.url,
+      },
+    });
+  }
+
+  function getSectionOrder(): SectionKey[] {
+    const customOrder = website.layout?.section_order;
+    if (!customOrder || customOrder.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+    const hasAllSections = DEFAULT_SECTION_ORDER.every((section) =>
+      customOrder.includes(section)
+    );
+    return hasAllSections ? (customOrder as SectionKey[]) : DEFAULT_SECTION_ORDER;
+  }
+
+  function handleMoveSection(section: SectionKey, direction: 'up' | 'down') {
+    const currentOrder = [...getSectionOrder()];
+    const currentIndex = currentOrder.indexOf(section);
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= currentOrder.length) {
+      return;
+    }
+
+    [currentOrder[currentIndex], currentOrder[targetIndex]] = [
+      currentOrder[targetIndex],
+      currentOrder[currentIndex],
+    ];
+
+    onWebsiteChange({
+      ...website,
+      layout: {
+        ...website.layout,
+        section_order: currentOrder,
       },
     });
   }
@@ -153,6 +195,53 @@ export default function EditorSidebar({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Layout Panel */}
+          <button
+            onClick={() => setActivePanel(activePanel === 'layout' ? null : 'layout')}
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              activePanel === 'layout'
+                ? 'border-amber-500 bg-amber-500/10 text-amber-300'
+                : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            {activePanel === 'layout' ? '▼' : '▶'} ↕️ Layout
+          </button>
+          {activePanel === 'layout' && (
+            <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
+              <p className="text-xs text-slate-400">Choose the order of page sections</p>
+              <div className="space-y-2">
+                {getSectionOrder().map((section, index) => (
+                  <div
+                    key={section}
+                    className="flex items-center justify-between rounded border border-slate-700 bg-slate-800/70 px-3 py-2"
+                  >
+                    <span className="text-sm font-medium text-slate-200">
+                      {SECTION_LABELS[section]}
+                    </span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleMoveSection(section, 'up')}
+                        disabled={index === 0}
+                        className="rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 transition enabled:hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        aria-label={`Move ${SECTION_LABELS[section]} up`}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => handleMoveSection(section, 'down')}
+                        disabled={index === getSectionOrder().length - 1}
+                        className="rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 transition enabled:hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        aria-label={`Move ${SECTION_LABELS[section]} down`}
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

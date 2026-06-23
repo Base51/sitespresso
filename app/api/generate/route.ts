@@ -227,6 +227,12 @@ function applyDefaults(website: Record<string, unknown>): Record<string, unknown
       position: 'left',
       width: 100,
     },
+    layout: {
+      ...(website.layout as Record<string, unknown>),
+      section_order:
+        (website.layout as Record<string, unknown>)?.section_order ||
+        ['about', 'services', 'contact'],
+    },
     color_scheme: {
       ...(website.color_scheme as Record<string, unknown>),
       accent: (website.color_scheme as Record<string, unknown>)?.accent || (website.color_scheme as Record<string, unknown>)?.primary,

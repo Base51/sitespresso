@@ -1,11 +1,15 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Website } from '@/lib/schemas/website';
 
 interface PageProps {
   params: { slug: string };
 }
+
+type SectionKey = 'about' | 'services' | 'contact';
+const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
 
 async function getSiteBySlug(slug: string): Promise<Website | null> {
   const supabase = await createClient();
@@ -74,6 +78,109 @@ export default async function PublishedSitePage({ params }: PageProps) {
   const googleFontsUrl = googleFamilies.length
     ? `https://fonts.googleapis.com/css2?${googleFamilies.map(f => `family=${f}`).join('&')}&display=swap`
     : null;
+
+  const sectionOrder = (() => {
+    const customOrder = site.layout?.section_order;
+    if (!customOrder || customOrder.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    const validOrder = customOrder.filter((section): section is SectionKey =>
+      DEFAULT_SECTION_ORDER.includes(section as SectionKey)
+    );
+
+    if (validOrder.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    const deduped = Array.from(new Set(validOrder));
+    if (deduped.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    return deduped;
+  })();
+
+  const contentSections: Record<SectionKey, ReactNode> = {
+    about: (
+      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
+        <div className="mx-auto max-w-3xl space-y-4">
+          <h2 className="text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
+            {site.about.title}
+          </h2>
+          <p className="leading-relaxed text-slate-600" style={{ fontFamily: bodyCss }}>{site.about.content}</p>
+          {site.about.cta_text && (
+            <a
+              href={site.about.cta_url || '#'}
+              className="inline-block rounded-lg px-5 py-2 font-semibold text-white transition hover:opacity-90"
+              style={{ background: primary }}
+            >
+              {site.about.cta_text}
+            </a>
+          )}
+        </div>
+      </section>
+    ),
+    services: (
+      <section className="bg-slate-50 px-6 py-14 md:px-16">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="mb-3 text-center text-2xl font-bold text-slate-800" style={{ fontFamily: headingCss }}>
+            {site.services.title}
+          </h2>
+          <p className="mb-8 text-center text-slate-500" style={{ fontFamily: bodyCss }}>{site.services.description}</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {site.services.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                style={{ borderTop: `3px solid ${primary}` }}
+              >
+                <h3 className="mb-1 font-semibold text-slate-800" style={{ fontFamily: headingCss }}>{item.name}</h3>
+                <p className="text-sm text-slate-500" style={{ fontFamily: bodyCss }}>{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ),
+    contact: (
+      <section className="bg-white px-6 py-14 md:px-16">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="mb-6 text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
+            {site.contact.title}
+          </h2>
+          <div className="space-y-3 text-slate-600" style={{ fontFamily: bodyCss }}>
+            {site.contact.phone && (
+              <div className="flex gap-2">
+                <span>📞</span>
+                <span>{site.contact.phone}</span>
+              </div>
+            )}
+            {site.contact.email && (
+              <div className="flex gap-2">
+                <span>✉️</span>
+                <a href={`mailto:${site.contact.email}`} className="hover:underline">
+                  {site.contact.email}
+                </a>
+              </div>
+            )}
+            {site.contact.address && (
+              <div className="flex gap-2">
+                <span>📍</span>
+                <span>{site.contact.address}</span>
+              </div>
+            )}
+            {site.contact.hours && (
+              <div className="flex gap-2">
+                <span>🕐</span>
+                <span>{site.contact.hours}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    ),
+  };
 
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
@@ -183,83 +290,9 @@ export default async function PublishedSitePage({ params }: PageProps) {
         )}
       </section>
 
-      {/* About */}
-      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <h2 className="text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
-            {site.about.title}
-          </h2>
-          <p className="leading-relaxed text-slate-600" style={{ fontFamily: bodyCss }}>{site.about.content}</p>
-          {site.about.cta_text && (
-            <a
-              href={site.about.cta_url || '#'}
-              className="inline-block rounded-lg px-5 py-2 font-semibold text-white transition hover:opacity-90"
-              style={{ background: primary }}
-            >
-              {site.about.cta_text}
-            </a>
-          )}
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="bg-slate-50 px-6 py-14 md:px-16">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="mb-3 text-center text-2xl font-bold text-slate-800" style={{ fontFamily: headingCss }}>
-            {site.services.title}
-          </h2>
-          <p className="mb-8 text-center text-slate-500" style={{ fontFamily: bodyCss }}>{site.services.description}</p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {site.services.items.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-                style={{ borderTop: `3px solid ${primary}` }}
-              >
-                <h3 className="mb-1 font-semibold text-slate-800" style={{ fontFamily: headingCss }}>{item.name}</h3>
-                <p className="text-sm text-slate-500" style={{ fontFamily: bodyCss }}>{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section className="bg-white px-6 py-14 md:px-16">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
-            {site.contact.title}
-          </h2>
-          <div className="space-y-3 text-slate-600" style={{ fontFamily: bodyCss }}>
-            {site.contact.phone && (
-              <div className="flex gap-2">
-                <span>📞</span>
-                <span>{site.contact.phone}</span>
-              </div>
-            )}
-            {site.contact.email && (
-              <div className="flex gap-2">
-                <span>✉️</span>
-                <a href={`mailto:${site.contact.email}`} className="hover:underline">
-                  {site.contact.email}
-                </a>
-              </div>
-            )}
-            {site.contact.address && (
-              <div className="flex gap-2">
-                <span>📍</span>
-                <span>{site.contact.address}</span>
-              </div>
-            )}
-            {site.contact.hours && (
-              <div className="flex gap-2">
-                <span>🕐</span>
-                <span>{site.contact.hours}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {sectionOrder.map((sectionKey) => (
+        <div key={sectionKey}>{contentSections[sectionKey]}</div>
+      ))}
 
       {/* Footer */}
       <footer

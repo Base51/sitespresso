@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
 import type { Website } from '@/lib/schemas/website';
 import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
@@ -14,6 +14,9 @@ interface SitePreviewProps {
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'unauthenticated' | 'error';
+type SectionKey = 'about' | 'services' | 'contact';
+
+const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
 
 // Map font names to Google Fonts family names for CSS
 const fontMap: Record<string, string> = {
@@ -148,6 +151,209 @@ export default function SitePreview({
     error: 'text-red-400',
   };
 
+  const sectionOrder = useMemo(() => {
+    const customOrder = draft.layout?.section_order;
+    if (!customOrder || customOrder.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    const validOrder = customOrder.filter((section): section is SectionKey =>
+      DEFAULT_SECTION_ORDER.includes(section as SectionKey)
+    );
+
+    if (validOrder.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    const deduped = Array.from(new Set(validOrder));
+    if (deduped.length !== DEFAULT_SECTION_ORDER.length) {
+      return DEFAULT_SECTION_ORDER;
+    }
+
+    return deduped;
+  }, [draft.layout?.section_order]);
+
+  const contentSections: Record<SectionKey, ReactNode> = {
+    about: (
+      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
+        <div className="mx-auto max-w-3xl space-y-4">
+          <EditableField
+            tag="h2"
+            value={draft.about.title}
+            original={website.about.title}
+            onChange={(v) => update((d) => ({ ...d, about: { ...d.about, title: v } }))}
+            className="text-2xl font-bold"
+            style={{
+              color: primary,
+              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
+            }}
+          />
+          <EditableField
+            tag="p"
+            value={draft.about.content}
+            original={website.about.content}
+            onChange={(v) => update((d) => ({ ...d, about: { ...d.about, content: v } }))}
+            className="leading-relaxed text-slate-600"
+            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+            multiline
+          />
+          {draft.about.cta_text && (
+            <a
+              href={draft.about.cta_url || '#'}
+              className="inline-block rounded-lg px-5 py-2 font-semibold text-white transition hover:opacity-90"
+              style={{ background: primary }}
+            >
+              {draft.about.cta_text}
+            </a>
+          )}
+        </div>
+      </section>
+    ),
+    services: (
+      <section className="bg-slate-50 px-6 py-14 md:px-16">
+        <div className="mx-auto max-w-5xl">
+          <EditableField
+            tag="h2"
+            value={draft.services.title}
+            original={website.services.title}
+            onChange={(v) => update((d) => ({ ...d, services: { ...d.services, title: v } }))}
+            className="mb-3 block text-center text-2xl font-bold text-slate-800"
+            style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
+          />
+          <EditableField
+            tag="p"
+            value={draft.services.description}
+            original={website.services.description}
+            onChange={(v) =>
+              update((d) => ({ ...d, services: { ...d.services, description: v } }))
+            }
+            className="mb-8 block text-center text-slate-500"
+            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+            multiline
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {draft.services.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                style={{ borderTop: `3px solid ${primary}` }}
+              >
+                <EditableField
+                  tag="h3"
+                  value={item.name}
+                  original={website.services.items[idx]?.name ?? item.name}
+                  onChange={(v) =>
+                    update((d) => ({
+                      ...d,
+                      services: {
+                        ...d.services,
+                        items: d.services.items.map((s, i) =>
+                          i === idx ? { ...s, name: v } : s,
+                        ),
+                      },
+                    }))
+                  }
+                  className="mb-1 block font-semibold text-slate-800"
+                  style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
+                />
+                <EditableField
+                  tag="p"
+                  value={item.description}
+                  original={website.services.items[idx]?.description ?? item.description}
+                  onChange={(v) =>
+                    update((d) => ({
+                      ...d,
+                      services: {
+                        ...d.services,
+                        items: d.services.items.map((s, i) =>
+                          i === idx ? { ...s, description: v } : s,
+                        ),
+                      },
+                    }))
+                  }
+                  className="text-sm text-slate-500"
+                  style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+                  multiline
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ),
+    contact: (
+      <section className="bg-white px-6 py-14 md:px-16">
+        <div className="mx-auto max-w-3xl">
+          <EditableField
+            tag="h2"
+            value={draft.contact.title}
+            original={website.contact.title}
+            onChange={(v) => update((d) => ({ ...d, contact: { ...d.contact, title: v } }))}
+            className="mb-6 block text-2xl font-bold"
+            style={{
+              color: primary,
+              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
+            }}
+          />
+          <div className="space-y-3 text-slate-600" style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}>
+            {draft.contact.phone && (
+              <div className="flex gap-2">
+                <span>📞</span>
+                <EditableField
+                  tag="span"
+                  value={draft.contact.phone}
+                  original={website.contact.phone ?? ''}
+                  onChange={(v) =>
+                    update((d) => ({ ...d, contact: { ...d.contact, phone: v } }))
+                  }
+                />
+              </div>
+            )}
+            {draft.contact.email && (
+              <div className="flex gap-2">
+                <span>✉️</span>
+                <EditableField
+                  tag="span"
+                  value={draft.contact.email}
+                  original={website.contact.email ?? ''}
+                  onChange={(v) =>
+                    update((d) => ({ ...d, contact: { ...d.contact, email: v } }))
+                  }
+                />
+              </div>
+            )}
+            {draft.contact.address && (
+              <div className="flex gap-2">
+                <span>📍</span>
+                <EditableField
+                  tag="span"
+                  value={draft.contact.address}
+                  original={website.contact.address ?? ''}
+                  onChange={(v) =>
+                    update((d) => ({ ...d, contact: { ...d.contact, address: v } }))
+                  }
+                />
+              </div>
+            )}
+            {draft.contact.hours && (
+              <div className="flex gap-2">
+                <span>🕐</span>
+                <EditableField
+                  tag="span"
+                  value={draft.contact.hours}
+                  original={website.contact.hours ?? ''}
+                  onChange={(v) =>
+                    update((d) => ({ ...d, contact: { ...d.contact, hours: v } }))
+                  }
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    ),
+  };
+
   return (
     <div className="w-full space-y-4">
       {/* Customization Sidebar */}
@@ -258,183 +464,9 @@ export default function SitePreview({
         )}
         </section>
 
-      {/* About */}
-      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <EditableField
-            tag="h2"
-            value={draft.about.title}
-            original={website.about.title}
-            onChange={(v) => update((d) => ({ ...d, about: { ...d.about, title: v } }))}
-            className="text-2xl font-bold"
-            style={{ 
-              color: primary,
-              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
-            }}
-          />
-          <EditableField
-            tag="p"
-            value={draft.about.content}
-            original={website.about.content}
-            onChange={(v) => update((d) => ({ ...d, about: { ...d.about, content: v } }))}
-            className="leading-relaxed text-slate-600"
-            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
-            multiline
-          />
-          {draft.about.cta_text && (
-            <a
-              href={draft.about.cta_url || '#'}
-              className="inline-block rounded-lg px-5 py-2 font-semibold text-white transition hover:opacity-90"
-              style={{ background: primary }}
-            >
-              {draft.about.cta_text}
-            </a>
-          )}
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="bg-slate-50 px-6 py-14 md:px-16">
-        <div className="mx-auto max-w-5xl">
-          <EditableField
-            tag="h2"
-            value={draft.services.title}
-            original={website.services.title}
-            onChange={(v) => update((d) => ({ ...d, services: { ...d.services, title: v } }))}
-            className="mb-3 block text-center text-2xl font-bold text-slate-800"
-            style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
-          />
-          <EditableField
-            tag="p"
-            value={draft.services.description}
-            original={website.services.description}
-            onChange={(v) =>
-              update((d) => ({ ...d, services: { ...d.services, description: v } }))
-            }
-            className="mb-8 block text-center text-slate-500"
-            style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
-            multiline
-          />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {draft.services.items.map((item, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-                style={{ borderTop: `3px solid ${primary}` }}
-              >
-                <EditableField
-                  tag="h3"
-                  value={item.name}
-                  original={website.services.items[idx]?.name ?? item.name}
-                  onChange={(v) =>
-                    update((d) => ({
-                      ...d,
-                      services: {
-                        ...d.services,
-                        items: d.services.items.map((s, i) =>
-                          i === idx ? { ...s, name: v } : s,
-                        ),
-                      },
-                    }))
-                  }
-                  className="mb-1 block font-semibold text-slate-800"
-                  style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
-                />
-                <EditableField
-                  tag="p"
-                  value={item.description}
-                  original={website.services.items[idx]?.description ?? item.description}
-                  onChange={(v) =>
-                    update((d) => ({
-                      ...d,
-                      services: {
-                        ...d.services,
-                        items: d.services.items.map((s, i) =>
-                          i === idx ? { ...s, description: v } : s,
-                        ),
-                      },
-                    }))
-                  }
-                  className="text-sm text-slate-500"
-                  style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
-                  multiline
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section className="bg-white px-6 py-14 md:px-16">
-        <div className="mx-auto max-w-3xl">
-          <EditableField
-            tag="h2"
-            value={draft.contact.title}
-            original={website.contact.title}
-            onChange={(v) => update((d) => ({ ...d, contact: { ...d.contact, title: v } }))}
-            className="mb-6 block text-2xl font-bold"
-            style={{ 
-              color: primary,
-              fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display']
-            }}
-          />
-          <div className="space-y-3 text-slate-600" style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}>
-            {draft.contact.phone && (
-              <div className="flex gap-2">
-                <span>📞</span>
-                <EditableField
-                  tag="span"
-                  value={draft.contact.phone}
-                  original={website.contact.phone ?? ''}
-                  onChange={(v) =>
-                    update((d) => ({ ...d, contact: { ...d.contact, phone: v } }))
-                  }
-                />
-              </div>
-            )}
-            {draft.contact.email && (
-              <div className="flex gap-2">
-                <span>✉️</span>
-                <EditableField
-                  tag="span"
-                  value={draft.contact.email}
-                  original={website.contact.email ?? ''}
-                  onChange={(v) =>
-                    update((d) => ({ ...d, contact: { ...d.contact, email: v } }))
-                  }
-                />
-              </div>
-            )}
-            {draft.contact.address && (
-              <div className="flex gap-2">
-                <span>📍</span>
-                <EditableField
-                  tag="span"
-                  value={draft.contact.address}
-                  original={website.contact.address ?? ''}
-                  onChange={(v) =>
-                    update((d) => ({ ...d, contact: { ...d.contact, address: v } }))
-                  }
-                />
-              </div>
-            )}
-            {draft.contact.hours && (
-              <div className="flex gap-2">
-                <span>🕐</span>
-                <EditableField
-                  tag="span"
-                  value={draft.contact.hours}
-                  original={website.contact.hours ?? ''}
-                  onChange={(v) =>
-                    update((d) => ({ ...d, contact: { ...d.contact, hours: v } }))
-                  }
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {sectionOrder.map((sectionKey) => (
+        <div key={sectionKey}>{contentSections[sectionKey]}</div>
+      ))}
 
       {/* Footer */}
       <footer
