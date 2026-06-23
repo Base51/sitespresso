@@ -1,8 +1,10 @@
 import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
+import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, type Plan } from '@/lib/billing/plans';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
+import UpgradePlanButton from '@/components/UpgradePlanButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
@@ -63,9 +65,12 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
 
-  const plan = (profile?.plan as string | undefined) ?? 'free';
+  const plan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
+  const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
+  const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];
+  const nextPlanPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
 
   // Get actual remaining quota for this month
   const rateLimit = await checkRateLimit(user.id, plan as 'free' | 'starter' | 'pro' | 'agency');
@@ -95,15 +100,32 @@ export default async function DashboardPage(): Promise<JSX.Element> {
       </div>
 
       <Card className="p-5">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.18em] text-brand-muted">Current plan</p>
-            <p className="text-lg font-semibold text-white capitalize">{plan}</p>
+            <div className="flex items-center gap-3">
+              <p className="text-lg font-semibold text-white">{currentPlanLabel}</p>
+              {plan !== 'free' && (
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                  Active
+                </span>
+              )}
+            </div>
             <p className="text-xs text-brand-muted">
               Renewal date: {formatDate(latestSubscription?.current_period_end)}
             </p>
+            {nextPlan && nextPlanPrice !== null && (
+              <p className="text-sm text-brand-muted">
+                Next upgrade: <span className="font-medium text-white">{PLAN_LABELS[nextPlan]}</span> for ${nextPlanPrice}/month.
+              </p>
+            )}
           </div>
-          <ManageBillingButton disabled={!hasStripeCustomer} />
+
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+            {nextPlan && <UpgradePlanButton plan={nextPlan} />}
+            <ManageBillingButton disabled={!hasStripeCustomer} />
+          </div>
+        </div>
 
         <div className="mt-4 border-t border-white/10 pt-4">
           <QuotaDisplay
@@ -112,12 +134,11 @@ export default async function DashboardPage(): Promise<JSX.Element> {
             label="Generation quota this month"
           />
         </div>
-        </div>
 
-        <p className="text-sm text-brand-muted">
+        <p className="mt-4 text-sm text-brand-muted">
           {hasStripeCustomer
             ? 'Manage your subscription, billing details, and invoices in Stripe Billing Portal.'
-            : 'Complete checkout once to create your billing profile and enable billing portal access.'}
+            : 'Upgrade to a paid plan to publish, create your billing profile, and unlock Stripe Billing Portal access.'}
         </p>
       </Card>
 

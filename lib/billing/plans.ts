@@ -1,5 +1,12 @@
 export type PaidPlan = 'starter' | 'pro' | 'agency';
+export type Plan = 'free' | PaidPlan;
 export type BillingInterval = 'monthly' | 'annual';
+
+export const NEXT_PLAN: Record<Exclude<Plan, 'agency'>, PaidPlan> = {
+  free: 'starter',
+  starter: 'pro',
+  pro: 'agency',
+};
 
 export const PLAN_LABELS: Record<PaidPlan, string> = {
   starter: 'Starter',
