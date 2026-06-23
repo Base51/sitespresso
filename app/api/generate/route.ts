@@ -99,7 +99,7 @@ const websiteResponseSchema = {
         type: 'object',
         additionalProperties: false,
         properties: {
-          position: { type: 'string', enum: ['left', 'center', 'top'] },
+          position: { type: 'string', enum: ['left', 'center', 'right'] },
           width: { type: 'number' },
         },
         required: ['position', 'width'],

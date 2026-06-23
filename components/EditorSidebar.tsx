@@ -44,6 +44,17 @@ export default function EditorSidebar({
     });
   }
 
+  function handleLogoWidthChange(width: number) {
+    onWebsiteChange({
+      ...website,
+      logo: {
+        position: website.logo?.position ?? 'left',
+        width,
+        url: website.logo?.url,
+      },
+    });
+  }
+
   function handleFontsChange(fonts: { heading: string; body: string }) {
     onWebsiteChange({
       ...website,
@@ -114,6 +125,31 @@ export default function EditorSidebar({
                         {pos === 'left' ? '⬅ Left' : pos === 'center' ? '⬇ Center' : '➡ Right'}
                       </button>
                     ))}
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-slate-300">
+                        Size
+                      </label>
+                      <span className="text-xs text-slate-400">
+                        {website.logo?.width ?? 100}px
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={30}
+                      max={200}
+                      step={5}
+                      value={website.logo?.width ?? 100}
+                      onChange={(e) => handleLogoWidthChange(Number(e.target.value))}
+                      className="w-full accent-blue-500"
+                      aria-label="Logo size"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>30px</span>
+                      <span>200px</span>
+                    </div>
                   </div>
                 </div>
               )}
