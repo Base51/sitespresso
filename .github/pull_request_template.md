@@ -21,3 +21,4 @@
 - [ ] Self-reviewed the diff
 - [ ] No sensitive data or credentials included
 - [ ] Documentation updated if needed
+- [ ] Ran `npm run test:reliability` locally

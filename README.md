@@ -51,7 +51,7 @@ Add new templates under `templates/`, each with its own `README.md` describing s
 
 ```bash
 npm install
-npm run dev:clean  # Recommended first run (cleans cache + starts server)
+npm run dev:clean:start  # Clean cache + start fresh dev server
 ```
 
 Then open [http://localhost:3000](http://localhost:3000)
@@ -59,7 +59,11 @@ Then open [http://localhost:3000](http://localhost:3000)
 ### Commands
 
 - **`npm run dev`** — Start dev server
-- **`npm run dev:clean`** — Clean cache + start fresh dev server (use this after pulling code)
+- **`npm run dev:clean`** — Clean cache only (does not start server)
+- **`npm run dev:clean:start`** — Clean cache + start fresh dev server
+- **`npm run dev:health`** — Check local dev environment health
+- **`npm run test:smoke`** — Run smoke checks for core flows
+- **`npm run test:reliability`** — Run health + smoke + build pipeline
 - **`npm run build`** — Build for production
 - **`npm start`** — Run production build locally
 - **`npm run clean`** — Clean cache without restarting

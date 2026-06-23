@@ -4,7 +4,7 @@
 
 ```bash
 npm install
-npm run dev:clean
+npm run dev:clean:start
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
@@ -16,21 +16,35 @@ Open [http://localhost:3000](http://localhost:3000)
 npm run dev
 
 # After pulling new code or if you see styling issues
-npm run dev:clean
+npm run dev:clean:start
 
 # Production build
 npm run build
 npm start
 ```
 
+## Testing & Validation
+
+```bash
+# Check local environment health
+npm run dev:health
+
+# Run core smoke checks
+npm run test:smoke
+
+# Full reliability pipeline
+npm run test:reliability
+```
+
 ## If Something Breaks
 
 | Symptom | Solution |
 |---------|----------|
-| White page / missing styles | `npm run dev:clean` |
-| `/_next/static` 404 errors | `npm run dev:clean` |
-| After pulling new code | `npm run dev:clean` |
+| White page / missing styles | `npm run dev:clean:start` |
+| `/_next/static` 404 errors | `npm run dev:clean:start` |
+| After pulling new code | `npm run dev:clean:start` |
 | Build failing | `npm run clean && npm install && npm run build` |
+| Not sure env is healthy | `npm run dev:health` |
 
 ## Important Files
 

@@ -19,7 +19,7 @@ Next.js caches build artifacts in the `.next` folder and TypeScript caches in `t
 Use the clean dev command which automatically removes cache before starting:
 
 ```bash
-npm run dev:clean
+npm run dev:clean:start
 ```
 
 This runs `scripts/clean-dev.ps1` which:
@@ -29,12 +29,12 @@ This runs `scripts/clean-dev.ps1` which:
 - Removes TypeScript build info
 - Starts a fresh dev server
 
-### Option 2: Manual Cleanup
+### Option 2: Clean Without Restarting
 
 If you need to clean without restarting:
 
 ```bash
-npm run clean
+npm run dev:clean
 ```
 
 Then restart your dev server:
@@ -48,15 +48,28 @@ npm run dev
 | Situation | Command |
 |-----------|---------|
 | Regular development | `npm run dev` |
-| After pulling new code | `npm run dev:clean` |
-| After failed builds | `npm run dev:clean` |
-| Experiencing white/blank pages | `npm run dev:clean` |
-| Styles not loading | `npm run dev:clean` |
-| Only need to clean (don't restart) | `npm run clean` |
+| After pulling new code | `npm run dev:clean:start` |
+| After failed builds | `npm run dev:clean:start` |
+| Experiencing white/blank pages | `npm run dev:clean:start` |
+| Styles not loading | `npm run dev:clean:start` |
+| Only need to clean (don't restart) | `npm run dev:clean` |
+
+## Health and Reliability Checks
+
+Before opening PRs, run:
+
+```bash
+npm run test:reliability
+```
+
+This includes:
+- `npm run dev:health`
+- `npm run test:smoke`
+- `npm run build`
 
 ## Preventing the Issue
 
-1. **Always use `npm run dev:clean` after:**
+1. **Always use `npm run dev:clean:start` after:**
    - Pulling new commits from git
    - Merging branches
    - Significant code changes
@@ -84,7 +97,7 @@ If the issue persists:
 1. Close all browser tabs pointing to `localhost:3000`
 2. Kill all Node processes: `Get-Process node | Stop-Process -Force`
 3. Delete `.next`: `rm -r .next` (or right-click delete in Explorer)
-4. Run `npm run dev:clean`
+4. Run `npm run dev:clean:start`
 5. Open a fresh browser tab to `http://localhost:3000`
 
 If that doesn't work, try a full reinstall:
@@ -92,5 +105,5 @@ If that doesn't work, try a full reinstall:
 ```bash
 rm -r node_modules package-lock.json
 npm install
-npm run dev:clean
+npm run dev:clean:start
 ```
