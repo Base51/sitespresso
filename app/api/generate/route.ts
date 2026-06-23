@@ -232,6 +232,17 @@ function applyDefaults(website: Record<string, unknown>): Record<string, unknown
       section_order:
         (website.layout as Record<string, unknown>)?.section_order ||
         ['about', 'services', 'contact'],
+      section_backgrounds: {
+        about:
+          ((website.layout as Record<string, unknown>)?.section_backgrounds as Record<string, unknown>)?.about ||
+          '#ffffff',
+        services:
+          ((website.layout as Record<string, unknown>)?.section_backgrounds as Record<string, unknown>)?.services ||
+          '#f8fafc',
+        contact:
+          ((website.layout as Record<string, unknown>)?.section_backgrounds as Record<string, unknown>)?.contact ||
+          '#ffffff',
+      },
     },
     color_scheme: {
       ...(website.color_scheme as Record<string, unknown>),

@@ -51,6 +51,11 @@ export const WebsiteSchema = z.object({
   }),
   layout: z.object({
     section_order: z.array(z.enum(['about', 'services', 'contact'])).optional(),
+    section_backgrounds: z.object({
+      about: z.string().regex(/^#[0-9A-F]{6}$/i),
+      services: z.string().regex(/^#[0-9A-F]{6}$/i),
+      contact: z.string().regex(/^#[0-9A-F]{6}$/i),
+    }).optional(),
   }).optional(),
 });
 

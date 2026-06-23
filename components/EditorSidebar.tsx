@@ -16,6 +16,11 @@ type Panel = 'logo' | 'layout' | 'hero' | 'fonts' | 'colors' | null;
 type SectionKey = 'about' | 'services' | 'contact';
 
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
+const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
+  about: '#ffffff',
+  services: '#f8fafc',
+  contact: '#ffffff',
+};
 const SECTION_LABELS: Record<SectionKey, string> = {
   about: 'About',
   services: 'Services',
@@ -93,6 +98,33 @@ export default function EditorSidebar({
       layout: {
         ...website.layout,
         section_order: currentOrder,
+      },
+    });
+  }
+
+  function getSectionBackgrounds(): Record<SectionKey, string> {
+    return {
+      about:
+        website.layout?.section_backgrounds?.about ||
+        DEFAULT_SECTION_BACKGROUNDS.about,
+      services:
+        website.layout?.section_backgrounds?.services ||
+        DEFAULT_SECTION_BACKGROUNDS.services,
+      contact:
+        website.layout?.section_backgrounds?.contact ||
+        DEFAULT_SECTION_BACKGROUNDS.contact,
+    };
+  }
+
+  function handleSectionBackgroundChange(section: SectionKey, color: string) {
+    onWebsiteChange({
+      ...website,
+      layout: {
+        ...website.layout,
+        section_backgrounds: {
+          ...getSectionBackgrounds(),
+          [section]: color,
+        },
       },
     });
   }
@@ -366,6 +398,30 @@ export default function EditorSidebar({
           {activePanel === 'colors' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
               <ColorPicker website={website} onColorsChange={handleColorsChange} />
+
+              <div className="space-y-2 border-t border-slate-700 pt-3">
+                <p className="text-xs font-medium text-slate-400">Section backgrounds</p>
+                {(['about', 'services', 'contact'] as const).map((section) => (
+                  <label
+                    key={section}
+                    className="flex items-center justify-between rounded border border-slate-700 bg-slate-800/70 px-3 py-2"
+                  >
+                    <span className="text-sm text-slate-200">{SECTION_LABELS[section]}</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={getSectionBackgrounds()[section]}
+                        onChange={(e) => handleSectionBackgroundChange(section, e.target.value)}
+                        className="h-8 w-10 cursor-pointer rounded border border-slate-600 bg-transparent"
+                        aria-label={`${SECTION_LABELS[section]} background color`}
+                      />
+                      <span className="w-16 text-right text-[11px] text-slate-400">
+                        {getSectionBackgrounds()[section]}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
 

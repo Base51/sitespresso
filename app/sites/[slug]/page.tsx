@@ -10,6 +10,11 @@ interface PageProps {
 
 type SectionKey = 'about' | 'services' | 'contact';
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
+const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
+  about: '#ffffff',
+  services: '#f8fafc',
+  contact: '#ffffff',
+};
 
 async function getSiteBySlug(slug: string): Promise<Website | null> {
   const supabase = await createClient();
@@ -112,7 +117,14 @@ export default async function PublishedSitePage({ params }: PageProps) {
 
   const contentSections: Record<SectionKey, ReactNode> = {
     about: (
-      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
+      <section
+        className="px-6 py-14 text-slate-800 md:px-16"
+        style={{
+          backgroundColor:
+            site.layout?.section_backgrounds?.about ||
+            DEFAULT_SECTION_BACKGROUNDS.about,
+        }}
+      >
         <div className="mx-auto max-w-3xl space-y-4">
           <h2 className="text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
             {site.about.title}
@@ -131,7 +143,14 @@ export default async function PublishedSitePage({ params }: PageProps) {
       </section>
     ),
     services: (
-      <section className="bg-slate-50 px-6 py-14 md:px-16">
+      <section
+        className="px-6 py-14 md:px-16"
+        style={{
+          backgroundColor:
+            site.layout?.section_backgrounds?.services ||
+            DEFAULT_SECTION_BACKGROUNDS.services,
+        }}
+      >
         <div className="mx-auto max-w-5xl">
           <h2 className="mb-3 text-center text-2xl font-bold text-slate-800" style={{ fontFamily: headingCss }}>
             {site.services.title}
@@ -153,7 +172,14 @@ export default async function PublishedSitePage({ params }: PageProps) {
       </section>
     ),
     contact: (
-      <section className="bg-white px-6 py-14 md:px-16">
+      <section
+        className="px-6 py-14 md:px-16"
+        style={{
+          backgroundColor:
+            site.layout?.section_backgrounds?.contact ||
+            DEFAULT_SECTION_BACKGROUNDS.contact,
+        }}
+      >
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-6 text-2xl font-bold" style={{ color: primary, fontFamily: headingCss }}>
             {site.contact.title}

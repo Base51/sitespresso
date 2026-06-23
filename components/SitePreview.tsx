@@ -17,6 +17,11 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'unauthenticated' | 'error';
 type SectionKey = 'about' | 'services' | 'contact';
 
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
+const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
+  about: '#ffffff',
+  services: '#f8fafc',
+  contact: '#ffffff',
+};
 
 // Map font names to Google Fonts family names for CSS
 const fontMap: Record<string, string> = {
@@ -182,9 +187,28 @@ export default function SitePreview({
     return `https://${raw}`;
   }, [draft.hero.cta_url]);
 
+  const sectionBackgrounds = useMemo(
+    () => ({
+      about:
+        draft.layout?.section_backgrounds?.about ||
+        DEFAULT_SECTION_BACKGROUNDS.about,
+      services:
+        draft.layout?.section_backgrounds?.services ||
+        DEFAULT_SECTION_BACKGROUNDS.services,
+      contact:
+        draft.layout?.section_backgrounds?.contact ||
+        DEFAULT_SECTION_BACKGROUNDS.contact,
+    }),
+    [
+      draft.layout?.section_backgrounds?.about,
+      draft.layout?.section_backgrounds?.services,
+      draft.layout?.section_backgrounds?.contact,
+    ],
+  );
+
   const contentSections: Record<SectionKey, ReactNode> = {
     about: (
-      <section className="bg-white px-6 py-14 text-slate-800 md:px-16">
+      <section className="px-6 py-14 text-slate-800 md:px-16" style={{ backgroundColor: sectionBackgrounds.about }}>
         <div className="mx-auto max-w-3xl space-y-4">
           <EditableField
             tag="h2"
@@ -219,7 +243,7 @@ export default function SitePreview({
       </section>
     ),
     services: (
-      <section className="bg-slate-50 px-6 py-14 md:px-16">
+      <section className="px-6 py-14 md:px-16" style={{ backgroundColor: sectionBackgrounds.services }}>
         <div className="mx-auto max-w-5xl">
           <EditableField
             tag="h2"
@@ -291,7 +315,7 @@ export default function SitePreview({
       </section>
     ),
     contact: (
-      <section className="bg-white px-6 py-14 md:px-16">
+      <section className="px-6 py-14 md:px-16" style={{ backgroundColor: sectionBackgrounds.contact }}>
         <div className="mx-auto max-w-3xl">
           <EditableField
             tag="h2"
