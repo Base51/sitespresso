@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Website } from '@/lib/schemas/website';
 import LogoUpload from './LogoUpload';
 import FontSelector from './FontSelector';
 import ColorPicker from './ColorPicker';
+import { createClient } from '@/lib/supabase/client';
 
 interface EditorSidebarProps {
   siteId: string;
@@ -14,6 +15,13 @@ interface EditorSidebarProps {
 
 type Panel = 'logo' | 'layout' | 'hero' | 'fonts' | 'colors' | null;
 type SectionKey = 'about' | 'services' | 'contact';
+type SectionBackgrounds = Record<SectionKey, string>;
+
+interface SavedStylePreset {
+  id: string;
+  name: string;
+  section_backgrounds: SectionBackgrounds;
+}
 
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
 const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
@@ -21,6 +29,7 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   services: '#f8fafc',
   contact: '#ffffff',
 };
+const SAVED_STYLE_PRESETS_KEY = 'sitespresso-style-presets-v1';
 const SECTION_STYLE_PRESETS = [
   {
     id: 'clean',
@@ -63,6 +72,9 @@ export default function EditorSidebar({
 }: EditorSidebarProps) {
   const [activePanel, setActivePanel] = useState<Panel>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [savedStylePresets, setSavedStylePresets] = useState<SavedStylePreset[]>([]);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [presetsReady, setPresetsReady] = useState(false);
 
   function handleLogoUpload(url: string | null) {
     onWebsiteChange({
@@ -145,6 +157,83 @@ export default function EditorSidebar({
     };
   }
 
+  async function savePresetsToStorage(presets: SavedStylePreset[]) {
+    localStorage.setItem(SAVED_STYLE_PRESETS_KEY, JSON.stringify(presets));
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({ style_presets: presets })
+        .eq('id', user.id);
+    } catch {
+      // Local fallback is already persisted. Ignore profile persistence errors.
+    }
+  }
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadSavedPresets() {
+      const localRaw = localStorage.getItem(SAVED_STYLE_PRESETS_KEY);
+      if (localRaw) {
+        try {
+          const localPresets = JSON.parse(localRaw) as SavedStylePreset[];
+          if (mounted) {
+            setSavedStylePresets(Array.isArray(localPresets) ? localPresets : []);
+          }
+        } catch {
+          if (mounted) {
+            setSavedStylePresets([]);
+          }
+        }
+      }
+
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          return;
+        }
+
+        const { data } = await supabase
+          .from('profiles')
+          .select('style_presets')
+          .eq('id', user.id)
+          .single();
+
+        const profilePresets = (data?.style_presets as SavedStylePreset[] | null) || [];
+        if (mounted && Array.isArray(profilePresets)) {
+          setSavedStylePresets(profilePresets);
+          localStorage.setItem(SAVED_STYLE_PRESETS_KEY, JSON.stringify(profilePresets));
+        }
+      } catch {
+        // Keep local fallback if profile column does not exist or request fails.
+      } finally {
+        if (mounted) {
+          setPresetsReady(true);
+        }
+      }
+    }
+
+    void loadSavedPresets();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   function handleSectionBackgroundChange(section: SectionKey, color: string) {
     onWebsiteChange({
       ...website,
@@ -166,6 +255,31 @@ export default function EditorSidebar({
         section_backgrounds: colors,
       },
     });
+  }
+
+  function saveCurrentStylePreset() {
+    const trimmedName = newPresetName.trim();
+    if (!trimmedName) {
+      return;
+    }
+
+    const currentBackgrounds = getSectionBackgrounds();
+    const nextPreset: SavedStylePreset = {
+      id: crypto.randomUUID(),
+      name: trimmedName,
+      section_backgrounds: currentBackgrounds,
+    };
+
+    const next = [nextPreset, ...savedStylePresets].slice(0, 8);
+    setSavedStylePresets(next);
+    setNewPresetName('');
+    void savePresetsToStorage(next);
+  }
+
+  function deleteSavedPreset(id: string) {
+    const next = savedStylePresets.filter((preset) => preset.id !== id);
+    setSavedStylePresets(next);
+    void savePresetsToStorage(next);
   }
 
   function isPresetActive(colors: Record<SectionKey, string>) {
@@ -462,6 +576,68 @@ export default function EditorSidebar({
                     >
                       {preset.label}
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 border-t border-slate-700 pt-3">
+                <p className="text-xs font-medium text-slate-400">Saved custom presets</p>
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newPresetName}
+                    onChange={(e) => setNewPresetName(e.target.value)}
+                    placeholder="Preset name"
+                    className="flex-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-purple-500 focus:outline-none"
+                  />
+                  <button
+                    onClick={saveCurrentStylePreset}
+                    disabled={!newPresetName.trim()}
+                    className="rounded border border-purple-500/60 bg-purple-500/20 px-3 py-2 text-xs font-medium text-purple-200 transition hover:bg-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Save
+                  </button>
+                </div>
+
+                {presetsReady && savedStylePresets.length === 0 && (
+                  <p className="text-[11px] text-slate-500">No saved presets yet.</p>
+                )}
+
+                <div className="space-y-2">
+                  {savedStylePresets.map((preset) => (
+                    <div
+                      key={preset.id}
+                      className="flex items-center justify-between rounded border border-slate-700 bg-slate-800/70 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-medium text-slate-200">{preset.name}</p>
+                        <div className="mt-1 flex gap-1">
+                          {(['about', 'services', 'contact'] as const).map((section) => (
+                            <span
+                              key={section}
+                              className="h-3 w-3 rounded border border-slate-600"
+                              style={{ backgroundColor: preset.section_backgrounds[section] }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => applySectionStylePreset(preset.section_backgrounds)}
+                          className="rounded border border-slate-600 px-2 py-1 text-[11px] text-slate-200 transition hover:border-slate-500"
+                        >
+                          Apply
+                        </button>
+                        <button
+                          onClick={() => deleteSavedPreset(preset.id)}
+                          className="rounded border border-rose-500/60 px-2 py-1 text-[11px] text-rose-300 transition hover:bg-rose-500/10"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
