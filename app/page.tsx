@@ -13,6 +13,7 @@ import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
 import { isTrialUsed, markTrialUsed } from '@/lib/trial';
 import { createClient } from '@/lib/supabase/client';
+import type { BillingInterval, PaidPlan } from '@/lib/billing/plans';
 
 type Stage = 'form' | 'loading' | 'preview' | 'error';
 
@@ -29,6 +30,8 @@ export default function Home() {
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PaidPlan>('starter');
+  const [selectedBilling, setSelectedBilling] = useState<BillingInterval>('monthly');
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -157,7 +160,11 @@ export default function Home() {
       const checkoutRes = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId: draftId }),
+        body: JSON.stringify({
+          siteId: draftId,
+          plan: selectedPlan,
+          billing: selectedBilling,
+        }),
       });
       const checkoutJson = await checkoutRes.json();
 
@@ -386,6 +393,10 @@ export default function Home() {
         open={paywallOpen}
         loading={checkoutLoading}
         onClose={() => setPaywallOpen(false)}
+        selectedPlan={selectedPlan}
+        selectedBilling={selectedBilling}
+        onPlanChange={setSelectedPlan}
+        onBillingChange={setSelectedBilling}
         onContinue={continueToCheckout}
       />
     </>
