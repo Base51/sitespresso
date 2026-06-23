@@ -60,19 +60,29 @@ export async function POST(
       );
     }
 
-    // Generate unique filename: sites/{siteId}/logo-{timestamp}.{ext}
+    // Generate unique filename under user-scoped path:
+    // users/{userId}/sites/{siteId}/logo-{timestamp}.{ext}
     const ext = filename.split('.').pop() || 'png';
     const timestamp = Date.now();
-    const storagePath = `sites/${siteId}/logo-${timestamp}.${ext}`;
+    const userSitePrefix = `users/${user.id}/sites/${siteId}`;
+    const legacyPrefix = `sites/${siteId}`;
+    const storagePath = `${userSitePrefix}/logo-${timestamp}.${ext}`;
 
-    // Delete old logo if exists
-    const { data: files } = await supabase.storage
+    // Delete old logo if exists (new and legacy paths)
+    const { data: currentFiles } = await supabase.storage
       .from('logos')
-      .list(`sites/${siteId}`);
+      .list(userSitePrefix);
 
-    if (files && files.length > 0) {
-      const oldFiles = files.map((f) => `sites/${siteId}/${f.name}`);
+    if (currentFiles && currentFiles.length > 0) {
+      const oldFiles = currentFiles.map((f) => `${userSitePrefix}/${f.name}`);
       await supabase.storage.from('logos').remove(oldFiles);
+    }
+
+    // Best-effort cleanup for historical files uploaded before user-scoped path rollout.
+    const { data: legacyFiles } = await supabase.storage.from('logos').list(legacyPrefix);
+    if (legacyFiles && legacyFiles.length > 0) {
+      const oldLegacyFiles = legacyFiles.map((f) => `${legacyPrefix}/${f.name}`);
+      await supabase.storage.from('logos').remove(oldLegacyFiles);
     }
 
     // Upload new logo
@@ -158,19 +168,30 @@ export async function DELETE(
       return NextResponse.json({ error: 'Site not found or unauthorized' }, { status: 403 });
     }
 
-    // Delete logo files from storage
-    const { data: files } = await supabase.storage
-      .from('logos')
-      .list(`sites/${siteId}`);
+    const userSitePrefix = `users/${user.id}/sites/${siteId}`;
+    const legacyPrefix = `sites/${siteId}`;
 
+    // Delete logo files from storage (new path)
+    const { data: files } = await supabase.storage.from('logos').list(userSitePrefix);
     if (files && files.length > 0) {
-      const filesToDelete = files.map((f) => `sites/${siteId}/${f.name}`);
-      const { error: deleteError } = await supabase.storage
-        .from('logos')
-        .remove(filesToDelete);
-
+      const filesToDelete = files.map((f) => `${userSitePrefix}/${f.name}`);
+      const { error: deleteError } = await supabase.storage.from('logos').remove(filesToDelete);
       if (deleteError) {
         console.error('Logo deletion error:', deleteError);
+        return NextResponse.json(
+          { error: deleteError.message || 'Failed to delete logo' },
+          { status: 500 },
+        );
+      }
+    }
+
+    // Delete logo files from storage (legacy path)
+    const { data: legacyFiles } = await supabase.storage.from('logos').list(legacyPrefix);
+    if (legacyFiles && legacyFiles.length > 0) {
+      const filesToDelete = legacyFiles.map((f) => `${legacyPrefix}/${f.name}`);
+      const { error: deleteError } = await supabase.storage.from('logos').remove(filesToDelete);
+      if (deleteError) {
+        console.error('Legacy logo deletion error:', deleteError);
         return NextResponse.json(
           { error: deleteError.message || 'Failed to delete logo' },
           { status: 500 },
