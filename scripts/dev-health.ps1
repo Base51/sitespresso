@@ -49,7 +49,10 @@ if (Test-Path ".env.local") {
     $requiredVars = @(
         "NEXT_PUBLIC_SUPABASE_URL",
         "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-        "OPENAI_API_KEY"
+        "OPENAI_API_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_STARTER_PRICE_ID"
     )
 
     $envText = Get-Content ".env.local" -Raw
@@ -99,6 +102,9 @@ if ($warnings.Count -gt 0) {
         Write-Host "  - $warning" -ForegroundColor Yellow
     }
 }
+
+Write-Host ""
+Write-Host "Tip: run 'npm run test:billing-config' for a focused Stripe pricing check." -ForegroundColor DarkYellow
 
 Write-Host ""
 if ($hasErrors) {

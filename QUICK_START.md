@@ -34,6 +34,9 @@ npm run test:smoke
 
 # Full reliability pipeline
 npm run test:reliability
+
+# Focused Stripe billing configuration check
+npm run test:billing-config
 ```
 
 ## If Something Breaks
@@ -57,6 +60,7 @@ npm run test:reliability
 ## Documentation
 
 - [Full development guide](docs/DEVELOPMENT_CACHE.md)
+- [Billing config checklist](docs/BILLING_CONFIG_CHECKLIST.md)
 - [Project requirements](docs/prd.md)
 - [Architecture](docs/architecture.md)
 - [Task tracking](docs/tasks.md)

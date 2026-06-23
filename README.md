@@ -62,6 +62,8 @@ Then open [http://localhost:3000](http://localhost:3000)
 - **`npm run dev:clean`** — Clean cache only (does not start server)
 - **`npm run dev:clean:start`** — Clean cache + start fresh dev server
 - **`npm run dev:health`** — Check local dev environment health
+- **`npm run test:billing-config`** — Validate required Stripe billing env vars
+- **`npm run test:billing-config:all`** — Enforce full 4-tier Stripe config readiness
 - **`npm run test:smoke`** — Run smoke checks for core flows
 - **`npm run test:reliability`** — Run health + smoke + build pipeline
 - **`npm run build`** — Build for production
@@ -71,4 +73,6 @@ Then open [http://localhost:3000](http://localhost:3000)
 ### Troubleshooting
 
 If you see a white page, missing styles, or 404 errors on `/_next/static/`, see [docs/DEVELOPMENT_CACHE.md](docs/DEVELOPMENT_CACHE.md) for solutions.
+
+For Stripe pricing and billing env readiness, see [docs/BILLING_CONFIG_CHECKLIST.md](docs/BILLING_CONFIG_CHECKLIST.md).
 
