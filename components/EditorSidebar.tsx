@@ -80,6 +80,7 @@ export default function EditorSidebar({
   const [presetStorageMode, setPresetStorageMode] = useState<'checking' | 'profile' | 'local'>(
     'checking'
   );
+  const [isRetryingPresetSync, setIsRetryingPresetSync] = useState(false);
 
   function handleLogoUpload(url: string | null) {
     onWebsiteChange({
@@ -255,6 +256,64 @@ export default function EditorSidebar({
       mounted = false;
     };
   }, []);
+
+  async function retryPresetSync() {
+    setIsRetryingPresetSync(true);
+    setPresetStorageMode('checking');
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setPresetStorageMode('local');
+        toast({
+          type: 'info',
+          title: 'Sign in to sync',
+          description: 'Account sync requires an active login. Presets remain saved locally.',
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('style_presets')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        setPresetStorageMode('local');
+        toast({
+          type: 'warning',
+          title: 'Sync unavailable',
+          description: 'Could not sync presets from your account. Keeping local presets.',
+        });
+        return;
+      }
+
+      const profilePresets = (data?.style_presets as SavedStylePreset[] | null) || [];
+      const next = Array.isArray(profilePresets) ? profilePresets : [];
+      setSavedStylePresets(next);
+      localStorage.setItem(SAVED_STYLE_PRESETS_KEY, JSON.stringify(next));
+      setPresetStorageMode('profile');
+      toast({
+        type: 'success',
+        title: 'Sync updated',
+        description: 'Preset list refreshed from your account.',
+      });
+    } catch {
+      setPresetStorageMode('local');
+      toast({
+        type: 'warning',
+        title: 'Sync failed',
+        description: 'Could not reach account sync right now. Presets remain local.',
+      });
+    } finally {
+      setIsRetryingPresetSync(false);
+    }
+  }
 
   function handleSectionBackgroundChange(section: SectionKey, color: string) {
     onWebsiteChange({
@@ -638,21 +697,30 @@ export default function EditorSidebar({
               <div className="space-y-2 border-t border-slate-700 pt-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium text-slate-400">Saved custom presets</p>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                      presetStorageMode === 'profile'
-                        ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-300'
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                        presetStorageMode === 'profile'
+                          ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-300'
+                          : presetStorageMode === 'local'
+                            ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
+                            : 'border-slate-600 bg-slate-800/60 text-slate-400'
+                      }`}
+                    >
+                      {presetStorageMode === 'profile'
+                        ? 'Account sync'
                         : presetStorageMode === 'local'
-                          ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
-                          : 'border-slate-600 bg-slate-800/60 text-slate-400'
-                    }`}
-                  >
-                    {presetStorageMode === 'profile'
-                      ? 'Account sync'
-                      : presetStorageMode === 'local'
-                        ? 'Local only'
-                        : 'Checking sync'}
-                  </span>
+                          ? 'Local only'
+                          : 'Checking sync'}
+                    </span>
+                    <button
+                      onClick={retryPresetSync}
+                      disabled={isRetryingPresetSync}
+                      className="rounded border border-slate-600 px-2 py-0.5 text-[10px] font-medium text-slate-300 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {isRetryingPresetSync ? 'Syncing...' : 'Retry sync'}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
