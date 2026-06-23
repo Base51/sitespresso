@@ -13,7 +13,14 @@ import PaywallModal from '@/components/PaywallModal';
 import type { Website } from '@/lib/schemas/website';
 import { isTrialUsed, markTrialUsed } from '@/lib/trial';
 import { createClient } from '@/lib/supabase/client';
-import type { BillingInterval, PaidPlan } from '@/lib/billing/plans';
+import {
+  PLAN_FEATURES,
+  PLAN_LABELS,
+  PLAN_ORDER,
+  PLAN_PRICING,
+  type BillingInterval,
+  type PaidPlan,
+} from '@/lib/billing/plans';
 
 type Stage = 'form' | 'loading' | 'preview' | 'error';
 
@@ -104,6 +111,36 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [stage]);
 
+  async function startCheckout(plan: PaidPlan, billing: BillingInterval, siteId?: string | null) {
+    setCheckoutLoading(true);
+    try {
+      const checkoutRes = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: siteId ?? undefined,
+          plan,
+          billing,
+        }),
+      });
+      const checkoutJson = await checkoutRes.json();
+
+      if (!checkoutRes.ok || !checkoutJson.checkoutUrl) {
+        throw new Error(checkoutJson.error ?? 'Failed to start checkout flow.');
+      }
+
+      window.location.href = checkoutJson.checkoutUrl as string;
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Checkout failed',
+        description: err instanceof Error ? err.message : 'Could not start checkout. Please try again.',
+      });
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }
+
   async function publishSite(draftId: string | null) {
     if (!draftId) {
       toast({
@@ -155,33 +192,16 @@ export default function Home() {
   async function continueToCheckout() {
     if (!draftId) return;
 
-    setCheckoutLoading(true);
-    try {
-      const checkoutRes = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId: draftId,
-          plan: selectedPlan,
-          billing: selectedBilling,
-        }),
-      });
-      const checkoutJson = await checkoutRes.json();
+    await startCheckout(selectedPlan, selectedBilling, draftId);
+  }
 
-      if (!checkoutRes.ok || !checkoutJson.checkoutUrl) {
-        throw new Error(checkoutJson.error ?? 'Failed to start checkout flow.');
-      }
-
-      window.location.href = checkoutJson.checkoutUrl as string;
-    } catch (err) {
-      toast({
-        type: 'error',
-        title: 'Checkout failed',
-        description: err instanceof Error ? err.message : 'Could not start checkout. Please try again.',
-      });
-    } finally {
-      setCheckoutLoading(false);
+  function handlePricingCheckout(plan: PaidPlan) {
+    if (!user) {
+      router.push(`/login?redirect=/&plan=${plan}`);
+      return;
     }
+
+    void startCheckout(plan, selectedBilling);
   }
 
   // ── Form stage ────────────────────────────────────────────────────────────
@@ -212,8 +232,8 @@ export default function Home() {
             </div>
           </div>
         )}
-        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-16 text-center">
-          <div className="space-y-5">
+        <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center gap-16 px-6 py-16 text-center">
+          <div className="space-y-5 pt-10">
             <p className="mx-auto w-fit rounded-full border border-white/10 bg-white/6 px-4 py-1.5 text-xs uppercase tracking-[0.24em] text-brand-muted-strong">
               AI-Powered Website Builder
             </p>
@@ -229,6 +249,105 @@ export default function Home() {
           <Card className="w-full max-w-xl p-6 text-left md:p-8">
             <GenerateForm onSubmit={generate} />
           </Card>
+
+          <section className="w-full space-y-8 text-left">
+            <div className="space-y-3 text-center">
+              <p className="text-xs uppercase tracking-[0.24em] text-brand-primary">Pricing</p>
+              <h2 className="font-display text-3xl font-semibold tracking-tight text-white md:text-4xl">
+                Start free, upgrade when you are ready to publish and scale.
+              </h2>
+              <p className="mx-auto max-w-2xl text-sm leading-7 text-brand-muted md:text-base">
+                Free is perfect for trying the workflow. Paid plans unlock publishing and higher generation capacity for teams that need more iterations.
+              </p>
+            </div>
+
+            <div className="mx-auto inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+              <button
+                type="button"
+                onClick={() => setSelectedBilling('monthly')}
+                className={`rounded-full px-4 py-2 text-sm transition ${selectedBilling === 'monthly' ? 'bg-white text-slate-900' : 'text-brand-muted hover:text-white'}`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedBilling('annual')}
+                className={`rounded-full px-4 py-2 text-sm transition ${selectedBilling === 'annual' ? 'bg-white text-slate-900' : 'text-brand-muted hover:text-white'}`}
+              >
+                Annual
+              </button>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-4">
+              <Card className="flex h-full flex-col justify-between p-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-lg font-semibold text-white">Free</p>
+                    <p className="mt-2 text-3xl font-semibold text-white">$0</p>
+                    <p className="mt-1 text-sm text-brand-muted">Try the workflow before you commit.</p>
+                  </div>
+                  <ul className="space-y-2 text-sm text-brand-muted">
+                    <li>• 1 free preview flow</li>
+                    <li>• Draft editing only</li>
+                    <li>• Great for testing the product</li>
+                  </ul>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  className="mt-6"
+                  onClick={() => setStage('form')}
+                >
+                  Start Free
+                </Button>
+              </Card>
+
+              {PLAN_ORDER.map((plan) => {
+                const price = PLAN_PRICING[plan][selectedBilling];
+                const featured = plan === 'starter';
+
+                return (
+                  <Card
+                    key={plan}
+                    className={`flex h-full flex-col justify-between p-6 ${featured ? 'border-brand-primary/40 shadow-[0_0_0_1px_rgba(96,165,250,0.25)]' : ''}`}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-semibold text-white">{PLAN_LABELS[plan]}</p>
+                          <p className="mt-2 text-3xl font-semibold text-white">
+                            ${price}
+                            <span className="ml-1 text-base font-medium text-brand-muted">/{selectedBilling === 'monthly' ? 'mo' : 'yr'}</span>
+                          </p>
+                        </div>
+                        {featured && (
+                          <span className="rounded-full bg-brand-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white">
+                            Popular
+                          </span>
+                        )}
+                      </div>
+                      <ul className="space-y-2 text-sm text-brand-muted">
+                        {PLAN_FEATURES[plan].map((feature) => (
+                          <li key={feature}>• {feature}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button
+                      type="button"
+                      variant={featured ? 'primary' : 'secondary'}
+                      size="md"
+                      className="mt-6"
+                      disabled={checkoutLoading}
+                      onClick={() => handlePricingCheckout(plan)}
+                    >
+                      {checkoutLoading ? 'Redirecting…' : user ? `Choose ${PLAN_LABELS[plan]}` : `Sign in for ${PLAN_LABELS[plan]}`}
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
         </main>
       </>
     );
