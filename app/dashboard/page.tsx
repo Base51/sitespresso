@@ -2,7 +2,7 @@ import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
 import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, type Plan } from '@/lib/billing/plans';
-import { billingIntervalFromPriceId, planFromPriceId } from '@/lib/stripe';
+import { billingIntervalFromPriceId, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
 import UpgradePlanButton from '@/components/UpgradePlanButton';
@@ -81,6 +81,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
   const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];
   const nextPlanPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
+  const nextPlanAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'monthly') : false;
 
   // Get actual remaining quota for this month
   const rateLimit = await checkRateLimit(user.id, plan);
@@ -135,7 +136,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {nextPlan && <UpgradePlanButton plan={nextPlan} />}
+            {nextPlan && <UpgradePlanButton plan={nextPlan} unavailable={!nextPlanAvailable} />}
             <ManageBillingButton disabled={!hasStripeCustomer} />
           </div>
         </div>

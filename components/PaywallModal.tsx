@@ -7,6 +7,7 @@ import {
   PLAN_LABELS,
   PLAN_ORDER,
   PLAN_PRICING,
+  type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
 } from '@/lib/billing/plans';
@@ -17,6 +18,7 @@ type PaywallModalProps = {
   onClose: () => void;
   selectedPlan: PaidPlan;
   selectedBilling: BillingInterval;
+  availability?: PlanAvailability | null;
   onPlanChange: (plan: PaidPlan) => void;
   onBillingChange: (billing: BillingInterval) => void;
   onContinue: () => void;
@@ -28,6 +30,7 @@ export default function PaywallModal({
   onClose,
   selectedPlan,
   selectedBilling,
+  availability,
   onPlanChange,
   onBillingChange,
   onContinue,
@@ -35,6 +38,7 @@ export default function PaywallModal({
   if (!open) return null;
 
   const selectedPrice = PLAN_PRICING[selectedPlan][selectedBilling];
+  const selectedAvailable = availability ? availability[selectedPlan][selectedBilling] : true;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
@@ -70,20 +74,25 @@ export default function PaywallModal({
           {PLAN_ORDER.map((plan) => {
             const active = plan === selectedPlan;
             const price = PLAN_PRICING[plan][selectedBilling];
+            const available = availability ? availability[plan][selectedBilling] : true;
 
             return (
               <button
                 key={plan}
                 type="button"
-                onClick={() => onPlanChange(plan)}
-                className={`rounded-2xl border p-4 text-left transition ${active ? 'border-brand-primary bg-brand-primary/10 shadow-[0_0_0_1px_rgba(96,165,250,0.35)]' : 'border-white/10 bg-white/3 hover:border-white/20'}`}
+                onClick={() => available && onPlanChange(plan)}
+                disabled={!available}
+                className={`rounded-2xl border p-4 text-left transition ${active ? 'border-brand-primary bg-brand-primary/10 shadow-[0_0_0_1px_rgba(96,165,250,0.35)]' : 'border-white/10 bg-white/3 hover:border-white/20'} ${available ? '' : 'cursor-not-allowed opacity-50'}`}
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-base font-semibold text-white">{PLAN_LABELS[plan]}</p>
                     <p className="text-sm text-brand-muted">${price}/{selectedBilling === 'monthly' ? 'mo' : 'yr'}</p>
                   </div>
-                  {active && <span className="rounded-full bg-brand-primary px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">Selected</span>}
+                  <div className="flex flex-col items-end gap-1">
+                    {active && <span className="rounded-full bg-brand-primary px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">Selected</span>}
+                    {!available && <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-muted">Unavailable</span>}
+                  </div>
                 </div>
                 <ul className="space-y-2 text-sm text-brand-muted">
                   {PLAN_FEATURES[plan].map((feature) => (
@@ -94,6 +103,12 @@ export default function PaywallModal({
             );
           })}
         </div>
+
+        {!selectedAvailable && (
+          <p className="mb-4 text-sm text-amber-300">
+            {PLAN_LABELS[selectedPlan]} with {selectedBilling} billing is not configured yet.
+          </p>
+        )}
 
         <div className="flex gap-3">
           <Button
@@ -109,7 +124,7 @@ export default function PaywallModal({
           <Button
             type="button"
             onClick={onContinue}
-            disabled={loading}
+            disabled={loading || !selectedAvailable}
             variant="primary"
             size="md"
             className="flex-1"

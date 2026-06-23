@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
 import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, type Plan } from '@/lib/billing/plans';
-import { billingIntervalFromPriceId, planFromPriceId } from '@/lib/stripe';
+import { billingIntervalFromPriceId, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 
@@ -67,6 +67,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const hasBillingProfile = Boolean(profile?.stripe_customer_id);
   const nextPlanPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
   const planLabel = currentPlan === 'free' ? 'Free' : PLAN_LABELS[currentPlan];
+  const nextPlanAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'monthly') : false;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12">
@@ -116,7 +117,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {nextPlan && <UpgradePlanButton plan={nextPlan} />}
+            {nextPlan && <UpgradePlanButton plan={nextPlan} unavailable={!nextPlanAvailable} />}
             <ManageBillingButton disabled={!hasBillingProfile} />
           </div>
         </div>

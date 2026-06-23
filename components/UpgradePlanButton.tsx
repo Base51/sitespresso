@@ -9,17 +9,30 @@ type UpgradePlanButtonProps = {
   plan: PaidPlan;
   billing?: BillingInterval;
   size?: 'sm' | 'md' | 'lg';
+  unavailable?: boolean;
+  unavailableReason?: string;
 };
 
 export default function UpgradePlanButton({
   plan,
   billing = 'monthly',
   size = 'sm',
+  unavailable = false,
+  unavailableReason = 'This billing option is not configured yet.',
 }: UpgradePlanButtonProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   async function startCheckout() {
+    if (unavailable) {
+      toast({
+        type: 'warning',
+        title: 'Plan unavailable',
+        description: unavailableReason,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch('/api/billing/checkout', {
@@ -46,7 +59,7 @@ export default function UpgradePlanButton({
   }
 
   return (
-    <Button onClick={startCheckout} disabled={loading} variant="primary" size={size}>
+    <Button onClick={startCheckout} disabled={loading || unavailable} variant="primary" size={size} title={unavailable ? unavailableReason : undefined}>
       {loading ? 'Redirecting…' : `Upgrade to ${PLAN_LABELS[plan]}`}
     </Button>
   );

@@ -49,6 +49,31 @@ export function getStripePriceId(plan: PaidPlan, billing: BillingInterval = 'mon
   return priceId;
 }
 
+export function isStripePriceConfigured(
+  plan: PaidPlan,
+  billing: BillingInterval = 'monthly',
+): boolean {
+  const envKey = STRIPE_PRICE_ENV_KEYS[plan][billing];
+  return Boolean(process.env[envKey]);
+}
+
+export function getStripePlanAvailability(): Record<PaidPlan, Record<BillingInterval, boolean>> {
+  return {
+    starter: {
+      monthly: isStripePriceConfigured('starter', 'monthly'),
+      annual: isStripePriceConfigured('starter', 'annual'),
+    },
+    pro: {
+      monthly: isStripePriceConfigured('pro', 'monthly'),
+      annual: isStripePriceConfigured('pro', 'annual'),
+    },
+    agency: {
+      monthly: isStripePriceConfigured('agency', 'monthly'),
+      annual: isStripePriceConfigured('agency', 'annual'),
+    },
+  };
+}
+
 export function isPaidPlan(value: string): value is PaidPlan {
   return value === 'starter' || value === 'pro' || value === 'agency';
 }

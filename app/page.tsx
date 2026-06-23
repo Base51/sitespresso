@@ -18,6 +18,7 @@ import {
   PLAN_LABELS,
   PLAN_ORDER,
   PLAN_PRICING,
+  type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
 } from '@/lib/billing/plans';
@@ -39,6 +40,7 @@ export default function Home() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PaidPlan>('starter');
   const [selectedBilling, setSelectedBilling] = useState<BillingInterval>('monthly');
+  const [planAvailability, setPlanAvailability] = useState<PlanAvailability | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -55,6 +57,22 @@ export default function Home() {
       setAuthLoaded(true);
     }
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    async function loadPlanAvailability() {
+      try {
+        const res = await fetch('/api/billing/plans');
+        const json = await res.json();
+        if (res.ok && json?.availability) {
+          setPlanAvailability(json.availability as PlanAvailability);
+        }
+      } catch {
+        // Leave pricing interactive and let checkout route remain the fallback guard.
+      }
+    }
+
+    void loadPlanAvailability();
   }, []);
 
   async function generate(values: GenerateFormValues) {
@@ -196,6 +214,15 @@ export default function Home() {
   }
 
   function handlePricingCheckout(plan: PaidPlan) {
+    if (planAvailability && !planAvailability[plan][selectedBilling]) {
+      toast({
+        type: 'warning',
+        title: 'Plan unavailable',
+        description: `${PLAN_LABELS[plan]} with ${selectedBilling} billing is not configured yet.`,
+      });
+      return;
+    }
+
     if (!user) {
       router.push(`/login?redirect=/&plan=${plan}`);
       return;
@@ -306,11 +333,12 @@ export default function Home() {
               {PLAN_ORDER.map((plan) => {
                 const price = PLAN_PRICING[plan][selectedBilling];
                 const featured = plan === 'starter';
+                const available = planAvailability ? planAvailability[plan][selectedBilling] : true;
 
                 return (
                   <Card
                     key={plan}
-                    className={`flex h-full flex-col justify-between p-6 ${featured ? 'border-brand-primary/40 shadow-[0_0_0_1px_rgba(96,165,250,0.25)]' : ''}`}
+                    className={`flex h-full flex-col justify-between p-6 ${featured ? 'border-brand-primary/40 shadow-[0_0_0_1px_rgba(96,165,250,0.25)]' : ''} ${available ? '' : 'opacity-60'}`}
                   >
                     <div className="space-y-4">
                       <div className="flex items-start justify-between gap-3">
@@ -327,6 +355,11 @@ export default function Home() {
                           </span>
                         )}
                       </div>
+                      {!available && (
+                        <p className="text-sm text-amber-300">
+                          This billing option is not configured yet.
+                        </p>
+                      )}
                       <ul className="space-y-2 text-sm text-brand-muted">
                         {PLAN_FEATURES[plan].map((feature) => (
                           <li key={feature}>• {feature}</li>
@@ -338,8 +371,9 @@ export default function Home() {
                       variant={featured ? 'primary' : 'secondary'}
                       size="md"
                       className="mt-6"
-                      disabled={checkoutLoading}
+                      disabled={checkoutLoading || !available}
                       onClick={() => handlePricingCheckout(plan)}
+                      title={!available ? 'This billing option is not configured yet.' : undefined}
                     >
                       {checkoutLoading ? 'Redirecting…' : user ? `Choose ${PLAN_LABELS[plan]}` : `Sign in for ${PLAN_LABELS[plan]}`}
                     </Button>
@@ -514,6 +548,7 @@ export default function Home() {
         onClose={() => setPaywallOpen(false)}
         selectedPlan={selectedPlan}
         selectedBilling={selectedBilling}
+        availability={planAvailability}
         onPlanChange={setSelectedPlan}
         onBillingChange={setSelectedBilling}
         onContinue={continueToCheckout}

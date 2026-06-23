@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import {
   getStripe,
   getStripePriceId,
+  isStripePriceConfigured,
   isBillingInterval,
   isPaidPlan,
   type BillingInterval,
@@ -50,6 +51,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!isBillingInterval(requestedBilling)) {
       return NextResponse.json({ error: 'Invalid billing interval.' }, { status: 400 });
+    }
+
+    if (!isStripePriceConfigured(requestedPlan, requestedBilling)) {
+      return NextResponse.json(
+        { error: `${requestedPlan} ${requestedBilling} billing is not configured yet.` },
+        { status: 400 },
+      );
     }
 
     const { data: profile, error: profileError } = await supabase

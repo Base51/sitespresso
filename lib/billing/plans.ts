@@ -1,6 +1,7 @@
 export type PaidPlan = 'starter' | 'pro' | 'agency';
 export type Plan = 'free' | PaidPlan;
 export type BillingInterval = 'monthly' | 'annual';
+export type PlanAvailability = Record<PaidPlan, Record<BillingInterval, boolean>>;
 
 export const NEXT_PLAN: Record<Exclude<Plan, 'agency'>, PaidPlan> = {
   free: 'starter',
