@@ -396,6 +396,40 @@ export default function EditorSidebar({
     });
   }
 
+  function updateSavedPreset(id: string) {
+    const target = savedStylePresets.find((preset) => preset.id === id);
+    if (!target) {
+      return;
+    }
+
+    const currentBackgrounds = getSectionBackgrounds();
+    const next = savedStylePresets.map((preset) =>
+      preset.id === id
+        ? {
+            ...preset,
+            section_backgrounds: currentBackgrounds,
+          }
+        : preset
+    );
+
+    setSavedStylePresets(next);
+    void savePresetsToStorage(next).then((mode) => {
+      if (mode === 'profile') {
+        toast({
+          type: 'success',
+          title: 'Preset updated',
+          description: `"${target.name}" updated in your account presets.`,
+        });
+      } else {
+        toast({
+          type: 'warning',
+          title: 'Preset updated locally',
+          description: `"${target.name}" updated on this browser only.`,
+        });
+      }
+    });
+  }
+
   function isPresetActive(colors: Record<SectionKey, string>) {
     const current = getSectionBackgrounds();
     return (
@@ -403,6 +437,24 @@ export default function EditorSidebar({
       current.services.toLowerCase() === colors.services.toLowerCase() &&
       current.contact.toLowerCase() === colors.contact.toLowerCase()
     );
+  }
+
+  function getActiveSavedPresetId() {
+    const current = getSectionBackgrounds();
+    const match = savedStylePresets.find((preset) =>
+      isPresetActive(preset.section_backgrounds)
+    );
+    if (!match) {
+      return null;
+    }
+
+    return (
+      match.section_backgrounds.about.toLowerCase() === current.about.toLowerCase() &&
+      match.section_backgrounds.services.toLowerCase() === current.services.toLowerCase() &&
+      match.section_backgrounds.contact.toLowerCase() === current.contact.toLowerCase()
+    )
+      ? match.id
+      : null;
   }
 
   function handleFontsChange(fonts: { heading: string; body: string }) {
@@ -748,10 +800,21 @@ export default function EditorSidebar({
                   {savedStylePresets.map((preset) => (
                     <div
                       key={preset.id}
-                      className="flex items-center justify-between rounded border border-slate-700 bg-slate-800/70 px-3 py-2"
+                      className={`flex items-center justify-between rounded border px-3 py-2 ${
+                        getActiveSavedPresetId() === preset.id
+                          ? 'border-purple-400 bg-purple-500/10'
+                          : 'border-slate-700 bg-slate-800/70'
+                      }`}
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-medium text-slate-200">{preset.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-xs font-medium text-slate-200">{preset.name}</p>
+                          {getActiveSavedPresetId() === preset.id && (
+                            <span className="rounded-full border border-purple-500/60 bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-medium text-purple-200">
+                              Active
+                            </span>
+                          )}
+                        </div>
                         <div className="mt-1 flex gap-1">
                           {(['about', 'services', 'contact'] as const).map((section) => (
                             <span
@@ -769,6 +832,12 @@ export default function EditorSidebar({
                           className="rounded border border-slate-600 px-2 py-1 text-[11px] text-slate-200 transition hover:border-slate-500"
                         >
                           Apply
+                        </button>
+                        <button
+                          onClick={() => updateSavedPreset(preset.id)}
+                          className="rounded border border-blue-500/60 px-2 py-1 text-[11px] text-blue-300 transition hover:bg-blue-500/10"
+                        >
+                          Update
                         </button>
                         <button
                           onClick={() => deleteSavedPreset(preset.id)}
