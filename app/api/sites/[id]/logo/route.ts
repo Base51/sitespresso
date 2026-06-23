@@ -86,7 +86,7 @@ export async function POST(
     if (uploadError) {
       console.error('Logo upload error:', uploadError);
       return NextResponse.json(
-        { error: 'Failed to upload logo' },
+        { error: uploadError.message || 'Failed to upload logo' },
         { status: 500 },
       );
     }
@@ -172,7 +172,7 @@ export async function DELETE(
       if (deleteError) {
         console.error('Logo deletion error:', deleteError);
         return NextResponse.json(
-          { error: 'Failed to delete logo' },
+          { error: deleteError.message || 'Failed to delete logo' },
           { status: 500 },
         );
       }

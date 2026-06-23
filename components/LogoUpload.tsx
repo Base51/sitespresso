@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import Spinner from './Spinner';
 
@@ -16,6 +16,31 @@ export default function LogoUpload({ siteId, currentLogoUrl, onLogoDone }: LogoU
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setPreview(currentLogoUrl ?? null);
+  }, [currentLogoUrl]);
+
+  async function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result;
+        if (typeof result !== 'string') {
+          reject(new Error('Failed to read selected file'));
+          return;
+        }
+        const [, base64] = result.split(',');
+        if (!base64) {
+          reject(new Error('Invalid file encoding'));
+          return;
+        }
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Failed to read selected file'));
+      reader.readAsDataURL(file);
+    });
+  }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -41,46 +66,33 @@ export default function LogoUpload({ siteId, currentLogoUrl, onLogoDone }: LogoU
       return;
     }
 
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Upload
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = (e.target?.result as string)?.split(',')[1];
-        if (!base64) throw new Error('Failed to read file');
+      const base64 = await fileToBase64(file);
 
-        const res = await fetch(`/api/sites/${siteId}/logo`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            file: base64,
-            filename: file.name,
-            type: file.type,
-          }),
-        });
+      const res = await fetch(`/api/sites/${siteId}/logo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          file: base64,
+          filename: file.name,
+          type: file.type,
+        }),
+      });
 
-        const json = await res.json();
-        if (!res.ok || !json.success) {
-          throw new Error(json.error ?? 'Upload failed');
-        }
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.url) {
+        throw new Error(json.error ?? 'Upload failed');
+      }
 
-        toast({
-          type: 'success',
-          title: 'Logo uploaded',
-          description: 'Your logo has been uploaded successfully.',
-        });
+      setPreview(json.url);
+      onLogoDone(json.url);
 
-        onLogoDone(json.url);
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      toast({
+        type: 'success',
+        title: 'Logo uploaded',
+        description: 'Your logo has been uploaded successfully.',
+      });
     } catch (err) {
       console.error('Logo upload error:', err);
       toast({
@@ -88,13 +100,24 @@ export default function LogoUpload({ siteId, currentLogoUrl, onLogoDone }: LogoU
         title: 'Upload failed',
         description: err instanceof Error ? err.message : 'Failed to upload logo.',
       });
-      setPreview(null);
+      setPreview(currentLogoUrl ?? null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } finally {
       setUploading(false);
     }
   }
 
   async function handleDelete() {
-    if (!currentLogoUrl) return;
+    if (!currentLogoUrl) {
+      // If upload failed before persistence, still allow local reset.
+      setPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return;
+    }
     
     setDeleting(true);
     try {
