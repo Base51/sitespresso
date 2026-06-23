@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe';
 
+type PortalBody = {
+  returnPath?: string;
+};
+
 function getBaseUrl(request: NextRequest): string {
   const origin = request.headers.get('origin');
   if (origin) return origin;
@@ -17,6 +21,9 @@ function getBaseUrl(request: NextRequest): string {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const body = (await request.json().catch(() => ({}))) as PortalBody;
+    const returnPath = body.returnPath === '/account' ? '/account' : '/dashboard';
+
     const supabase = createClient();
     const {
       data: { user },
@@ -44,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${baseUrl}/dashboard`,
+      return_url: `${baseUrl}${returnPath}`,
     });
 
     return NextResponse.json({ success: true, portalUrl: session.url });

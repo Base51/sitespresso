@@ -155,7 +155,12 @@ export default async function DashboardPage(): Promise<JSX.Element> {
                 unavailable={!nextPlanAnnualAvailable}
               />
             )}
-            <ManageBillingButton disabled={!hasStripeCustomer} />
+            <ManageBillingButton
+              disabled={!hasStripeCustomer}
+              returnPath="/dashboard"
+              label="Manage Subscription"
+              title="Open Stripe Billing Portal and return to the dashboard"
+            />
           </div>
         </div>
 
@@ -169,7 +174,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
         <p className="mt-4 text-sm text-brand-muted">
           {hasStripeCustomer
-            ? 'Manage your subscription, billing details, and invoices in Stripe Billing Portal.'
+            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, billing details, and invoices in Stripe Billing Portal.`.replace('  ', ' ')
             : 'Upgrade to a paid plan to publish, create your billing profile, and unlock Stripe Billing Portal access.'}
         </p>
       </Card>

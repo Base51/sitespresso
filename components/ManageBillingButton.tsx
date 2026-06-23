@@ -6,9 +6,17 @@ import { useToast } from '@/hooks/useToast';
 
 type ManageBillingButtonProps = {
   disabled?: boolean;
+  returnPath?: '/dashboard' | '/account';
+  label?: string;
+  title?: string;
 };
 
-export default function ManageBillingButton({ disabled = false }: ManageBillingButtonProps): JSX.Element {
+export default function ManageBillingButton({
+  disabled = false,
+  returnPath = '/dashboard',
+  label = 'Manage Billing',
+  title,
+}: ManageBillingButtonProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -18,6 +26,7 @@ export default function ManageBillingButton({ disabled = false }: ManageBillingB
       const res = await fetch('/api/billing/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnPath }),
       });
       const json = await res.json();
 
@@ -43,9 +52,9 @@ export default function ManageBillingButton({ disabled = false }: ManageBillingB
       onClick={openPortal}
       variant="secondary"
       size="md"
-      title={disabled ? 'Complete checkout first to enable billing portal.' : 'Open Stripe Billing Portal'}
+      title={disabled ? 'Complete checkout first to enable billing portal.' : title ?? 'Open Stripe Billing Portal'}
     >
-      {loading ? 'Opening…' : 'Manage Billing'}
+      {loading ? 'Opening…' : label}
     </Button>
   );
 }

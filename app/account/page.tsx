@@ -136,9 +136,20 @@ export default async function AccountPage(): Promise<JSX.Element> {
                 unavailable={!nextPlanAnnualAvailable}
               />
             )}
-            <ManageBillingButton disabled={!hasBillingProfile} />
+            <ManageBillingButton
+              disabled={!hasBillingProfile}
+              returnPath="/account"
+              label="Manage Subscription"
+              title="Open Stripe Billing Portal and return to account settings"
+            />
           </div>
         </div>
+
+        <p className="mt-4 text-sm text-brand-muted">
+          {hasBillingProfile
+            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, payment details, and invoices in Stripe.`.replace('  ', ' ')
+            : 'Upgrade to a paid plan to create your billing profile and unlock Stripe subscription management.'}
+        </p>
       </Card>
     </main>
   );
