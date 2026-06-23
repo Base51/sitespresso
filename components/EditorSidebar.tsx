@@ -33,6 +33,17 @@ export default function EditorSidebar({
     });
   }
 
+  function handleLogoPositionChange(position: 'left' | 'center' | 'right') {
+    onWebsiteChange({
+      ...website,
+      logo: {
+        position,
+        width: website.logo?.width ?? 100,
+        url: website.logo?.url,
+      },
+    });
+  }
+
   function handleFontsChange(fonts: { heading: string; body: string }) {
     onWebsiteChange({
       ...website,
@@ -83,6 +94,29 @@ export default function EditorSidebar({
                 currentLogoUrl={website.logo?.url}
                 onLogoDone={handleLogoUpload}
               />
+              
+              {website.logo?.url && (
+                <div className="space-y-2 border-t border-slate-700 pt-3">
+                  <label className="block text-sm font-medium text-slate-300">
+                    Position
+                  </label>
+                  <div className="flex gap-2">
+                    {(['left', 'center', 'right'] as const).map((pos) => (
+                      <button
+                        key={pos}
+                        onClick={() => handleLogoPositionChange(pos)}
+                        className={`flex-1 rounded py-2 px-3 text-xs font-medium transition ${
+                          website.logo?.position === pos
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {pos === 'left' ? '⬅ Left' : pos === 'center' ? '⬇ Center' : '➡ Right'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

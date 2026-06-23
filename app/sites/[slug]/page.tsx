@@ -82,36 +82,104 @@ export default async function PublishedSitePage({ params }: PageProps) {
 
       {/* Hero */}
       <section
-        className="flex min-h-[380px] flex-col items-center justify-center gap-4 px-6 py-16 text-center text-white"
+        className="flex min-h-[380px] px-6 py-16 text-white"
         style={{
           background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
         }}
       >
-        {site.logo?.url && (
-          <img
-            src={site.logo.url}
-            alt={`${site.business_name} logo`}
-            width={site.logo.width || 100}
-            style={{ 
-              maxWidth: `${site.logo.width || 100}px`,
-              height: 'auto',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-              ...(site.logo.position === 'left' ? { alignSelf: 'flex-start' } : {}),
-            }}
-          />
-        )}
-        <h1 className="text-balance text-4xl font-bold leading-tight md:text-5xl" style={{ fontFamily: headingCss }}>
-          {site.hero.title}
-        </h1>
-        <p className="max-w-xl text-lg opacity-90" style={{ fontFamily: bodyCss }}>{site.tagline}</p>
-        <p className="max-w-2xl text-base opacity-80" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
-        {site.hero.cta_text && (
-          <a
-            href={site.hero.cta_url || '#'}
-            className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            {site.hero.cta_text}
-          </a>
+        {site.logo?.position === 'left' ? (
+          // Logo on left
+          <div className="flex w-full items-center justify-center gap-8">
+            {site.logo?.url && (
+              <img
+                src={site.logo.url}
+                alt={`${site.business_name} logo`}
+                width={site.logo.width || 100}
+                style={{ 
+                  maxWidth: `${site.logo.width || 100}px`,
+                  height: 'auto',
+                  flexShrink: 0,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                }}
+              />
+            )}
+            <div className="flex flex-col items-start justify-center gap-4">
+              <h1 className="text-balance text-4xl font-bold leading-tight text-left md:text-5xl" style={{ fontFamily: headingCss }}>
+                {site.hero.title}
+              </h1>
+              <p className="max-w-xl text-lg opacity-90 text-left" style={{ fontFamily: bodyCss }}>{site.tagline}</p>
+              <p className="max-w-xl text-base opacity-80 text-left" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
+              {site.hero.cta_text && (
+                <a
+                  href={site.hero.cta_url || '#'}
+                  className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  {site.hero.cta_text}
+                </a>
+              )}
+            </div>
+          </div>
+        ) : site.logo?.position === 'right' ? (
+          // Logo on right
+          <div className="flex w-full items-center justify-center gap-8">
+            <div className="flex flex-col items-end justify-center gap-4">
+              <h1 className="text-balance text-4xl font-bold leading-tight text-right md:text-5xl" style={{ fontFamily: headingCss }}>
+                {site.hero.title}
+              </h1>
+              <p className="max-w-xl text-lg opacity-90 text-right" style={{ fontFamily: bodyCss }}>{site.tagline}</p>
+              <p className="max-w-xl text-base opacity-80 text-right" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
+              {site.hero.cta_text && (
+                <a
+                  href={site.hero.cta_url || '#'}
+                  className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+                >
+                  {site.hero.cta_text}
+                </a>
+              )}
+            </div>
+            {site.logo?.url && (
+              <img
+                src={site.logo.url}
+                alt={`${site.business_name} logo`}
+                width={site.logo.width || 100}
+                style={{ 
+                  maxWidth: `${site.logo.width || 100}px`,
+                  height: 'auto',
+                  flexShrink: 0,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                }}
+              />
+            )}
+          </div>
+        ) : (
+          // Logo center (default)
+          <div className="flex flex-col items-center justify-center gap-4 w-full text-center">
+            {site.logo?.url && (
+              <img
+                src={site.logo.url}
+                alt={`${site.business_name} logo`}
+                width={site.logo.width || 100}
+                style={{ 
+                  maxWidth: `${site.logo.width || 100}px`,
+                  height: 'auto',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                }}
+              />
+            )}
+            <h1 className="text-balance text-4xl font-bold leading-tight md:text-5xl" style={{ fontFamily: headingCss }}>
+              {site.hero.title}
+            </h1>
+            <p className="max-w-xl text-lg opacity-90" style={{ fontFamily: bodyCss }}>{site.tagline}</p>
+            <p className="max-w-2xl text-base opacity-80" style={{ fontFamily: bodyCss }}>{site.hero.content}</p>
+            {site.hero.cta_text && (
+              <a
+                href={site.hero.cta_url || '#'}
+                className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
+              >
+                {site.hero.cta_text}
+              </a>
+            )}
+          </div>
         )}
       </section>
 

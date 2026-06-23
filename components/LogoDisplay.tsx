@@ -4,7 +4,7 @@ import type { Website } from '@/lib/schemas/website';
 
 interface LogoDisplayProps {
   website: Website;
-  onPositionChange?: (position: 'left' | 'center' | 'top') => void;
+  onPositionChange?: (position: 'left' | 'center' | 'right') => void;
   editable?: boolean;
 }
 
@@ -22,7 +22,7 @@ export default function LogoDisplay({
   const position = logo.position ?? 'left';
   const width = logo.width ?? 100;
 
-  const containerClasses = position === 'top' ? 'flex-col items-center' : 'flex-row items-center';
+  const containerClasses = position === 'center' ? 'flex-col items-center' : 'flex-row items-center';
 
   return (
     <div
@@ -37,7 +37,7 @@ export default function LogoDisplay({
 
       {editable && onPositionChange && (
         <div className="absolute right-2 top-2 flex gap-1 rounded-lg bg-slate-900/80 p-1 opacity-0 transition group-hover:opacity-100">
-          {(['left', 'center', 'top'] as const).map((pos) => (
+          {(['left', 'center', 'right'] as const).map((pos) => (
             <button
               key={pos}
               onClick={() => onPositionChange(pos)}
@@ -47,7 +47,7 @@ export default function LogoDisplay({
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
               }`}
             >
-              {pos === 'left' ? '⬅' : pos === 'center' ? '⬇' : '⬆'}
+              {pos === 'left' ? '⬅' : pos === 'center' ? '⬇' : '➡'}
             </button>
           ))}
         </div>

@@ -174,49 +174,89 @@ export default function SitePreview({
 
       {/* Hero */}
       <section
-        className="flex min-h-[380px] flex-col items-center justify-center gap-4 px-6 py-16 text-center text-white"
+        className="flex min-h-[380px] px-6 py-16 text-center text-white"
         style={{
           background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
         }}
       >
-        {draft.logo?.url && (
-          <LogoDisplay website={draft} />
+        {draft.logo?.position === 'left' ? (
+          // Logo on left
+          <div className="flex w-full items-center justify-center gap-8">
+            {draft.logo?.url && (
+              <LogoDisplay website={draft} />
+            )}
+            <div className="flex flex-col items-start justify-center gap-4">
+              <EditableField
+                tag="h1"
+                value={draft.hero.title}
+                original={website.hero.title}
+                onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, title: v } }))}
+                className="text-4xl font-bold leading-tight text-left md:text-5xl"
+                style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
+              />
+              <EditableField
+                tag="p"
+                value={draft.tagline}
+                original={website.tagline}
+                onChange={(v) => update((d) => ({ ...d, tagline: v }))}
+                className="max-w-xl text-lg opacity-90 text-left"
+                style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+                multiline
+              />
+            </div>
+          </div>
+        ) : draft.logo?.position === 'right' ? (
+          // Logo on right
+          <div className="flex w-full items-center justify-center gap-8">
+            <div className="flex flex-col items-end justify-center gap-4">
+              <EditableField
+                tag="h1"
+                value={draft.hero.title}
+                original={website.hero.title}
+                onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, title: v } }))}
+                className="text-4xl font-bold leading-tight text-right md:text-5xl"
+                style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
+              />
+              <EditableField
+                tag="p"
+                value={draft.tagline}
+                original={website.tagline}
+                onChange={(v) => update((d) => ({ ...d, tagline: v }))}
+                className="max-w-xl text-lg opacity-90 text-right"
+                style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+                multiline
+              />
+            </div>
+            {draft.logo?.url && (
+              <LogoDisplay website={draft} />
+            )}
+          </div>
+        ) : (
+          // Logo center (default)
+          <div className="flex flex-col items-center justify-center gap-4 w-full">
+            {draft.logo?.url && (
+              <LogoDisplay website={draft} />
+            )}
+            <EditableField
+              tag="h1"
+              value={draft.hero.title}
+              original={website.hero.title}
+              onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, title: v } }))}
+              className="text-4xl font-bold leading-tight md:text-5xl"
+              style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
+            />
+            <EditableField
+              tag="p"
+              value={draft.tagline}
+              original={website.tagline}
+              onChange={(v) => update((d) => ({ ...d, tagline: v }))}
+              className="max-w-xl text-lg opacity-90"
+              style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
+              multiline
+            />
+          </div>
         )}
-        <EditableField
-          tag="h1"
-          value={draft.hero.title}
-          original={website.hero.title}
-          onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, title: v } }))}
-          className="text-4xl font-bold leading-tight md:text-5xl"
-          style={{ fontFamily: fontMap[draft.fonts?.heading || 'Playfair Display'] }}
-        />
-        <EditableField
-          tag="p"
-          value={draft.tagline}
-          original={website.tagline}
-          onChange={(v) => update((d) => ({ ...d, tagline: v }))}
-          className="max-w-xl text-lg opacity-90"
-          style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
-          multiline
-        />
-        <EditableField
-          tag="p"
-          value={draft.hero.content}
-          original={website.hero.content}
-          onChange={(v) => update((d) => ({ ...d, hero: { ...d.hero, content: v } }))}
-          className="max-w-2xl text-base opacity-80"
-          style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}
-          multiline
-        />
-        {draft.hero.cta_text && (
-          <a
-            href={draft.hero.cta_url || '#'}
-            className="mt-2 inline-block rounded-full bg-white px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-slate-100"
-          >
-            {draft.hero.cta_text}
-          </a>
-        )}
-      </section>
+        </section>
 
       {/* About */}
       <section className="bg-white px-6 py-14 text-slate-800 md:px-16">

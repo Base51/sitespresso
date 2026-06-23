@@ -46,7 +46,7 @@ export const WebsiteSchema = z.object({
   }),
   logo: z.object({
     url: z.string().optional(),
-    position: z.enum(['left', 'center', 'top']).default('left'),
+    position: z.enum(['left', 'center', 'right']).default('left'),
     width: z.number().min(30).max(200).default(100),
   }),
 });
