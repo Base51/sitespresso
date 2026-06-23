@@ -2,6 +2,7 @@ import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
 import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, type Plan } from '@/lib/billing/plans';
+import { billingIntervalFromPriceId, planFromPriceId } from '@/lib/stripe';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
 import UpgradePlanButton from '@/components/UpgradePlanButton';
@@ -18,6 +19,12 @@ export const dynamic = 'force-dynamic';
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
   return new Date(value).toLocaleDateString();
+}
+
+function formatBillingInterval(value: 'monthly' | 'annual' | null): string {
+  if (value === 'annual') return 'Annual billing';
+  if (value === 'monthly') return 'Monthly billing';
+  return 'Billing interval unavailable';
 }
 
 const PLAN_QUOTAS = {
@@ -54,7 +61,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
   const { data: subscriptions } = await supabase
     .from('subscriptions')
-    .select('status, current_period_end, updated_at')
+    .select('status, stripe_price_id, current_period_end, updated_at')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
     .limit(1);
@@ -65,15 +72,18 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
 
-  const plan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
+  const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
+  const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
+  const billingInterval = billingIntervalFromPriceId(latestSubscription?.stripe_price_id);
+  const plan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
   const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
   const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];
   const nextPlanPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
 
   // Get actual remaining quota for this month
-  const rateLimit = await checkRateLimit(user.id, plan as 'free' | 'starter' | 'pro' | 'agency');
+  const rateLimit = await checkRateLimit(user.id, plan);
   const totalQuota = PLAN_QUOTAS[plan as keyof typeof PLAN_QUOTAS] || 0;
 
   return (
@@ -113,6 +123,9 @@ export default async function DashboardPage(): Promise<JSX.Element> {
             </div>
             <p className="text-xs text-brand-muted">
               Renewal date: {formatDate(latestSubscription?.current_period_end)}
+            </p>
+            <p className="text-xs text-brand-muted">
+              {plan === 'free' ? 'No active paid subscription yet.' : formatBillingInterval(billingInterval)}
             </p>
             {nextPlan && nextPlanPrice !== null && (
               <p className="text-sm text-brand-muted">

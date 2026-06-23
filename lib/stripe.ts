@@ -73,6 +73,23 @@ export function planFromPriceId(priceId: string | null | undefined): Plan {
   return 'free';
 }
 
+export function billingIntervalFromPriceId(
+  priceId: string | null | undefined,
+): BillingInterval | null {
+  if (!priceId) return null;
+
+  for (const billingMap of Object.values(STRIPE_PRICE_ENV_KEYS)) {
+    if (process.env[billingMap.monthly] === priceId) {
+      return 'monthly';
+    }
+    if (process.env[billingMap.annual] === priceId) {
+      return 'annual';
+    }
+  }
+
+  return null;
+}
+
 export function getWebhookSecret(): string {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
