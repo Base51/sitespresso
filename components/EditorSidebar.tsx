@@ -81,6 +81,8 @@ export default function EditorSidebar({
     'checking'
   );
   const [isRetryingPresetSync, setIsRetryingPresetSync] = useState(false);
+  const [draggedPresetId, setDraggedPresetId] = useState<string | null>(null);
+  const [dragOverPresetId, setDragOverPresetId] = useState<string | null>(null);
 
   function handleLogoUpload(url: string | null) {
     onWebsiteChange({
@@ -396,6 +398,15 @@ export default function EditorSidebar({
     });
   }
 
+  function applySavedPreset(preset: SavedStylePreset) {
+    applySectionStylePreset(preset.section_backgrounds);
+    toast({
+      type: 'info',
+      title: 'Preset applied',
+      description: `"${preset.name}" applied to section backgrounds.`,
+    });
+  }
+
   function updateSavedPreset(id: string) {
     const target = savedStylePresets.find((preset) => preset.id === id);
     if (!target) {
@@ -440,7 +451,6 @@ export default function EditorSidebar({
   }
 
   function getActiveSavedPresetId() {
-    const current = getSectionBackgrounds();
     const match = savedStylePresets.find((preset) =>
       isPresetActive(preset.section_backgrounds)
     );
@@ -448,13 +458,61 @@ export default function EditorSidebar({
       return null;
     }
 
-    return (
-      match.section_backgrounds.about.toLowerCase() === current.about.toLowerCase() &&
-      match.section_backgrounds.services.toLowerCase() === current.services.toLowerCase() &&
-      match.section_backgrounds.contact.toLowerCase() === current.contact.toLowerCase()
-    )
-      ? match.id
-      : null;
+    return match.id;
+  }
+
+  function handlePresetDragStart(id: string) {
+    setDraggedPresetId(id);
+    setDragOverPresetId(id);
+  }
+
+  function handlePresetDragEnter(id: string) {
+    if (!draggedPresetId || draggedPresetId === id) {
+      return;
+    }
+    setDragOverPresetId(id);
+  }
+
+  function handlePresetDragEnd() {
+    setDraggedPresetId(null);
+    setDragOverPresetId(null);
+  }
+
+  function movePresetToPosition(sourceId: string, targetId: string) {
+    if (sourceId === targetId) {
+      return;
+    }
+
+    const sourceIndex = savedStylePresets.findIndex((preset) => preset.id === sourceId);
+    const targetIndex = savedStylePresets.findIndex((preset) => preset.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) {
+      return;
+    }
+
+    const next = [...savedStylePresets];
+    const [moved] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    setSavedStylePresets(next);
+
+    void savePresetsToStorage(next).then((mode) => {
+      toast({
+        type: mode === 'profile' ? 'success' : 'warning',
+        title: mode === 'profile' ? 'Preset order saved' : 'Order saved locally',
+        description:
+          mode === 'profile'
+            ? 'Your custom preset order was synced to your account.'
+            : 'Your custom preset order was saved on this browser.',
+      });
+    });
+  }
+
+  function handlePresetDrop(targetId: string) {
+    if (!draggedPresetId) {
+      return;
+    }
+    movePresetToPosition(draggedPresetId, targetId);
+    setDraggedPresetId(null);
+    setDragOverPresetId(null);
   }
 
   function handleFontsChange(fonts: { heading: string; body: string }) {
@@ -507,6 +565,8 @@ export default function EditorSidebar({
     const nextUrl = value.trim().length ? value.trim() : undefined;
     updateHeroCta(website.hero.cta_text || 'Get Started', nextUrl);
   }
+
+  const activeSavedPresetId = getActiveSavedPresetId();
 
   return (
     <div className="space-y-3">
@@ -800,16 +860,24 @@ export default function EditorSidebar({
                   {savedStylePresets.map((preset) => (
                     <div
                       key={preset.id}
+                      draggable
+                      onDragStart={() => handlePresetDragStart(preset.id)}
+                      onDragEnter={() => handlePresetDragEnter(preset.id)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handlePresetDrop(preset.id)}
+                      onDragEnd={handlePresetDragEnd}
                       className={`flex items-center justify-between rounded border px-3 py-2 ${
-                        getActiveSavedPresetId() === preset.id
+                        activeSavedPresetId === preset.id
                           ? 'border-purple-400 bg-purple-500/10'
+                          : dragOverPresetId === preset.id && draggedPresetId !== preset.id
+                            ? 'border-cyan-400 bg-cyan-500/10'
                           : 'border-slate-700 bg-slate-800/70'
                       }`}
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="truncate text-xs font-medium text-slate-200">{preset.name}</p>
-                          {getActiveSavedPresetId() === preset.id && (
+                          {activeSavedPresetId === preset.id && (
                             <span className="rounded-full border border-purple-500/60 bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-medium text-purple-200">
                               Active
                             </span>
@@ -828,10 +896,14 @@ export default function EditorSidebar({
 
                       <div className="flex gap-1">
                         <button
-                          onClick={() => applySectionStylePreset(preset.section_backgrounds)}
-                          className="rounded border border-slate-600 px-2 py-1 text-[11px] text-slate-200 transition hover:border-slate-500"
+                          onClick={() => applySavedPreset(preset)}
+                          className={`rounded border px-2 py-1 text-[11px] transition ${
+                            activeSavedPresetId === preset.id
+                              ? 'border-purple-500/60 bg-purple-500/20 text-purple-200'
+                              : 'border-slate-600 text-slate-200 hover:border-slate-500'
+                          }`}
                         >
-                          Apply
+                          {activeSavedPresetId === preset.id ? 'Applied' : 'Apply'}
                         </button>
                         <button
                           onClick={() => updateSavedPreset(preset.id)}
