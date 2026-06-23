@@ -222,13 +222,15 @@ export default async function PublishedSitePage({ params }: PageProps) {
     ),
   };
 
-  // Build LocalBusiness JSON-LD for search engines
+  // Build JSON-LD schemas for search engines
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
-  const jsonLdData = {
+  const pageUrl = `${baseUrl}/sites/${params.slug}`;
+
+  const localBusinessSchema = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: site.business_name,
-    url: `${baseUrl}/sites/${params.slug}`,
+    url: pageUrl,
     ...(site.tagline && { description: site.tagline }),
     ...(site.contact.phone && { telephone: site.contact.phone }),
     ...(site.contact.email && { email: site.contact.email }),
@@ -240,12 +242,34 @@ export default async function PublishedSitePage({ params }: PageProps) {
     }),
   };
 
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: site.business_name,
+    url: pageUrl,
+    ...(site.logo?.url && { logo: site.logo.url }),
+    ...(site.tagline && { description: site.tagline }),
+    ...((site.contact.email || site.contact.phone) ? {
+      contactPoint: {
+        '@type': 'ContactPoint',
+        ...(site.contact.email && { email: site.contact.email }),
+        ...(site.contact.phone && { telephone: site.contact.phone }),
+      },
+    } : {}),
+  };
+
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
-      {/* Structured data for search engines */}
+      {/* Structured data for search engines: LocalBusiness */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+
+      {/* Structured data for search engines: Organization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
       {/* Load Google Fonts */}
