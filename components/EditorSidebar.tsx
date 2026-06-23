@@ -31,6 +31,7 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   contact: '#ffffff',
 };
 const SAVED_STYLE_PRESETS_KEY = 'sitespresso-style-presets-v1';
+const MAX_SAVED_STYLE_PRESETS = 8;
 const SECTION_STYLE_PRESETS = [
   {
     id: 'clean',
@@ -346,6 +347,28 @@ export default function EditorSidebar({
       return;
     }
 
+    if (savedStylePresets.length >= MAX_SAVED_STYLE_PRESETS) {
+      toast({
+        type: 'warning',
+        title: 'Preset limit reached',
+        description: `You can save up to ${MAX_SAVED_STYLE_PRESETS} custom presets.`,
+      });
+      return;
+    }
+
+    const hasDuplicateName = savedStylePresets.some(
+      (preset) => preset.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (hasDuplicateName) {
+      toast({
+        type: 'warning',
+        title: 'Name already used',
+        description: 'Choose a different preset name or update the existing one.',
+      });
+      return;
+    }
+
     const currentBackgrounds = getSectionBackgrounds();
     const nextPreset: SavedStylePreset = {
       id: crypto.randomUUID(),
@@ -353,7 +376,7 @@ export default function EditorSidebar({
       section_backgrounds: currentBackgrounds,
     };
 
-    const next = [nextPreset, ...savedStylePresets].slice(0, 8);
+    const next = [nextPreset, ...savedStylePresets].slice(0, MAX_SAVED_STYLE_PRESETS);
     setSavedStylePresets(next);
     setNewPresetName('');
     void savePresetsToStorage(next).then((mode) => {
@@ -567,6 +590,8 @@ export default function EditorSidebar({
   }
 
   const activeSavedPresetId = getActiveSavedPresetId();
+  const isAtPresetLimit = savedStylePresets.length >= MAX_SAVED_STYLE_PRESETS;
+  const canSavePreset = Boolean(newPresetName.trim()) && !isAtPresetLimit;
 
   return (
     <div className="space-y-3">
@@ -835,7 +860,18 @@ export default function EditorSidebar({
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span>{savedStylePresets.length}/{MAX_SAVED_STYLE_PRESETS} presets used</span>
+                  <span>Drag to reorder</span>
+                </div>
+
+                {presetStorageMode === 'local' && presetsReady && (
+                  <p className="text-[11px] text-amber-400">
+                    Account sync is unavailable right now. Presets are still saved locally.
+                  </p>
+                )}
+
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="text"
                     value={newPresetName}
@@ -845,12 +881,22 @@ export default function EditorSidebar({
                   />
                   <button
                     onClick={saveCurrentStylePreset}
-                    disabled={!newPresetName.trim()}
+                    disabled={!canSavePreset}
                     className="rounded border border-purple-500/60 bg-purple-500/20 px-3 py-2 text-xs font-medium text-purple-200 transition hover:bg-purple-500/30 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Save
                   </button>
                 </div>
+
+                {isAtPresetLimit && (
+                  <p className="text-[11px] text-amber-400">
+                    Preset limit reached. Delete one to save a new style.
+                  </p>
+                )}
+
+                {!presetsReady && (
+                  <p className="text-[11px] text-slate-500">Loading presets...</p>
+                )}
 
                 {presetsReady && savedStylePresets.length === 0 && (
                   <p className="text-[11px] text-slate-500">No saved presets yet.</p>
@@ -894,7 +940,7 @@ export default function EditorSidebar({
                         </div>
                       </div>
 
-                      <div className="flex gap-1">
+                      <div className="flex flex-wrap justify-end gap-1 sm:flex-nowrap">
                         <button
                           onClick={() => applySavedPreset(preset)}
                           className={`rounded border px-2 py-1 text-[11px] transition ${
