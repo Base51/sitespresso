@@ -33,13 +33,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const site = await getSiteBySlug(params.slug);
   if (!site) return { title: 'Not Found' };
 
-  const title = `${site.business_name} | Local Business`;
-  const description = site.tagline;
-  const url = `https://${params.slug}.sitespresso.com`;
+  const title = `${site.business_name} | ${site.business_type}`;
+  const description = site.tagline?.trim() || site.hero.content?.trim() || `Visit ${site.business_name}.`;
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
+  const canonicalPath = `/sites/${params.slug}`;
+  const url = `${baseUrl}${canonicalPath}`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       title,
       description,
