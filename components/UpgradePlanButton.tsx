@@ -4,11 +4,14 @@ import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import { useToast } from '@/hooks/useToast';
 import { PLAN_LABELS, type BillingInterval, type PaidPlan } from '@/lib/billing/plans';
+import type { ButtonVariant } from '@/components/ui/Button';
 
 type UpgradePlanButtonProps = {
   plan: PaidPlan;
   billing?: BillingInterval;
   size?: 'sm' | 'md' | 'lg';
+  variant?: ButtonVariant;
+  label?: string;
   unavailable?: boolean;
   unavailableReason?: string;
 };
@@ -17,6 +20,8 @@ export default function UpgradePlanButton({
   plan,
   billing = 'monthly',
   size = 'sm',
+  variant = 'primary',
+  label,
   unavailable = false,
   unavailableReason = 'This billing option is not configured yet.',
 }: UpgradePlanButtonProps): JSX.Element {
@@ -59,8 +64,8 @@ export default function UpgradePlanButton({
   }
 
   return (
-    <Button onClick={startCheckout} disabled={loading || unavailable} variant="primary" size={size} title={unavailable ? unavailableReason : undefined}>
-      {loading ? 'Redirecting…' : `Upgrade to ${PLAN_LABELS[plan]}`}
+    <Button onClick={startCheckout} disabled={loading || unavailable} variant={variant} size={size} title={unavailable ? unavailableReason : undefined}>
+      {loading ? 'Redirecting…' : label ?? `Upgrade to ${PLAN_LABELS[plan]}`}
     </Button>
   );
 }

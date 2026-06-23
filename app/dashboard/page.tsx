@@ -80,8 +80,10 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const plan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
   const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
   const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];
-  const nextPlanPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
-  const nextPlanAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'monthly') : false;
+  const nextPlanMonthlyPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
+  const nextPlanAnnualPrice = nextPlan ? PLAN_PRICING[nextPlan].annual : null;
+  const nextPlanMonthlyAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'monthly') : false;
+  const nextPlanAnnualAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'annual') : false;
 
   // Get actual remaining quota for this month
   const rateLimit = await checkRateLimit(user.id, plan);
@@ -128,15 +130,31 @@ export default async function DashboardPage(): Promise<JSX.Element> {
             <p className="text-xs text-brand-muted">
               {plan === 'free' ? 'No active paid subscription yet.' : formatBillingInterval(billingInterval)}
             </p>
-            {nextPlan && nextPlanPrice !== null && (
+            {nextPlan && nextPlanMonthlyPrice !== null && nextPlanAnnualPrice !== null && (
               <p className="text-sm text-brand-muted">
-                Next upgrade: <span className="font-medium text-white">{PLAN_LABELS[nextPlan]}</span> for ${nextPlanPrice}/month.
+                Next upgrade: <span className="font-medium text-white">{PLAN_LABELS[nextPlan]}</span> for ${nextPlanMonthlyPrice}/month or ${nextPlanAnnualPrice}/year.
               </p>
             )}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {nextPlan && <UpgradePlanButton plan={nextPlan} unavailable={!nextPlanAvailable} />}
+            {nextPlan && (
+              <UpgradePlanButton
+                plan={nextPlan}
+                billing="monthly"
+                label={`Upgrade Monthly · $${PLAN_PRICING[nextPlan].monthly}`}
+                unavailable={!nextPlanMonthlyAvailable}
+              />
+            )}
+            {nextPlan && (
+              <UpgradePlanButton
+                plan={nextPlan}
+                billing="annual"
+                variant="secondary"
+                label={`Upgrade Annual · $${PLAN_PRICING[nextPlan].annual}`}
+                unavailable={!nextPlanAnnualAvailable}
+              />
+            )}
             <ManageBillingButton disabled={!hasStripeCustomer} />
           </div>
         </div>
