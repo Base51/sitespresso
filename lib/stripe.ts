@@ -74,6 +74,46 @@ export function getStripePlanAvailability(): Record<PaidPlan, Record<BillingInte
   };
 }
 
+export async function getStripePlanPricingOverrides(): Promise<
+  Partial<Record<PaidPlan, Partial<Record<BillingInterval, number>>>>
+> {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return {};
+  }
+
+  const stripe = getStripe();
+  const overrides: Partial<Record<PaidPlan, Partial<Record<BillingInterval, number>>>> = {};
+
+  await Promise.all(
+    (Object.keys(STRIPE_PRICE_ENV_KEYS) as PaidPlan[]).map(async (plan) => {
+      await Promise.all(
+        (Object.keys(STRIPE_PRICE_ENV_KEYS[plan]) as BillingInterval[]).map(async (billing) => {
+          if (!isStripePriceConfigured(plan, billing)) return;
+
+          try {
+            const priceId = getStripePriceId(plan, billing);
+            const price = await stripe.prices.retrieve(priceId);
+
+            if (typeof price.unit_amount !== 'number' || !Number.isFinite(price.unit_amount)) {
+              return;
+            }
+
+            const amount = price.unit_amount / 100;
+            if (!overrides[plan]) {
+              overrides[plan] = {};
+            }
+            overrides[plan]![billing] = amount;
+          } catch (error) {
+            console.warn(`Unable to retrieve Stripe price for ${plan} (${billing}).`, error);
+          }
+        }),
+      );
+    }),
+  );
+
+  return overrides;
+}
+
 export function isPaidPlan(value: string): value is PaidPlan {
   return value === 'starter' || value === 'pro' || value === 'agency';
 }

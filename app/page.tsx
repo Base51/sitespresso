@@ -14,11 +14,13 @@ import type { Website } from '@/lib/schemas/website';
 import { isTrialUsed, markTrialUsed } from '@/lib/trial';
 import { createClient } from '@/lib/supabase/client';
 import {
+  mergePlanPricing,
   PLAN_FEATURES,
   PLAN_LABELS,
   PLAN_ORDER,
   PLAN_PRICING,
   formatPlanPrice,
+  type PlanPricing,
   type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
@@ -42,6 +44,7 @@ export default function Home() {
   const [selectedPlan, setSelectedPlan] = useState<PaidPlan>('starter');
   const [selectedBilling, setSelectedBilling] = useState<BillingInterval>('monthly');
   const [planAvailability, setPlanAvailability] = useState<PlanAvailability | null>(null);
+  const [planPricing, setPlanPricing] = useState<PlanPricing>(PLAN_PRICING);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
@@ -67,6 +70,9 @@ export default function Home() {
         const json = await res.json();
         if (res.ok && json?.availability) {
           setPlanAvailability(json.availability as PlanAvailability);
+        }
+        if (res.ok && json?.pricing) {
+          setPlanPricing(mergePlanPricing(json.pricing));
         }
       } catch {
         // Leave pricing interactive and let checkout route remain the fallback guard.
@@ -332,7 +338,7 @@ export default function Home() {
               </Card>
 
               {PLAN_ORDER.map((plan) => {
-                const price = PLAN_PRICING[plan][selectedBilling];
+                const price = planPricing[plan][selectedBilling];
                 const featured = plan === 'starter';
                 const available = planAvailability ? planAvailability[plan][selectedBilling] : true;
 
@@ -550,6 +556,7 @@ export default function Home() {
         selectedPlan={selectedPlan}
         selectedBilling={selectedBilling}
         availability={planAvailability}
+        pricing={planPricing}
         onPlanChange={setSelectedPlan}
         onBillingChange={setSelectedBilling}
         onContinue={continueToCheckout}

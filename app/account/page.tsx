@@ -6,8 +6,8 @@ import UpgradePlanButton from '@/components/UpgradePlanButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
-import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, formatPlanPrice, type Plan } from '@/lib/billing/plans';
-import { billingIntervalFromPriceId, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
+import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, type Plan } from '@/lib/billing/plans';
+import { billingIntervalFromPriceId, getStripePlanPricingOverrides, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 
@@ -64,11 +64,13 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const currentPlan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
+  const stripePricingOverrides = await getStripePlanPricingOverrides();
+  const planPricing = mergePlanPricing(stripePricingOverrides);
   const nextPlan = currentPlan === 'agency' ? null : NEXT_PLAN[currentPlan];
   const billingInterval = billingIntervalFromPriceId(latestSubscription?.stripe_price_id);
   const hasBillingProfile = Boolean(profile?.stripe_customer_id);
-  const nextPlanMonthlyPrice = nextPlan ? PLAN_PRICING[nextPlan].monthly : null;
-  const nextPlanAnnualPrice = nextPlan ? PLAN_PRICING[nextPlan].annual : null;
+  const nextPlanMonthlyPrice = nextPlan ? planPricing[nextPlan].monthly : null;
+  const nextPlanAnnualPrice = nextPlan ? planPricing[nextPlan].annual : null;
   const planLabel = currentPlan === 'free' ? 'Free' : PLAN_LABELS[currentPlan];
   const nextPlanMonthlyAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'monthly') : false;
   const nextPlanAnnualAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'annual') : false;
@@ -125,7 +127,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="monthly"
-                label={`Upgrade Monthly · ${formatPlanPrice(PLAN_PRICING[nextPlan].monthly)}`}
+                label={`Upgrade Monthly · ${formatPlanPrice(planPricing[nextPlan].monthly)}`}
                 unavailable={!nextPlanMonthlyAvailable}
               />
             )}
@@ -134,7 +136,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
                 plan={nextPlan}
                 billing="annual"
                 variant="secondary"
-                label={`Upgrade Annual · ${formatPlanPrice(PLAN_PRICING[nextPlan].annual)}`}
+                label={`Upgrade Annual · ${formatPlanPrice(planPricing[nextPlan].annual)}`}
                 unavailable={!nextPlanAnnualAvailable}
               />
             )}

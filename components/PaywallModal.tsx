@@ -8,6 +8,7 @@ import {
   PLAN_ORDER,
   PLAN_PRICING,
   formatPlanPrice,
+  type PlanPricing,
   type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
@@ -20,6 +21,7 @@ type PaywallModalProps = {
   selectedPlan: PaidPlan;
   selectedBilling: BillingInterval;
   availability?: PlanAvailability | null;
+  pricing?: PlanPricing;
   onPlanChange: (plan: PaidPlan) => void;
   onBillingChange: (billing: BillingInterval) => void;
   onContinue: () => void;
@@ -32,13 +34,14 @@ export default function PaywallModal({
   selectedPlan,
   selectedBilling,
   availability,
+  pricing = PLAN_PRICING,
   onPlanChange,
   onBillingChange,
   onContinue,
 }: PaywallModalProps): JSX.Element | null {
   if (!open) return null;
 
-  const selectedPrice = PLAN_PRICING[selectedPlan][selectedBilling];
+  const selectedPrice = pricing[selectedPlan][selectedBilling];
   const selectedAvailable = availability ? availability[selectedPlan][selectedBilling] : true;
 
   return (
@@ -74,7 +77,7 @@ export default function PaywallModal({
         <div className="mb-6 grid gap-3 md:grid-cols-3">
           {PLAN_ORDER.map((plan) => {
             const active = plan === selectedPlan;
-            const price = PLAN_PRICING[plan][selectedBilling];
+            const price = pricing[plan][selectedBilling];
             const available = availability ? availability[plan][selectedBilling] : true;
 
             return (
