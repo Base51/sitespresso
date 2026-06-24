@@ -47,6 +47,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
     Object.fromEntries(sites.map((site) => [site.id, site.custom_domain ?? '']))
   );
   const [savingDomainId, setSavingDomainId] = useState<string | null>(null);
+  const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(null);
 
   function openDeleteModal(site: Site) {
     setSiteToDelete(site);
@@ -103,6 +104,42 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
       });
     } finally {
       setSavingDomainId(null);
+    }
+  }
+
+  async function handleDomainVerify(site: Site) {
+    setVerifyingDomainId(site.id);
+
+    try {
+      const response = await fetch(`/api/sites/${site.id}/domain/verify`, {
+        method: 'POST',
+      });
+
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.error ?? 'Could not verify custom domain.');
+      }
+
+      setLocalSites((prev) => prev.map((entry) => (
+        entry.id === site.id
+          ? { ...entry, domain_verified: Boolean(json.domainVerified) }
+          : entry
+      )));
+
+      toast({
+        type: json.domainVerified ? 'success' : 'warning',
+        title: json.domainVerified ? 'Domain verified' : 'Domain not verified yet',
+        description: json.message as string,
+      });
+      router.refresh();
+    } catch (error) {
+      toast({
+        type: 'error',
+        title: 'Verification failed',
+        description: error instanceof Error ? error.message : 'Could not verify custom domain.',
+      });
+    } finally {
+      setVerifyingDomainId(null);
     }
   }
 
@@ -224,14 +261,25 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         </Button>
                       </Link>
                     ) : (
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        disabled={savingDomainId === site.id}
-                        onClick={() => handleDomainSave(site)}
-                      >
-                        {savingDomainId === site.id ? 'Saving…' : 'Save domain'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          disabled={savingDomainId === site.id || verifyingDomainId === site.id}
+                          onClick={() => handleDomainSave(site)}
+                        >
+                          {savingDomainId === site.id ? 'Saving…' : 'Save domain'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="md"
+                          disabled={!site.custom_domain || verifyingDomainId === site.id || savingDomainId === site.id}
+                          onClick={() => handleDomainVerify(site)}
+                          title={!site.custom_domain ? 'Save a custom domain first.' : undefined}
+                        >
+                          {verifyingDomainId === site.id ? 'Checking…' : 'Check DNS'}
+                        </Button>
+                      </div>
                     )}
                   </div>
 

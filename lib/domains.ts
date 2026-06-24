@@ -58,3 +58,7 @@ export function getCustomDomainInstructions(domain: string, slug: string | null)
     'Verification and live routing are not active yet in this release.',
   ];
 }
+
+export function getExpectedCustomDomainTarget(slug: string): string {
+  return `${slug}.sitespresso.com`;
+}

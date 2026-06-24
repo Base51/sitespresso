@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain to a site, but live routing and DNS verification are not active yet.
+This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain to a site and run DNS verification checks, but live routing is not active yet.
 
 ## Current Slice
 
-Registration only, visible to all users, usable only on paid plans.
+Registration + verification check, visible to all users, usable only on paid plans.
 
 ## Entitlement Rules
 
@@ -43,6 +43,16 @@ Route: `PATCH /api/sites/[id]/domain`
 6. Save domain and reset verification state.
 7. Return instructional copy for the next DNS step.
 
+Route: `POST /api/sites/[id]/domain/verify`
+
+1. Require authentication.
+2. Verify site ownership.
+3. Verify user plan is not `free`.
+4. Require saved custom domain and published site slug.
+5. Resolve CNAME DNS and compare against `{slug}.sitespresso.com`.
+6. Persist `domain_verified` true/false based on current DNS result.
+7. Return expected target, observed records, and user-safe status message.
+
 ### Phase 4: Dashboard UX
 
 1. Show custom domain section on every site card.
@@ -54,14 +64,14 @@ Route: `PATCH /api/sites/[id]/domain`
    - visible but disabled field
    - `Paid feature` badge
    - upgrade CTA
-4. Explain that live traffic still uses the SiteSpresso subdomain until future slices ship.
+4. Add `Check DNS` action for paid users after domain is saved.
+5. Explain that live traffic still uses the SiteSpresso subdomain until future slices ship.
 
 ### Phase 5: Future Slices
 
-1. DNS verification flow
-2. Vercel domain attach API
-3. Middleware support for custom hostnames
-4. SSL/live activation
+1. Vercel domain attach API
+2. Middleware support for custom hostnames
+3. SSL/live activation
 
 ## User Flow
 
@@ -71,6 +81,7 @@ Route: `PATCH /api/sites/[id]/domain`
 2. Enter custom domain in site card.
 3. Save domain.
 4. See `Not verified` status and guidance.
+5. Run `Check DNS` to validate CNAME configuration and update verification status.
 
 ### Free user
 
@@ -86,5 +97,6 @@ Route: `PATCH /api/sites/[id]/domain`
 3. Free user direct API call is blocked.
 4. Duplicate domain claims return conflict.
 5. Invalid domain values return validation error.
-6. Existing publish flow still returns `{slug}.sitespresso.com`.
-7. `npm run build` passes.
+6. Paid user can run verification and see clear pass/fail message.
+7. Existing publish flow still returns `{slug}.sitespresso.com`.
+8. `npm run build` passes.
