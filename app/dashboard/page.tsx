@@ -76,6 +76,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
+  const hasActiveSubscription = Boolean(latestSubscription);
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const billingInterval = billingIntervalFromPriceId(latestSubscription?.stripe_price_id);
   const plan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
@@ -139,7 +140,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {nextPlan && (
+            {!hasActiveSubscription && nextPlan && (
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="monthly"
@@ -147,7 +148,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
                 unavailable={!nextPlanMonthlyAvailable}
               />
             )}
-            {nextPlan && (
+            {!hasActiveSubscription && nextPlan && (
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="annual"
@@ -174,8 +175,8 @@ export default async function DashboardPage(): Promise<JSX.Element> {
         </div>
 
         <p className="mt-4 text-sm text-brand-muted">
-          {hasStripeCustomer
-            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, billing details, and invoices in Stripe Billing Portal.`.replace('  ', ' ')
+          {hasActiveSubscription
+            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, billing details, and plan changes in Stripe Billing Portal.`.replace('  ', ' ')
             : 'Upgrade to a paid plan to publish, create your billing profile, and unlock Stripe Billing Portal access.'}
         </p>
       </Card>

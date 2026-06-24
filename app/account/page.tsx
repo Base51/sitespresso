@@ -60,6 +60,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const initialFullName = (profile?.full_name as string | null | undefined) ?? '';
   const initialEmail = (profile?.email as string | null | undefined) ?? user.email ?? '';
   const latestSubscription = subscriptions?.[0];
+  const hasActiveSubscription = Boolean(latestSubscription);
   const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const currentPlan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
@@ -120,7 +121,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
-            {nextPlan && (
+            {!hasActiveSubscription && nextPlan && (
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="monthly"
@@ -128,7 +129,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
                 unavailable={!nextPlanMonthlyAvailable}
               />
             )}
-            {nextPlan && (
+            {!hasActiveSubscription && nextPlan && (
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="annual"
@@ -147,8 +148,8 @@ export default async function AccountPage(): Promise<JSX.Element> {
         </div>
 
         <p className="mt-4 text-sm text-brand-muted">
-          {hasBillingProfile
-            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, payment details, and invoices in Stripe.`.replace('  ', ' ')
+          {hasActiveSubscription
+            ? `Manage your ${billingInterval === 'annual' ? 'annual' : billingInterval === 'monthly' ? 'monthly' : ''} subscription, payment details, and plan changes in Stripe.`.replace('  ', ' ')
             : 'Upgrade to a paid plan to create your billing profile and unlock Stripe subscription management.'}
         </p>
       </Card>
