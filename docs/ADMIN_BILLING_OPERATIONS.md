@@ -22,6 +22,14 @@ Notes:
 
 `GET /api/admin/billing/duplicates`
 
+## Admin Page
+
+Open the internal billing operations page:
+
+`/admin/billing`
+
+The page renders the same report in a table view and links to the raw JSON endpoint for automation/debugging.
+
 Response contains:
 
 1. `totalAffectedUsers`

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin']);
-const PROTECTED_PATHS = ['/dashboard'];
+const PROTECTED_PATHS = ['/dashboard', '/admin'];
 
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

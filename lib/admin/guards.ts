@@ -6,6 +6,10 @@ export type AdminSession = {
   email: string;
 };
 
+export type AdminSessionResult =
+  | { ok: true; session: AdminSession }
+  | { ok: false; status: 401 | 403 | 500; error: string };
+
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -20,19 +24,14 @@ export function getAdminAllowlistEmails(): string[] {
     .filter(Boolean);
 }
 
-export async function requireAdminSession(): Promise<
-  { ok: true; session: AdminSession } | { ok: false; response: NextResponse }
-> {
+export async function getAdminSession(): Promise<AdminSessionResult> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return {
-      ok: false,
-      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-    };
+    return { ok: false, status: 401, error: 'Unauthorized' };
   }
 
   const { data: profile } = await supabase
@@ -43,31 +42,16 @@ export async function requireAdminSession(): Promise<
 
   const email = normalizeEmail((profile?.email as string | undefined) ?? user.email ?? '');
   if (!email) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: 'Admin access cannot be validated for this account.' },
-        { status: 403 },
-      ),
-    };
+    return { ok: false, status: 403, error: 'Admin access cannot be validated for this account.' };
   }
 
   const allowlist = getAdminAllowlistEmails();
   if (allowlist.length === 0) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: 'Admin allowlist is not configured.' },
-        { status: 500 },
-      ),
-    };
+    return { ok: false, status: 500, error: 'Admin allowlist is not configured.' };
   }
 
   if (!allowlist.includes(email)) {
-    return {
-      ok: false,
-      response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-    };
+    return { ok: false, status: 403, error: 'Forbidden' };
   }
 
   return {
@@ -77,4 +61,18 @@ export async function requireAdminSession(): Promise<
       email,
     },
   };
+}
+
+export async function requireAdminSession(): Promise<
+  { ok: true; session: AdminSession } | { ok: false; response: NextResponse }
+> {
+  const result = await getAdminSession();
+  if (!result.ok) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: result.error }, { status: result.status }),
+    };
+  }
+
+  return result;
 }
