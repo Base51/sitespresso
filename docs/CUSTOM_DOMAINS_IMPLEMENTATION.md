@@ -50,8 +50,9 @@ Route: `POST /api/sites/[id]/domain/verify`
 3. Verify user plan is not `free`.
 4. Require saved custom domain and published site slug.
 5. Resolve CNAME DNS and compare against `{slug}.sitespresso.com`.
-6. Persist `domain_verified` true/false based on current DNS result.
-7. Return expected target, observed records, and user-safe status message.
+6. If CNAME is not available or mismatched, compare A/AAAA resolution with the expected target to support apex-domain setups.
+7. Persist `domain_verified` true/false based on current DNS result.
+8. Return expected target, observed records, and user-safe status message.
 
 ### Phase 4: Dashboard UX
 
