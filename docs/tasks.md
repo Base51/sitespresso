@@ -174,7 +174,11 @@
 
 | ID | Task |
 |---|---|
-| T-100 | Custom domain support (DNS CNAME + Vercel domain API) |
+| T-100 | Custom domain support (paid-gated registration foundation -> DNS verification -> Vercel domain attach) 🔄 |
+| T-100a | Add `custom_domain` + `domain_verified` to `sites` and build paid-gated registration API |
+| T-100b | Add visible-but-locked dashboard custom domain UI for free users with upgrade CTA |
+| T-100c | Add DNS verification workflow and status refresh |
+| T-100d | Add Vercel domain attach + live routing support |
 | T-101 | Multi-page sites (Home, About, Contact) |
 | T-102 | AI hero image generation (DALL·E 3 or Stability) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data |

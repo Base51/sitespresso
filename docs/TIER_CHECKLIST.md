@@ -185,11 +185,11 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 **Depends on:** M-107 (Phase 1 complete)  
 **Due:** [Set date]
 
-**Major subtasks:** (see CUSTOM_DOMAINS_IMPLEMENTATION.md for details)
-- [ ] Database schema: `domains` table
-- [ ] Vercel domain API wrapper functions
+**Major subtasks:** (see [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md) for details)
+- [x] Registration foundation: `custom_domain` + `domain_verified` on `sites`
+- [x] Paid-gated dashboard UI with visible locked state for free users
+- [x] API enforcement: paid tiers only
 - [ ] DNS CNAME verification endpoint
-- [ ] Dashboard UI: add/manage domains
 - [ ] Publishing: route custom domain to site
 - [ ] SSL certificate auto-provisioning
 - [ ] Error handling: DNS failures, SSL issues
@@ -377,7 +377,7 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 
 ### Product Decisions
 - **Free tier:** Permanent (not time-limited trial)
-- **Custom domain:** Pro+ feature (not in Starter)
+- **Custom domain:** Paid-tier feature (Starter, Pro, Agency), not available on Free
 - **Multi-site:** Pro (3), Agency (unlimited)
 - **Team collaboration:** Agency only
 

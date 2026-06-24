@@ -69,7 +69,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
   const { data: sites } = await supabase
     .from('sites')
-    .select('id, slug, business_name, business_type, city, status, updated_at')
+    .select('id, slug, business_name, business_type, city, status, custom_domain, domain_verified, updated_at')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
 
@@ -181,7 +181,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
         </p>
       </Card>
 
-      <DashboardContent sites={sites ?? []} />
+      <DashboardContent sites={sites ?? []} currentPlan={plan} />
     </main>
   );
 }

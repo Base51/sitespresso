@@ -49,7 +49,7 @@ graph TD
 | **Frontend** | Next.js 14 (App Router) | SSR + RSC, file-based routing, API routes in one repo |
 | **Styling** | Tailwind CSS | Utility-first, fast iteration, consistent design system |
 | **Database** | Supabase (PostgreSQL) | Managed Postgres, RLS, real-time, generous free tier |
-| **Auth** | Supabase Auth | Google OAuth + magic link, JWT integration with RLS |
+| **Auth** | Supabase Auth | Google OAuth, magic link, and email/password, JWT integration with RLS |
 | **AI** | OpenAI GPT-4o | Best-in-class structured output, function calling / JSON mode |
 | **Billing** | Stripe | Industry standard, Checkout + Portal + Webhooks |
 | **Deployment** | Vercel | Native Next.js support, wildcard domains, Edge runtime |
@@ -81,6 +81,8 @@ create table public.sites (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references public.profiles(id) on delete cascade,
   slug          text not null unique,
+  custom_domain text unique,
+  domain_verified boolean not null default false,
   business_name text not null,
   business_type text not null,
   city          text not null,
@@ -164,6 +166,9 @@ Creates or updates a site record in Supabase. Requires auth.
 ### `POST /api/sites/[id]/publish`
 Sets site status to `published`, validates active subscription. Requires auth.
 
+### `PATCH /api/sites/[id]/domain`
+Saves a custom domain against a site, validates paid entitlement, validates format, and stores `domain_verified = false`. Requires auth and paid plan.
+
 ### `POST /api/billing/checkout`
 Creates a Stripe Checkout session and returns the URL. Requires auth.
 
@@ -230,7 +235,7 @@ Do not include placeholder or fake data. Use realistic content appropriate for t
 ## 6. Authentication
 
 - **Provider:** Supabase Auth
-- **Methods:** Google OAuth, Email Magic Link
+- **Methods:** Google OAuth, Email Magic Link, Email/Password
 - **Session handling:** Supabase SSR helper (`@supabase/ssr`) for Next.js App Router — cookies-based session
 - **Protected routes:** Middleware checks session cookie; redirects to `/login` if unauthenticated
 - **RLS enforcement:** All Supabase queries from server components/route handlers use the user's JWT so RLS policies are always enforced
