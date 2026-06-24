@@ -18,6 +18,7 @@ export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element
   const next = searchParams?.next ?? '/dashboard';
   const reason = searchParams?.reason;
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -44,6 +45,33 @@ export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element
       setError(authError.message);
       setLoading(false);
     }
+  }
+
+  async function handlePasswordLogin(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    if (!hasSupabaseConfig()) {
+      setError('Supabase environment variables are not configured.');
+      return;
+    }
+
+    const supabase = createClient();
+    setError(null);
+    setMessage(null);
+    setLoading(true);
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message);
+      setLoading(false);
+      return;
+    }
+
+    window.location.href = next;
   }
 
   async function handleMagicLink(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -104,6 +132,38 @@ export default function LoginPage({ searchParams }: LoginPageProps): JSX.Element
       >
         Continue with Google
       </Button>
+
+      <form className="flex flex-col gap-4" onSubmit={handlePasswordLogin}>
+        <Input
+          id="password-email"
+          type="email"
+          label="Email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="admin@sitespresso.com"
+          autoComplete="email"
+        />
+        <Input
+          id="password"
+          type="password"
+          label="Password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="Enter your password"
+          autoComplete="current-password"
+        />
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="secondary"
+          size="lg"
+          fullWidth
+        >
+          {loading ? 'Signing in...' : 'Sign in with email and password'}
+        </Button>
+      </form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
