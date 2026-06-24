@@ -1,6 +1,12 @@
 import Stripe from 'stripe';
+import { BILLING_CURRENCY_CODE } from '@/lib/billing/plans';
 
 let stripeClient: Stripe | null = null;
+const STRIPE_PRICING_CACHE_TTL_MS = 5 * 60 * 1000;
+let stripePlanPricingOverridesCache: {
+  expiresAt: number;
+  data: Partial<Record<PaidPlan, Partial<Record<BillingInterval, number>>>>;
+} | null = null;
 
 export type PaidPlan = 'starter' | 'pro' | 'agency';
 export type Plan = 'free' | PaidPlan;
@@ -77,12 +83,18 @@ export function getStripePlanAvailability(): Record<PaidPlan, Record<BillingInte
 export async function getStripePlanPricingOverrides(): Promise<
   Partial<Record<PaidPlan, Partial<Record<BillingInterval, number>>>>
 > {
+  const now = Date.now();
+  if (stripePlanPricingOverridesCache && stripePlanPricingOverridesCache.expiresAt > now) {
+    return stripePlanPricingOverridesCache.data;
+  }
+
   if (!process.env.STRIPE_SECRET_KEY) {
     return {};
   }
 
   const stripe = getStripe();
   const overrides: Partial<Record<PaidPlan, Partial<Record<BillingInterval, number>>>> = {};
+  const detectedCurrencies = new Set<string>();
 
   await Promise.all(
     (Object.keys(STRIPE_PRICE_ENV_KEYS) as PaidPlan[]).map(async (plan) => {
@@ -98,6 +110,10 @@ export async function getStripePlanPricingOverrides(): Promise<
               return;
             }
 
+            if (typeof price.currency === 'string' && price.currency.length > 0) {
+              detectedCurrencies.add(price.currency.toLowerCase());
+            }
+
             const amount = price.unit_amount / 100;
             if (!overrides[plan]) {
               overrides[plan] = {};
@@ -110,6 +126,28 @@ export async function getStripePlanPricingOverrides(): Promise<
       );
     }),
   );
+
+  if (detectedCurrencies.size > 0) {
+    const expectedCurrency = BILLING_CURRENCY_CODE.toLowerCase();
+    const hasMultipleCurrencies = detectedCurrencies.size > 1;
+    const hasUnexpectedCurrency = !detectedCurrencies.has(expectedCurrency);
+
+    if (hasMultipleCurrencies || hasUnexpectedCurrency) {
+      console.warn(
+        `Stripe pricing override rejected due to currency mismatch. Expected ${expectedCurrency}, received ${Array.from(detectedCurrencies).join(', ')}.`,
+      );
+      stripePlanPricingOverridesCache = {
+        expiresAt: now + STRIPE_PRICING_CACHE_TTL_MS,
+        data: {},
+      };
+      return {};
+    }
+  }
+
+  stripePlanPricingOverridesCache = {
+    expiresAt: now + STRIPE_PRICING_CACHE_TTL_MS,
+    data: overrides,
+  };
 
   return overrides;
 }
