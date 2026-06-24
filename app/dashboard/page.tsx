@@ -1,7 +1,7 @@
 import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
-import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, type Plan } from '@/lib/billing/plans';
+import { NEXT_PLAN, PLAN_LABELS, PLAN_PRICING, formatPlanPrice, type Plan } from '@/lib/billing/plans';
 import { billingIntervalFromPriceId, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
@@ -134,7 +134,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
             </p>
             {nextPlan && nextPlanMonthlyPrice !== null && nextPlanAnnualPrice !== null && (
               <p className="text-sm text-brand-muted">
-                Next upgrade: <span className="font-medium text-white">{PLAN_LABELS[nextPlan]}</span> for ${nextPlanMonthlyPrice}/month or ${nextPlanAnnualPrice}/year.
+                Next upgrade: <span className="font-medium text-white">{PLAN_LABELS[nextPlan]}</span> for {formatPlanPrice(nextPlanMonthlyPrice)}/month or {formatPlanPrice(nextPlanAnnualPrice)}/year.
               </p>
             )}
           </div>
@@ -144,7 +144,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
               <UpgradePlanButton
                 plan={nextPlan}
                 billing="monthly"
-                label={`Upgrade Monthly · $${PLAN_PRICING[nextPlan].monthly}`}
+                label={`Upgrade Monthly · ${formatPlanPrice(PLAN_PRICING[nextPlan].monthly)}`}
                 unavailable={!nextPlanMonthlyAvailable}
               />
             )}
@@ -153,7 +153,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
                 plan={nextPlan}
                 billing="annual"
                 variant="secondary"
-                label={`Upgrade Annual · $${PLAN_PRICING[nextPlan].annual}`}
+                label={`Upgrade Annual · ${formatPlanPrice(PLAN_PRICING[nextPlan].annual)}`}
                 unavailable={!nextPlanAnnualAvailable}
               />
             )}

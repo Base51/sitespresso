@@ -3,6 +3,9 @@ export type Plan = 'free' | PaidPlan;
 export type BillingInterval = 'monthly' | 'annual';
 export type PlanAvailability = Record<PaidPlan, Record<BillingInterval, boolean>>;
 
+export const BILLING_CURRENCY_CODE = 'EUR';
+export const BILLING_CURRENCY_SYMBOL = '€';
+
 export const NEXT_PLAN: Record<Exclude<Plan, 'agency'>, PaidPlan> = {
   free: 'starter',
   starter: 'pro',
@@ -49,3 +52,7 @@ export const PLAN_FEATURES: Record<PaidPlan, string[]> = {
 };
 
 export const PLAN_ORDER: PaidPlan[] = ['starter', 'pro', 'agency'];
+
+export function formatPlanPrice(value: number): string {
+  return `${BILLING_CURRENCY_SYMBOL}${value}`;
+}

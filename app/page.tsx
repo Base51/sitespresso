@@ -18,6 +18,7 @@ import {
   PLAN_LABELS,
   PLAN_ORDER,
   PLAN_PRICING,
+  formatPlanPrice,
   type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
@@ -310,7 +311,7 @@ export default function Home() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-lg font-semibold text-white">Free</p>
-                    <p className="mt-2 text-3xl font-semibold text-white">$0</p>
+                    <p className="mt-2 text-3xl font-semibold text-white">{formatPlanPrice(0)}</p>
                     <p className="mt-1 text-sm text-brand-muted">Try the workflow before you commit.</p>
                   </div>
                   <ul className="space-y-2 text-sm text-brand-muted">
@@ -345,7 +346,7 @@ export default function Home() {
                         <div>
                           <p className="text-lg font-semibold text-white">{PLAN_LABELS[plan]}</p>
                           <p className="mt-2 text-3xl font-semibold text-white">
-                            ${price}
+                            {formatPlanPrice(price)}
                             <span className="ml-1 text-base font-medium text-brand-muted">/{selectedBilling === 'monthly' ? 'mo' : 'yr'}</span>
                           </p>
                         </div>

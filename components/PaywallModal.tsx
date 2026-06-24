@@ -7,6 +7,7 @@ import {
   PLAN_LABELS,
   PLAN_ORDER,
   PLAN_PRICING,
+  formatPlanPrice,
   type PlanAvailability,
   type BillingInterval,
   type PaidPlan,
@@ -46,7 +47,7 @@ export default function PaywallModal({
         <div className="mb-4 space-y-3">
           <p className="text-xs uppercase tracking-[0.24em] text-brand-primary">Choose A Publishing Plan</p>
           <h3 className="font-display text-2xl font-semibold tracking-tight text-white">
-            Publish your site with {PLAN_LABELS[selectedPlan]} for ${selectedPrice}/{selectedBilling === 'monthly' ? 'month' : 'year'}
+            Publish your site with {PLAN_LABELS[selectedPlan]} for {formatPlanPrice(selectedPrice)}/{selectedBilling === 'monthly' ? 'month' : 'year'}
           </h3>
           <p className="text-sm leading-relaxed text-brand-muted">
             Free plan is for draft editing only. Choose the tier that matches how much you plan to publish and iterate, then continue to Stripe Checkout.
@@ -87,7 +88,7 @@ export default function PaywallModal({
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-base font-semibold text-white">{PLAN_LABELS[plan]}</p>
-                    <p className="text-sm text-brand-muted">${price}/{selectedBilling === 'monthly' ? 'mo' : 'yr'}</p>
+                    <p className="text-sm text-brand-muted">{formatPlanPrice(price)}/{selectedBilling === 'monthly' ? 'mo' : 'yr'}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     {active && <span className="rounded-full bg-brand-primary px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">Selected</span>}

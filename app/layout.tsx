@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ToastProvider } from '@/components/ToastContext';
 import ToastContainer from '@/components/ToastContainer';
+import GlobalFooter from '@/components/GlobalFooter';
 
 const isVercelRuntime = Boolean(process.env.VERCEL_URL);
 
@@ -23,9 +24,12 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen bg-brand-bg text-brand-text antialiased">
         <ToastProvider>
-          {children}
+          <div className="flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+            <GlobalFooter />
+          </div>
           <ToastContainer />
           {isVercelRuntime ? <Analytics /> : null}
           {isVercelRuntime ? <SpeedInsights /> : null}
