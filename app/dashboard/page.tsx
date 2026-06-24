@@ -63,6 +63,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     .from('subscriptions')
     .select('status, stripe_price_id, current_period_end, updated_at')
     .eq('user_id', user.id)
+    .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
     .order('updated_at', { ascending: false })
     .limit(1);
 

@@ -90,6 +90,33 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const baseUrl = getBaseUrl(request);
 
+    const { data: existingSubscriptions, error: existingSubscriptionsError } = await supabase
+      .from('subscriptions')
+      .select('stripe_subscription_id, status, updated_at')
+      .eq('user_id', user.id)
+      .not('stripe_subscription_id', 'is', null)
+      .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (existingSubscriptionsError) {
+      return NextResponse.json({ error: 'Unable to validate current subscription state.' }, { status: 500 });
+    }
+
+    if ((existingSubscriptions?.length ?? 0) > 0) {
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: stripeCustomerId,
+        return_url: `${baseUrl}/dashboard`,
+      });
+
+      return NextResponse.json({
+        success: true,
+        checkoutUrl: portalSession.url,
+        redirectedToPortal: true,
+        message: 'You already have an active subscription. Manage it in Stripe Billing Portal.',
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: stripeCustomerId,

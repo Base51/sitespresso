@@ -17,6 +17,45 @@ type Updatable = {
   };
 };
 
+const ACTIVE_LIKE_STATUSES = ['active', 'trialing', 'past_due', 'unpaid'] as const;
+
+async function reconcileProfilePlanFromSubscriptions(
+  userId: string,
+  stripeCustomerId?: string | null,
+): Promise<'free' | 'starter' | 'pro' | 'agency'> {
+  const admin = createAdminClient();
+
+  const { data: subscriptions } = await admin
+    .from('subscriptions')
+    .select('status, stripe_price_id, updated_at')
+    .eq('user_id', userId)
+    .in('status', [...ACTIVE_LIKE_STATUSES])
+    .order('updated_at', { ascending: false })
+    .limit(1);
+
+  const latestActiveLike = (subscriptions as Array<
+    { status?: string | null; stripe_price_id?: string | null } | null
+  > | null)?.[0];
+
+  const nextPlan = latestActiveLike
+    ? planFromStripeStatus(
+        latestActiveLike.status ?? 'canceled',
+        latestActiveLike.stripe_price_id ?? undefined,
+      )
+    : 'free';
+
+  const profileUpdate: Record<string, unknown> = { plan: nextPlan };
+  if (stripeCustomerId) {
+    profileUpdate.stripe_customer_id = stripeCustomerId;
+  }
+
+  await (admin.from('profiles') as unknown as Updatable)
+    .update(profileUpdate)
+    .eq('id', userId);
+
+  return nextPlan;
+}
+
 async function upsertSubscriptionFromStripe(
   subscription: Stripe.Subscription,
 ): Promise<void> {
@@ -70,15 +109,10 @@ async function upsertSubscriptionFromStripe(
       { onConflict: 'stripe_subscription_id' },
     );
 
-  const nextPlan = planFromStripeStatus(subscription.status, priceId);
-
-  await (admin.from('profiles') as unknown as Updatable)
-    .update({
-      plan: nextPlan,
-      stripe_customer_id:
-        typeof subscription.customer === 'string' ? subscription.customer : null,
-    })
-    .eq('id', resolvedUserId);
+  await reconcileProfilePlanFromSubscriptions(
+    resolvedUserId,
+    typeof subscription.customer === 'string' ? subscription.customer : null,
+  );
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
@@ -119,14 +153,17 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Pro
 
   if (!userId) return;
 
-  await (admin.from('profiles') as unknown as Updatable)
-    .update({ plan: 'free' })
-    .eq('id', userId);
+  const reconciledPlan = await reconcileProfilePlanFromSubscriptions(
+    userId,
+    typeof subscription.customer === 'string' ? subscription.customer : null,
+  );
 
-  await (admin.from('sites') as unknown as Updatable)
-    .update({ status: 'draft' })
-    .eq('user_id', userId)
-    .eq('status', 'published');
+  if (reconciledPlan === 'free') {
+    await (admin.from('sites') as unknown as Updatable)
+      .update({ status: 'draft' })
+      .eq('user_id', userId)
+      .eq('status', 'published');
+  }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
