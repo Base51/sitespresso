@@ -78,3 +78,5 @@ For Stripe pricing and billing env readiness, see [docs/BILLING_CONFIG_CHECKLIST
 
 For production deploy and release validation steps, see [docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md](docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md).
 
+For the latest completed production validation evidence, see [docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md).
+
