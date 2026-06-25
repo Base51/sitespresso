@@ -167,7 +167,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
       toast({
         type: 'success',
         title: 'Domain attached',
-        description: 'Domain was attached to Vercel. Live custom-host routing is the next rollout step.',
+        description: 'Domain was attached to Vercel. Traffic can now route through your custom host.',
       });
       router.refresh();
     } catch (error) {
@@ -337,7 +337,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
                   {currentPlan === 'free' ? (
                     <p className="mt-3 text-sm text-brand-muted">
-                      Free plans can preview this feature, but custom domains require a paid subscription. Upgrade to connect your brand domain when activation ships.
+                      Free plans can preview this feature, but custom domains require a paid subscription. Upgrade to connect your brand domain.
                     </p>
                   ) : (
                     <div className="mt-3 space-y-2 text-sm text-brand-muted">

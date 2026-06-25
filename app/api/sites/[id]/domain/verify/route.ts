@@ -78,6 +78,7 @@ export async function POST(
       customDomain: site.custom_domain,
       domainVerified: verification.verified,
       expectedTarget: verification.expectedTarget,
+      expectedRecords: verification.expectedRecords,
       observedRecords: verification.observedRecords,
       message: verification.reason,
     });

@@ -48,14 +48,14 @@ export function getCustomDomainInstructions(domain: string, slug: string | null)
   if (!slug) {
     return [
       `Custom domain ${normalized} is saved. Publish this site first to generate the final SiteSpresso target hostname.`,
-      'Verification and live routing are not active yet in this release.',
+      'After the site is published, run DNS verification and attach the domain in the dashboard.',
     ];
   }
 
   return [
     `Custom domain ${normalized} is saved for this site.`,
-    `When activation ships, you will point your DNS to ${slug}.sitespresso.com.`,
-    'Verification and live routing are not active yet in this release.',
+    `Point your DNS to ${slug}.sitespresso.com, then run Check DNS and Attach to Vercel in the dashboard.`,
+    'Live routing turns on after DNS verification and Vercel attach succeed.',
   ];
 }
 

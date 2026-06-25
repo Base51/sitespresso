@@ -4,6 +4,7 @@ import { getExpectedCustomDomainTarget, normalizeCustomDomain } from '@/lib/doma
 type DomainVerificationResult = {
   verified: boolean;
   expectedTarget: string;
+  expectedRecords: string[];
   observedRecords: string[];
   reason: string;
 };
@@ -51,6 +52,7 @@ export async function verifyCustomDomainDns(
       return {
         verified: true,
         expectedTarget,
+        expectedRecords: [],
         observedRecords: normalizedRecords,
         reason: 'DNS CNAME is correctly configured.',
       };
@@ -61,12 +63,14 @@ export async function verifyCustomDomainDns(
 
   const domainIps = await resolveIpSet(normalizedDomain);
   const targetIps = await resolveIpSet(normalizedExpectedTarget);
+  const expectedRecords = Array.from(targetIps);
   const matchingIps = Array.from(domainIps).filter((ip) => targetIps.has(ip));
 
   if (matchingIps.length > 0) {
     return {
       verified: true,
       expectedTarget,
+      expectedRecords,
       observedRecords: matchingIps,
       reason: 'DNS A/AAAA records are correctly configured for this target.',
     };
@@ -77,17 +81,29 @@ export async function verifyCustomDomainDns(
     return {
       verified: false,
       expectedTarget,
+      expectedRecords,
       observedRecords,
-      reason: `DNS CNAME does not match ${expectedTarget}.`,
+      reason: `DNS CNAME does not match ${expectedTarget}. Update your CNAME target and re-run verification.`,
+    };
+  }
+
+  if (observedRecords.length > 0) {
+    return {
+      verified: false,
+      expectedTarget,
+      expectedRecords,
+      observedRecords,
+      reason:
+        `DNS A/AAAA records do not match ${expectedTarget}. ` +
+        'For apex domains, set root records to the expected target IPs and keep DNS proxy/CDN disabled while verifying.',
     };
   }
 
   return {
     verified: false,
     expectedTarget,
+    expectedRecords,
     observedRecords,
-    reason: observedRecords.length
-      ? `DNS records do not resolve to ${expectedTarget}.`
-      : 'No CNAME or A/AAAA records found yet. DNS may still be propagating.',
+    reason: 'No CNAME or A/AAAA records found yet. DNS may still be propagating.',
   };
 }
