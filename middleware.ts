@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
+const ROOT_DOMAIN = 'sitespresso.com';
+const PRIMARY_APP_HOSTS = new Set([ROOT_DOMAIN, `www.${ROOT_DOMAIN}`, 'localhost', '127.0.0.1']);
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin']);
 const PROTECTED_PATHS = ['/dashboard', '/admin'];
 
@@ -8,14 +10,27 @@ function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
 
+function normalizeHostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/\.$/, '');
+}
+
+function isPrimaryAppHostname(hostname: string): boolean {
+  return (
+    PRIMARY_APP_HOSTS.has(hostname) ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.vercel.dev') ||
+    hostname.endsWith('.vercel.local')
+  );
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const host = request.headers.get('host') ?? '';
-  const hostname = host.split(':')[0];
+  const hostname = normalizeHostname(host.split(':')[0] ?? '');
 
-  const isSubdomain = hostname.endsWith('.sitespresso.com');
+  const isSubdomain = hostname.endsWith(`.${ROOT_DOMAIN}`);
 
   if (isSubdomain) {
-    const slug = hostname.replace('.sitespresso.com', '');
+    const slug = hostname.replace(`.${ROOT_DOMAIN}`, '');
 
     if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
       const url = request.nextUrl.clone();
@@ -46,6 +61,23 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       }
     }
   });
+
+  if (hostname && !isPrimaryAppHostname(hostname) && !isSubdomain) {
+    const { data: customDomainSite } = await supabase
+      .from('sites')
+      .select('slug')
+      .eq('custom_domain', hostname)
+      .eq('status', 'published')
+      .eq('domain_verified', true)
+      .eq('domain_attached', true)
+      .maybeSingle();
+
+    if (customDomainSite?.slug) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/sites/${customDomainSite.slug}`;
+      return NextResponse.rewrite(url);
+    }
+  }
 
   const {
     data: { user }

@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain, run DNS verification checks, and attach the domain to the Vercel project, but live routing is not active yet.
+This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain, run DNS verification checks, attach the domain to the Vercel project, and route verified attached hosts through middleware. Real-domain success-path validation is still pending.
 
 ## Current Slice
 
-Registration + verification + attach preparation, visible to all users, usable only on paid plans.
+Registration + verification + attach + host routing, visible to all users, usable only on paid plans.
 
 ## Entitlement Rules
 
@@ -21,7 +21,7 @@ Registration + verification + attach preparation, visible to all users, usable o
 
 1. Add `custom_domain text unique null` to `sites`.
 2. Add `domain_verified boolean not null default false` to `sites`.
-3. Keep routing unchanged in this slice.
+3. Keep subdomain routing intact while adding custom-host lookups only for verified, attached domains.
 
 ### Phase 2: Validation
 
@@ -78,12 +78,12 @@ Route: `POST /api/sites/[id]/domain/attach`
    - upgrade CTA
 4. Add `Check DNS` action for paid users after domain is saved.
 5. Show attach status (`Attached` / `Not attached`) for paid users.
-6. Explain that live traffic still uses the SiteSpresso subdomain until future slices ship.
+6. Explain that live traffic switches only after DNS verification and Vercel attach succeed.
 
-### Phase 5: Future Slices
+### Phase 5: Remaining Follow-Up
 
-1. Middleware support for custom hostnames
-2. SSL/live activation
+1. Validate successful end-to-end flow with a real custom domain or subdomain.
+2. Confirm external SSL/live activation behavior on Vercel-managed domains.
 
 ## User Flow
 

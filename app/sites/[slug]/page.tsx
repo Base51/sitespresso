@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import type { Website } from '@/lib/schemas/website';
 
@@ -8,6 +9,8 @@ interface PageProps {
   params: { slug: string };
 }
 
+const ROOT_DOMAIN = 'sitespresso.com';
+const PRIMARY_APP_HOSTS = new Set([ROOT_DOMAIN, `www.${ROOT_DOMAIN}`, 'localhost', '127.0.0.1']);
 type SectionKey = 'about' | 'services' | 'contact';
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
 const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
@@ -29,21 +32,39 @@ async function getSiteBySlug(slug: string): Promise<Website | null> {
   return data.content as Website;
 }
 
+function resolvePublishedSiteUrl(slug: string): string {
+  const fallbackBaseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
+  const headerStore = headers();
+  const rawHost = headerStore.get('x-forwarded-host') || headerStore.get('host') || '';
+  const hostname = rawHost.split(':')[0]?.toLowerCase().replace(/\.$/, '') || '';
+
+  if (
+    !hostname ||
+    PRIMARY_APP_HOSTS.has(hostname) ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.vercel.dev') ||
+    hostname.endsWith('.vercel.local')
+  ) {
+    return `${fallbackBaseUrl}/sites/${slug}`;
+  }
+
+  const protocol = headerStore.get('x-forwarded-proto') || (hostname === 'localhost' ? 'http' : 'https');
+  return `${protocol}://${hostname}/`;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const site = await getSiteBySlug(params.slug);
   if (!site) return { title: 'Not Found' };
 
   const title = `${site.business_name} | ${site.business_type}`;
   const description = site.tagline?.trim() || site.hero.content?.trim() || `Visit ${site.business_name}.`;
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
-  const canonicalPath = `/sites/${params.slug}`;
-  const url = `${baseUrl}${canonicalPath}`;
+  const url = resolvePublishedSiteUrl(params.slug);
 
   return {
     title,
     description,
     alternates: {
-      canonical: canonicalPath,
+      canonical: url,
     },
     openGraph: {
       title,
@@ -223,8 +244,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
   };
 
   // Build JSON-LD schemas for search engines
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
-  const pageUrl = `${baseUrl}/sites/${params.slug}`;
+  const pageUrl = resolvePublishedSiteUrl(params.slug);
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',

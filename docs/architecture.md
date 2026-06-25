@@ -13,7 +13,7 @@ graph TD
     end
 
     subgraph Vercel
-        B[Edge Middleware\nSubdomain Router]
+        B[Edge Middleware\nHost Router]
         C[API Route Handlers]
         D[Published Site Renderer\n/sites/[slug]]
     end
@@ -31,7 +31,7 @@ graph TD
 
     A -->|Auth| F
     A -->|API calls| C
-    B -->|Route {slug}.sitespresso.com| D
+    B -->|Route {slug}.sitespresso.com and verified custom hosts| D
     D -->|Read site JSON| E
     C -->|Generate content| H
     C -->|Read/Write data| E
