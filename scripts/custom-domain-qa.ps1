@@ -4,14 +4,15 @@
 # Usage examples:
 #   .\scripts\custom-domain-qa.ps1
 #   .\scripts\custom-domain-qa.ps1 -BaseUrl "https://sitespresso.com"
-#   .\scripts\custom-domain-qa.ps1 -BaseUrl "https://sitespresso.com" -SiteId "<site-id>" -SessionCookie "sb-access-token=...; sb-refresh-token=..."
-#   .\scripts\custom-domain-qa.ps1 -BaseUrl "https://sitespresso.com" -SiteId "<site-id>" -SessionCookie "..." -CustomDomain "www.example.com"
+#   .\scripts\custom-domain-qa.ps1 -BaseUrl "https://sitespresso.com" -SiteId "<site-id>" -SessionCookie "sb-<project>-auth-token.0=..."
+#   .\scripts\custom-domain-qa.ps1 -BaseUrl "https://sitespresso.com" -SiteId "<site-id>" -SessionCookie "..." -CustomDomain "www.example.com" -RunAttach
 
 param(
     [string]$BaseUrl = "https://sitespresso.com",
     [string]$SiteId,
     [string]$SessionCookie,
-    [string]$CustomDomain
+    [string]$CustomDomain,
+    [switch]$RunAttach
 )
 
 $ErrorActionPreference = "Stop"
@@ -104,7 +105,12 @@ $verifyUnauth = Invoke-JsonRequest -Method "POST" -Uri "$BaseUrl/api/sites/test-
 $unauthBlocked = ($verifyUnauth.StatusCode -eq 401)
 Write-Check -Label "Domain verify blocks unauthenticated requests" -Passed $unauthBlocked -Details "Status=$($verifyUnauth.StatusCode)"
 
-# 3) Optional authenticated checks
+# 3) Domain attach endpoint denies unauthenticated access
+$attachUnauth = Invoke-JsonRequest -Method "POST" -Uri "$BaseUrl/api/sites/test-id/domain/attach"
+$attachUnauthBlocked = ($attachUnauth.StatusCode -eq 401)
+Write-Check -Label "Domain attach blocks unauthenticated requests" -Passed $attachUnauthBlocked -Details "Status=$($attachUnauth.StatusCode)"
+
+# 4) Optional authenticated checks
 if ($SiteId -and $SessionCookie) {
     Write-Host "Running authenticated checks for site $SiteId" -ForegroundColor Cyan
 
@@ -132,6 +138,25 @@ if ($SiteId -and $SessionCookie) {
         $verificationStatus = if ($verifyAuth.Json.domainVerified) { "VERIFIED" } else { "NOT VERIFIED" }
         Write-Host "  [INFO] Domain status: $verificationStatus" -ForegroundColor Cyan
         Write-Host "  [INFO] Message: $($verifyAuth.Json.message)" -ForegroundColor DarkGray
+
+        if ($RunAttach) {
+            if (-not $verifyAuth.Json.domainVerified) {
+                Write-Check -Label "Attach precondition met (domain verified)" -Passed $false -Details "Verify must return domainVerified=true before attach can succeed."
+            } else {
+                $attachAuth = Invoke-JsonRequest -Method "POST" -Uri "$BaseUrl/api/sites/$SiteId/domain/attach" -Cookie $SessionCookie
+                $attachAuthOk = ($attachAuth.StatusCode -eq 200 -and $attachAuth.Json -and $attachAuth.Json.success)
+                Write-Check -Label "Authenticated attach request succeeds" -Passed $attachAuthOk -Details "Status=$($attachAuth.StatusCode)"
+
+                if ($attachAuth.Json) {
+                    $hasAttached = ($attachAuth.Json.domainAttached -eq $true)
+                    $hasAttachMessage = -not [string]::IsNullOrWhiteSpace([string]$attachAuth.Json.message)
+
+                    Write-Check -Label "Attach payload includes domainAttached=true" -Passed $hasAttached
+                    Write-Check -Label "Attach payload includes message" -Passed $hasAttachMessage
+                    Write-Host "  [INFO] Attach message: $($attachAuth.Json.message)" -ForegroundColor DarkGray
+                }
+            }
+        }
     }
 } else {
     Write-Host "Skipping authenticated checks (provide -SiteId and -SessionCookie to enable)." -ForegroundColor Yellow

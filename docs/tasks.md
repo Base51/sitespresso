@@ -178,7 +178,7 @@
 | T-100a | Add `custom_domain` + `domain_verified` to `sites` and build paid-gated registration API |
 | T-100b | Add visible-but-locked dashboard custom domain UI for free users with upgrade CTA |
 | T-100c | Add DNS verification workflow and status refresh | ✅ |
-| T-100d | Add Vercel domain attach + live routing support | 🔄 |
+| T-100d | Add Vercel domain attach + live routing support | 🔄 (attach API + QA coverage done; live routing pending) |
 | T-101 | Multi-page sites (Home, About, Contact) |
 | T-102 | AI hero image generation (DALL·E 3 or Stability) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data |
