@@ -88,6 +88,7 @@ export async function PATCH(
       .update({
         custom_domain: customDomain,
         domain_verified: false,
+        domain_attached: false,
         updated_at: new Date().toISOString(),
       })
       .eq('id', siteId);
@@ -100,6 +101,7 @@ export async function PATCH(
       success: true,
       customDomain,
       domainVerified: false,
+      domainAttached: false,
       instructions: getCustomDomainInstructions(customDomain, site.slug as string | null),
     });
   } catch (error) {

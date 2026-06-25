@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain to a site and run DNS verification checks, but live routing is not active yet.
+This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain, run DNS verification checks, and attach the domain to the Vercel project, but live routing is not active yet.
 
 ## Current Slice
 
-Registration + verification check, visible to all users, usable only on paid plans.
+Registration + verification + attach preparation, visible to all users, usable only on paid plans.
 
 ## Entitlement Rules
 
@@ -54,6 +54,16 @@ Route: `POST /api/sites/[id]/domain/verify`
 7. Persist `domain_verified` true/false based on current DNS result.
 8. Return expected target, observed records, and user-safe status message.
 
+Route: `POST /api/sites/[id]/domain/attach`
+
+1. Require authentication.
+2. Verify site ownership.
+3. Verify user plan is not `free`.
+4. Require saved domain + published slug + `domain_verified = true`.
+5. Call Vercel Project Domains API to attach custom domain.
+6. Persist `domain_attached = true` on success.
+7. Return attach status and user-safe message.
+
 ### Phase 4: Dashboard UX
 
 1. Show custom domain section on every site card.
@@ -61,18 +71,19 @@ Route: `POST /api/sites/[id]/domain/verify`
    - editable input
    - save button
    - `Not verified` status badge
+   - `Attach to Vercel` action once DNS is verified
 3. Free users:
    - visible but disabled field
    - `Paid feature` badge
    - upgrade CTA
 4. Add `Check DNS` action for paid users after domain is saved.
-5. Explain that live traffic still uses the SiteSpresso subdomain until future slices ship.
+5. Show attach status (`Attached` / `Not attached`) for paid users.
+6. Explain that live traffic still uses the SiteSpresso subdomain until future slices ship.
 
 ### Phase 5: Future Slices
 
-1. Vercel domain attach API
-2. Middleware support for custom hostnames
-3. SSL/live activation
+1. Middleware support for custom hostnames
+2. SSL/live activation
 
 ## User Flow
 
@@ -83,6 +94,7 @@ Route: `POST /api/sites/[id]/domain/verify`
 3. Save domain.
 4. See `Not verified` status and guidance.
 5. Run `Check DNS` to validate CNAME configuration and update verification status.
+6. Click `Attach to Vercel` once verified.
 
 ### Free user
 
@@ -99,5 +111,6 @@ Route: `POST /api/sites/[id]/domain/verify`
 4. Duplicate domain claims return conflict.
 5. Invalid domain values return validation error.
 6. Paid user can run verification and see clear pass/fail message.
-7. Existing publish flow still returns `{slug}.sitespresso.com`.
-8. `npm run build` passes.
+7. Paid user can attach verified domain and see attached status.
+8. Existing publish flow still returns `{slug}.sitespresso.com`.
+9. `npm run build` passes.

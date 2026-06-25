@@ -19,6 +19,7 @@ interface Site {
   status: 'draft' | 'published' | 'unpublished';
   custom_domain: string | null;
   domain_verified: boolean;
+  domain_attached: boolean;
   updated_at: string | null;
 }
 
@@ -48,6 +49,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
   );
   const [savingDomainId, setSavingDomainId] = useState<string | null>(null);
   const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(null);
+  const [attachingDomainId, setAttachingDomainId] = useState<string | null>(null);
 
   function openDeleteModal(site: Site) {
     setSiteToDelete(site);
@@ -86,14 +88,14 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
       setLocalSites((prev) => prev.map((entry) => (
         entry.id === site.id
-          ? { ...entry, custom_domain: json.customDomain as string, domain_verified: false }
+          ? { ...entry, custom_domain: json.customDomain as string, domain_verified: false, domain_attached: false }
           : entry
       )));
 
       toast({
         type: 'success',
         title: 'Custom domain saved',
-        description: 'The domain was saved. Verification and live routing will ship in a later release.',
+        description: 'The domain was saved. Verify DNS next, then attach it to Vercel.',
       });
       router.refresh();
     } catch (error) {
@@ -122,7 +124,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
       setLocalSites((prev) => prev.map((entry) => (
         entry.id === site.id
-          ? { ...entry, domain_verified: Boolean(json.domainVerified) }
+          ? { ...entry, domain_verified: Boolean(json.domainVerified), domain_attached: false }
           : entry
       )));
 
@@ -140,6 +142,42 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
       });
     } finally {
       setVerifyingDomainId(null);
+    }
+  }
+
+  async function handleDomainAttach(site: Site) {
+    setAttachingDomainId(site.id);
+
+    try {
+      const response = await fetch(`/api/sites/${site.id}/domain/attach`, {
+        method: 'POST',
+      });
+
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.error ?? 'Could not attach custom domain to Vercel.');
+      }
+
+      setLocalSites((prev) => prev.map((entry) => (
+        entry.id === site.id
+          ? { ...entry, domain_attached: Boolean(json.domainAttached) }
+          : entry
+      )));
+
+      toast({
+        type: 'success',
+        title: 'Domain attached',
+        description: 'Domain was attached to Vercel. Live custom-host routing is the next rollout step.',
+      });
+      router.refresh();
+    } catch (error) {
+      toast({
+        type: 'error',
+        title: 'Attach failed',
+        description: error instanceof Error ? error.message : 'Could not attach custom domain.',
+      });
+    } finally {
+      setAttachingDomainId(null);
     }
   }
 
@@ -232,9 +270,14 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         Paid feature
                       </span>
                     ) : (
-                      <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${site.domain_verified ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200' : 'border-white/10 bg-white/5 text-brand-muted-strong'}`}>
-                        {site.domain_verified ? 'Verified' : 'Not verified'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${site.domain_verified ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200' : 'border-white/10 bg-white/5 text-brand-muted-strong'}`}>
+                          {site.domain_verified ? 'Verified' : 'Not verified'}
+                        </span>
+                        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${site.domain_attached ? 'border-blue-400/35 bg-blue-400/10 text-blue-200' : 'border-white/10 bg-white/5 text-brand-muted-strong'}`}>
+                          {site.domain_attached ? 'Attached' : 'Not attached'}
+                        </span>
+                      </div>
                     )}
                   </div>
 
@@ -265,7 +308,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         <Button
                           variant="secondary"
                           size="md"
-                          disabled={savingDomainId === site.id || verifyingDomainId === site.id}
+                          disabled={savingDomainId === site.id || verifyingDomainId === site.id || attachingDomainId === site.id}
                           onClick={() => handleDomainSave(site)}
                         >
                           {savingDomainId === site.id ? 'Saving…' : 'Save domain'}
@@ -273,11 +316,20 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         <Button
                           variant="ghost"
                           size="md"
-                          disabled={!site.custom_domain || verifyingDomainId === site.id || savingDomainId === site.id}
+                          disabled={!site.custom_domain || verifyingDomainId === site.id || savingDomainId === site.id || attachingDomainId === site.id}
                           onClick={() => handleDomainVerify(site)}
                           title={!site.custom_domain ? 'Save a custom domain first.' : undefined}
                         >
                           {verifyingDomainId === site.id ? 'Checking…' : 'Check DNS'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="md"
+                          disabled={!site.custom_domain || !site.domain_verified || site.domain_attached || attachingDomainId === site.id || verifyingDomainId === site.id || savingDomainId === site.id}
+                          onClick={() => handleDomainAttach(site)}
+                          title={!site.custom_domain ? 'Save a custom domain first.' : !site.domain_verified ? 'Verify DNS before attaching.' : undefined}
+                        >
+                          {attachingDomainId === site.id ? 'Attaching…' : site.domain_attached ? 'Attached to Vercel' : 'Attach to Vercel'}
                         </Button>
                       </div>
                     )}

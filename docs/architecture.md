@@ -83,6 +83,7 @@ create table public.sites (
   slug          text not null unique,
   custom_domain text unique,
   domain_verified boolean not null default false,
+  domain_attached boolean not null default false,
   business_name text not null,
   business_type text not null,
   city          text not null,
@@ -168,6 +169,12 @@ Sets site status to `published`, validates active subscription. Requires auth.
 
 ### `PATCH /api/sites/[id]/domain`
 Saves a custom domain against a site, validates paid entitlement, validates format, and stores `domain_verified = false`. Requires auth and paid plan.
+
+### `POST /api/sites/[id]/domain/verify`
+Runs DNS checks for the saved custom domain and updates `domain_verified`. Requires auth and paid plan.
+
+### `POST /api/sites/[id]/domain/attach`
+Attaches a verified custom domain to the configured Vercel project and stores `domain_attached = true`. Requires auth and paid plan.
 
 ### `POST /api/billing/checkout`
 Creates a Stripe Checkout session and returns the URL. Requires auth.
