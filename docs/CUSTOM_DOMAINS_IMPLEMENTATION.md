@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. In the current slice, users can save a custom domain, run DNS verification checks, attach the domain to the Vercel project, and route verified attached hosts through middleware. Real-domain success-path validation is still pending.
+This document tracks the phased implementation of custom domains, starting with the paid-gated registration foundation. Users can save a custom domain, run DNS verification checks, attach the domain to the Vercel project, and route verified attached hosts through middleware. Real apex-domain validation has been completed in production.
 
 ## Current Slice
 
-Registration + verification + attach + host routing, visible to all users, usable only on paid plans.
+Registration + verification + attach + host routing, visible to all users, usable only on paid plans. Validated in production with `base51.com.br`.
 
 ## Entitlement Rules
 
@@ -80,10 +80,10 @@ Route: `POST /api/sites/[id]/domain/attach`
 5. Show attach status (`Attached` / `Not attached`) for paid users.
 6. Explain that live traffic switches only after DNS verification and Vercel attach succeed.
 
-### Phase 5: Remaining Follow-Up
+### Phase 5: Follow-Up Enhancements
 
-1. Validate successful end-to-end flow with a real custom domain or subdomain.
-2. Confirm external SSL/live activation behavior on Vercel-managed domains.
+1. Add in-product customer help link to apex/subdomain setup guide.
+2. Add monitoring/alerts for domain verification and attach failures.
 
 ## User Flow
 

@@ -76,3 +76,5 @@ If you see a white page, missing styles, or 404 errors on `/_next/static/`, see 
 
 For Stripe pricing and billing env readiness, see [docs/BILLING_CONFIG_CHECKLIST.md](docs/BILLING_CONFIG_CHECKLIST.md).
 
+For production deploy and release validation steps, see [docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md](docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md).
+

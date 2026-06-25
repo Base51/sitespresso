@@ -54,4 +54,5 @@ Authenticated checks including attach:
 1. Do not commit real session cookies or secrets.
 2. For apex domains, verification now supports A/AAAA target matching in addition to CNAME.
 3. `-RunAttach` is intended for a real domain or subdomain you control. Reserved domains such as `example.com` are useful only for negative-path verification.
-4. Middleware now routes verified, attached custom hosts to the published site. The remaining validation gap is a real-domain success-path test.
+4. Middleware routes verified, attached custom hosts to the published site.
+5. Real-domain success path has been validated in production with apex domain `base51.com.br`.

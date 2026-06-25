@@ -161,11 +161,11 @@
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
 | T-090 | Configure production Supabase project (separate from dev) | P0 | T-006 | ☐ |
-| T-091 | Set all production environment variables in Vercel | P0 | T-007 | ☐ |
-| T-092 | Configure `sitespresso.com` DNS and verify Vercel domain setup | P0 | T-005 | ☐ |
-| T-093 | Run end-to-end smoke test on production environment | P0 | All M1–M8 | ☐ |
-| T-094 | Set up Vercel error monitoring (Vercel Analytics + Error Tracking) | P1 | T-004 | ☐ |
-| T-095 | Write production README with setup and deployment instructions | P1 | All tasks | ☐ |
+| T-091 | Set all production environment variables in Vercel | P0 | T-007 | ✅ |
+| T-092 | Configure `sitespresso.com` DNS and verify Vercel domain setup | P0 | T-005 | ✅ |
+| T-093 | Run end-to-end smoke test on production environment | P0 | All M1–M8 | 🔄 (repo smoke checks passing; full prod E2E sweep in progress) |
+| T-094 | Set up Vercel error monitoring (Vercel Analytics + Error Tracking) | P1 | T-004 | ✅ (Analytics + Speed Insights wired in app layout) |
+| T-095 | Write production README with setup and deployment instructions | P1 | All tasks | ✅ (`docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md`) |
 | T-096 | Tag `v1.0.0` release on GitHub | P1 | T-093 | ☐ |
 
 ---
@@ -174,11 +174,11 @@
 
 | ID | Task |
 |---|---|
-| T-100 | Custom domain support (paid-gated registration foundation -> DNS verification -> Vercel domain attach) 🔄 |
+| T-100 | Custom domain support (paid-gated registration foundation -> DNS verification -> Vercel domain attach) ✅ |
 | T-100a | Add `custom_domain` + `domain_verified` to `sites` and build paid-gated registration API |
 | T-100b | Add visible-but-locked dashboard custom domain UI for free users with upgrade CTA |
 | T-100c | Add DNS verification workflow and status refresh | ✅ |
-| T-100d | Add Vercel domain attach + live routing support | 🔄 (attach API + QA coverage + host routing done; real-domain success validation pending) |
+| T-100d | Add Vercel domain attach + live routing support | ✅ (validated with real apex domain: base51.com.br) |
 | T-101 | Multi-page sites (Home, About, Contact) |
 | T-102 | AI hero image generation (DALL·E 3 or Stability) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data |
