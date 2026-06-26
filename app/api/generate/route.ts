@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WebsiteSchema, GenerateInputSchema } from '../../../lib/schemas/website';
+import { WebsiteSchema, GenerateInputSchema, normalizeWebsiteContent } from '../../../lib/schemas/website';
 import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
@@ -312,7 +312,8 @@ export async function POST(request: NextRequest) {
     // Parse and validate response
     const parsed = JSON.parse(extractJsonObject(jsonResponse));
     const withDefaults = applyDefaults(parsed);
-    const website = WebsiteSchema.parse(withDefaults);
+    const validated = WebsiteSchema.parse(withDefaults);
+    const website = normalizeWebsiteContent(validated);
 
     const duration = Date.now() - startTime;
     console.log(`✅ Generation for ${input.business_name} (${input.business_type}) completed in ${duration}ms`);

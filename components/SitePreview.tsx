@@ -237,6 +237,22 @@ export default function SitePreview({
     return `https://${raw}`;
   }, [draft.hero.cta_url]);
 
+  const heroBackgroundStyle = useMemo(() => {
+    const heroImageUrl = draft.hero.hero_image_url?.trim();
+    if (heroImageUrl) {
+      return {
+        backgroundImage: `linear-gradient(135deg, ${primary}cc, ${secondary}b3), url(${heroImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+
+    return {
+      background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
+    };
+  }, [draft.hero.hero_image_url, primary, secondary]);
+
   const sectionBackgrounds = useMemo(
     () => ({
       about:
@@ -483,9 +499,7 @@ export default function SitePreview({
       {selectedPage === 'home' && (
       <section
         className="flex min-h-[380px] px-6 py-16 text-center text-white"
-        style={{
-          background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
-        }}
+        style={heroBackgroundStyle}
       >
         {draft.logo?.position === 'left' ? (
           // Logo on left

@@ -80,6 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${site.business_name} | ${site.business_type}`;
   const description = site.tagline?.trim() || site.hero.content?.trim() || `Visit ${site.business_name}.`;
   const url = resolvePublishedSiteUrl(params.slug);
+  const heroImage = site.hero.hero_image_url?.trim();
 
   return {
     title,
@@ -93,11 +94,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url,
       siteName: site.business_name,
       type: 'website',
+      ...(heroImage ? { images: [heroImage] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      ...(heroImage ? { images: [heroImage] } : {}),
     },
   };
 }
@@ -138,6 +141,22 @@ export default async function PublishedSitePage({ params }: PageProps) {
     if (/^https?:\/\//i.test(raw)) return raw;
     if (/^javascript:/i.test(raw)) return '#';
     return `https://${raw}`;
+  })();
+
+  const heroBackgroundStyle = (() => {
+    const heroImageUrl = site.hero.hero_image_url?.trim();
+    if (heroImageUrl) {
+      return {
+        backgroundImage: `linear-gradient(135deg, ${primary}cc, ${secondary}b3), url(${heroImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+
+    return {
+      background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
+    };
   })();
 
   const sectionOrder = (() => {
@@ -338,9 +357,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
       {/* Hero */}
       <section
         className="flex min-h-[380px] px-6 py-16 text-white"
-        style={{
-          background: `linear-gradient(135deg, ${primary}f0, ${secondary}cc)`,
-        }}
+        style={heroBackgroundStyle}
       >
         {site.logo?.position === 'left' ? (
           // Logo on left

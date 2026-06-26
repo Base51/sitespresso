@@ -8,6 +8,11 @@ const SectionSchema = z.object({
   cta_url: z.string().optional(),
 });
 
+const HeroSectionSchema = SectionSchema.extend({
+  hero_image_url: z.string().url().optional(),
+  hero_image_prompt: z.string().min(5).max(500).optional(),
+});
+
 // Schema for service items within Services section
 const ServiceSchema = z.object({
   name: z.string().min(1).max(50),
@@ -34,7 +39,7 @@ const PageSchema = z.object({
     title: z.string().min(1).max(120).optional(),
     description: z.string().min(1).max(160).optional(),
   }).optional(),
-  hero: SectionSchema.partial().optional(),
+  hero: HeroSectionSchema.partial().optional(),
   about: SectionSchema.partial().optional(),
   services: ServicesSectionSchema.partial().optional(),
   contact: ContactSectionSchema.partial().optional(),
@@ -46,7 +51,7 @@ export const WebsiteSchema = z.object({
   business_type: z.string().min(1).max(50),
   city: z.string().min(1).max(50),
   tagline: z.string().min(10).max(150),
-  hero: SectionSchema,
+  hero: HeroSectionSchema,
   about: SectionSchema,
   services: ServicesSectionSchema,
   contact: ContactSectionSchema,

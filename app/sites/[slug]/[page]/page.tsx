@@ -100,6 +100,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = site.pages?.[page]?.seo?.title?.trim() || `${site.business_name} | ${label}`;
   const description = resolvePageDescription(site, page);
   const url = resolvePublishedSiteUrl(params.slug, page);
+  const heroImage = site.hero.hero_image_url?.trim();
 
   return {
     title,
@@ -113,11 +114,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url,
       siteName: site.business_name,
       type: 'website',
+      ...(heroImage ? { images: [heroImage] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      ...(heroImage ? { images: [heroImage] } : {}),
     },
   };
 }

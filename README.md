@@ -68,6 +68,9 @@ Then open [http://localhost:3000](http://localhost:3000)
 - **`npm run test:supabase-isolation`** — Validate Supabase project separation across local/template environments
 - **`npm run test:release-version`** — Validate semver alignment and prevent duplicate release tags
 - **`npm run test:release-version:strict`** — Require next release version to be greater than latest semver tag
+- **`npm run test:multipage-content`** — Dry-run audit for multipage content normalization across existing `sites` rows
+- **`npm run test:multipage-qa`** — Validate published Home/About/Contact routes + canonical URLs on primary and custom hosts
+- **`npm run migrate:multipage-content`** — Apply multipage content normalization migration to existing `sites` rows
 - **`npm run test:reliability`** — Run health + smoke + build pipeline
 - **`npm run build`** — Build for production
 - **`npm start`** — Run production build locally

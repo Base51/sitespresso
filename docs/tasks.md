@@ -179,8 +179,8 @@
 | T-100b | Add visible-but-locked dashboard custom domain UI for free users with upgrade CTA |
 | T-100c | Add DNS verification workflow and status refresh | ✅ |
 | T-100d | Add Vercel domain attach + live routing support | ✅ (validated with real apex domain: base51.com.br) |
-| T-101 | Multi-page sites (Home, About, Contact) 🔄 (Phases 1-3 complete; Phase 4 validation/migration next — `docs/T101_MULTIPAGE_IMPLEMENTATION_PLAN.md`) |
-| T-102 | AI hero image generation (DALL·E 3 or Stability) |
+| T-101 | Multi-page sites (Home, About, Contact) ✅ (Phases 1-5 complete — `docs/T101_MULTIPAGE_IMPLEMENTATION_PLAN.md`) |
+| T-102 | AI hero image generation (DALL·E 3 or Stability) ✅ (OpenAI image generation route + editor controls + published rendering) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data |
 | T-104 | Analytics dashboard (page views, unique visitors) |
 | T-105 | Google Business Profile embed |

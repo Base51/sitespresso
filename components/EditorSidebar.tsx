@@ -14,7 +14,7 @@ interface EditorSidebarProps {
   onWebsiteChange: (website: Website) => void;
 }
 
-type Panel = 'logo' | 'layout' | 'hero' | 'fonts' | 'colors' | null;
+type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'fonts' | 'colors' | null;
 type SectionKey = 'about' | 'services' | 'contact';
 type SectionBackgrounds = Record<SectionKey, string>;
 
@@ -84,6 +84,13 @@ export default function EditorSidebar({
   const [isRetryingPresetSync, setIsRetryingPresetSync] = useState(false);
   const [draggedPresetId, setDraggedPresetId] = useState<string | null>(null);
   const [dragOverPresetId, setDragOverPresetId] = useState<string | null>(null);
+  const [isGeneratingHeroImage, setIsGeneratingHeroImage] = useState(false);
+  const [isRemovingHeroImage, setIsRemovingHeroImage] = useState(false);
+  const [heroImagePrompt, setHeroImagePrompt] = useState('');
+
+  useEffect(() => {
+    setHeroImagePrompt(website.hero?.hero_image_prompt ?? '');
+  }, [website.hero?.hero_image_prompt]);
 
   function handleLogoUpload(url: string | null) {
     onWebsiteChange({
@@ -589,6 +596,88 @@ export default function EditorSidebar({
     updateHeroCta(website.hero.cta_text || 'Get Started', nextUrl);
   }
 
+  async function handleGenerateHeroImage() {
+    setIsGeneratingHeroImage(true);
+
+    try {
+      const res = await fetch(`/api/sites/${siteId}/hero-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: heroImagePrompt.trim() || undefined }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.url) {
+        throw new Error(json.error ?? 'Hero image generation failed');
+      }
+
+      onWebsiteChange({
+        ...website,
+        hero: {
+          ...website.hero,
+          hero_image_url: json.url,
+          hero_image_prompt: json.prompt || heroImagePrompt.trim() || undefined,
+        },
+      });
+
+      if (json.prompt && !heroImagePrompt.trim()) {
+        setHeroImagePrompt(json.prompt);
+      }
+
+      toast({
+        type: 'success',
+        title: 'Hero image generated',
+        description: 'The new hero image was generated and applied to your homepage.',
+      });
+    } catch (error) {
+      toast({
+        type: 'error',
+        title: 'Generation failed',
+        description: error instanceof Error ? error.message : 'Could not generate hero image.',
+      });
+    } finally {
+      setIsGeneratingHeroImage(false);
+    }
+  }
+
+  async function handleRemoveHeroImage() {
+    setIsRemovingHeroImage(true);
+
+    try {
+      const res = await fetch(`/api/sites/${siteId}/hero-image`, {
+        method: 'DELETE',
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? 'Hero image removal failed');
+      }
+
+      onWebsiteChange({
+        ...website,
+        hero: {
+          ...website.hero,
+          hero_image_url: undefined,
+          hero_image_prompt: undefined,
+        },
+      });
+
+      toast({
+        type: 'success',
+        title: 'Hero image removed',
+        description: 'The hero background image has been removed.',
+      });
+    } catch (error) {
+      toast({
+        type: 'error',
+        title: 'Remove failed',
+        description: error instanceof Error ? error.message : 'Could not remove hero image.',
+      });
+    } finally {
+      setIsRemovingHeroImage(false);
+    }
+  }
+
   const activeSavedPresetId = getActiveSavedPresetId();
   const isAtPresetLimit = savedStylePresets.length >= MAX_SAVED_STYLE_PRESETS;
   const canSavePreset = Boolean(newPresetName.trim()) && !isAtPresetLimit;
@@ -777,6 +866,72 @@ export default function EditorSidebar({
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Hero Image Panel */}
+          <button
+            onClick={() => setActivePanel(activePanel === 'heroImage' ? null : 'heroImage')}
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              activePanel === 'heroImage'
+                ? 'border-sky-500 bg-sky-500/10 text-sky-300'
+                : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            {activePanel === 'heroImage' ? '▼' : '▶'} 🖼 Hero Image
+          </button>
+          {activePanel === 'heroImage' && (
+            <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
+              <p className="text-xs text-slate-400">
+                Generate an AI hero background image for your Home page section.
+              </p>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">
+                  Prompt (optional)
+                </label>
+                <textarea
+                  value={heroImagePrompt}
+                  onChange={(e) => setHeroImagePrompt(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. A premium modern coffee shop interior with warm morning light"
+                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
+                />
+              </div>
+
+              {website.hero?.hero_image_url && (
+                <div className="rounded border border-slate-700 bg-slate-800/70 p-2">
+                  <img
+                    src={website.hero.hero_image_url}
+                    alt="Hero image preview"
+                    className="h-24 w-full rounded object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerateHeroImage}
+                  disabled={isGeneratingHeroImage}
+                  className="flex-1 rounded bg-sky-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isGeneratingHeroImage
+                    ? 'Generating...'
+                    : website.hero?.hero_image_url
+                      ? 'Regenerate'
+                      : 'Generate'}
+                </button>
+
+                {website.hero?.hero_image_url && (
+                  <button
+                    onClick={handleRemoveHeroImage}
+                    disabled={isRemovingHeroImage}
+                    className="rounded border border-rose-500/60 px-3 py-2 text-sm font-medium text-rose-300 transition hover:bg-rose-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isRemovingHeroImage ? 'Removing...' : 'Remove'}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

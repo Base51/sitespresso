@@ -65,11 +65,29 @@ Implemented details:
 
 ### Phase 4: Validation and Migration
 
+Status: ✅ Implemented
+
+Implemented details:
+
+1. Generation route now normalizes validated output to the multipage content shape.
+2. Added `scripts/migrate-multipage-content.ts` for dry-run auditing and optional apply migration over existing `sites.content` rows.
+3. Added npm commands for audit/apply (`test:multipage-content`, `migrate:multipage-content`).
+4. Extended smoke checks to guard multipage migration script presence and generation normalization wiring.
+
 1. Extend schema validation for `pages` object.
 2. Add read-time fallback for old records.
 3. Add optional background migration script for existing rows.
 
 ### Phase 5: QA
+
+Status: ✅ Implemented
+
+Implemented details:
+
+1. Applied multipage content migration and confirmed a clean post-migration dry run.
+2. Added `scripts/multipage-qa.ts` to validate published Home/About/Contact route responses and canonical URLs.
+3. Multipage QA now validates both primary host (`sitespresso.com`) and verified+attached custom host paths.
+4. Integrated multipage QA into `scripts/reliability-check.ps1` for release-time regression protection.
 
 1. Single-page legacy records still render.
 2. New multi-page records render on all three routes.
