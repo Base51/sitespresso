@@ -36,9 +36,18 @@ Implemented details:
 2. Scope section editing to selected page.
 3. Preserve existing autosave behavior.
 
-Status: ⏳ Next
+Status: ✅ Implemented
+
+Implemented details:
+
+1. Editor preview now includes Home/About/Contact tabs.
+2. Switching tabs hydrates the editable canvas from `pages.<selectedPage>`.
+3. Autosave syncs edited canvas sections back into the selected page object.
+4. Existing editor flow still works for legacy single-page sites.
 
 ### Phase 3: Published Routing
+
+Status: ⏳ Next
 
 1. Add page route support under published slug:
    - `/sites/[slug]` -> Home

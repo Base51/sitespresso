@@ -15,6 +15,13 @@ interface SitePreviewProps {
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'unauthenticated' | 'error';
 type SectionKey = 'about' | 'services' | 'contact';
+type PageKey = 'home' | 'about' | 'contact';
+
+const PAGE_LABELS: Record<PageKey, string> = {
+  home: 'Home',
+  about: 'About',
+  contact: 'Contact',
+};
 
 const DEFAULT_SECTION_ORDER: SectionKey[] = ['about', 'services', 'contact'];
 const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
@@ -39,6 +46,7 @@ export default function SitePreview({
   onDraftSaved,
 }: SitePreviewProps) {
   const [draft, setDraft] = useState<Website>(website);
+  const [selectedPage, setSelectedPage] = useState<PageKey>('home');
   const [savedId, setSavedId] = useState<string | null>(initialDraftId ?? null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSaveTime, setLastSaveTime] = useState<number | null>(null);
@@ -116,13 +124,49 @@ export default function SitePreview({
     [save],
   );
 
+  const hydrateEditorFromPage = useCallback((site: Website, page: PageKey): Website => {
+    const pageContent = site.pages?.[page];
+    if (!pageContent) return site;
+
+    return {
+      ...site,
+      hero: { ...site.hero, ...(pageContent.hero ?? {}) },
+      about: { ...site.about, ...(pageContent.about ?? {}) },
+      services: { ...site.services, ...(pageContent.services ?? {}) },
+      contact: { ...site.contact, ...(pageContent.contact ?? {}) },
+    };
+  }, []);
+
+  const syncEditedCanvasToPage = useCallback((site: Website, page: PageKey): Website => {
+    const currentPage = site.pages?.[page] ?? {};
+    return {
+      ...site,
+      pages: {
+        ...(site.pages ?? {}),
+        [page]: {
+          ...currentPage,
+          title: currentPage.title || PAGE_LABELS[page],
+          hero: site.hero,
+          about: site.about,
+          services: site.services,
+          contact: site.contact,
+        },
+      },
+    };
+  }, []);
+
   function update(updater: (prev: Website) => Website) {
     setDraft((prev) => {
       const next = updater(prev);
-      scheduleSave(next);
-      return next;
+      const synced = syncEditedCanvasToPage(next, selectedPage);
+      scheduleSave(synced);
+      return synced;
     });
   }
+
+  useEffect(() => {
+    setDraft((prev) => hydrateEditorFromPage(prev, selectedPage));
+  }, [selectedPage, hydrateEditorFromPage]);
 
   const { color_scheme } = draft;
   const primary = color_scheme.primary;
@@ -177,6 +221,12 @@ export default function SitePreview({
 
     return deduped;
   }, [draft.layout?.section_order]);
+
+  const visibleSectionOrder = useMemo<SectionKey[]>(() => {
+    if (selectedPage === 'about') return ['about', 'contact'];
+    if (selectedPage === 'contact') return ['contact'];
+    return sectionOrder;
+  }, [selectedPage, sectionOrder]);
 
   const heroCtaHref = useMemo(() => {
     const raw = draft.hero.cta_url?.trim();
@@ -406,12 +456,31 @@ export default function SitePreview({
           <link rel="stylesheet" href={googleFontsUrl} />
         )}
         {/* Toolbar */}
-        <div className="flex items-center justify-between bg-slate-900 px-4 py-2 text-xs">
-          <span className="text-slate-400">Preview · click any text to edit</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-900 px-4 py-2 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-slate-400">Preview · click any text to edit</span>
+            <div className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 p-1">
+              {(Object.keys(PAGE_LABELS) as PageKey[]).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setSelectedPage(page)}
+                  className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
+                    selectedPage === page
+                      ? 'bg-brand-primary text-slate-950'
+                      : 'text-slate-300 hover:bg-slate-700/70'
+                  }`}
+                >
+                  {PAGE_LABELS[page]}
+                </button>
+              ))}
+            </div>
+          </div>
           <span className={saveLabelClass[saveStatus]}>{saveLabel[saveStatus]}</span>
         </div>
 
       {/* Hero */}
+      {selectedPage === 'home' && (
       <section
         className="flex min-h-[380px] px-6 py-16 text-center text-white"
         style={{
@@ -547,8 +616,9 @@ export default function SitePreview({
           </div>
         )}
         </section>
+      )}
 
-      {sectionOrder.map((sectionKey) => (
+      {visibleSectionOrder.map((sectionKey) => (
         <div key={sectionKey}>{contentSections[sectionKey]}</div>
       ))}
 
