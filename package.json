@@ -10,6 +10,7 @@
     "test:billing-config": "pwsh -ExecutionPolicy Bypass -File scripts/billing-config-check.ps1",
     "test:billing-config:all": "pwsh -ExecutionPolicy Bypass -File scripts/billing-config-check.ps1 -RequireAllPlans",
     "test:smoke": "pwsh -ExecutionPolicy Bypass -File scripts/smoke-check.ps1",
+    "test:supabase-isolation": "pwsh -ExecutionPolicy Bypass -File scripts/supabase-isolation-check.ps1",
     "test:reliability": "pwsh -ExecutionPolicy Bypass -File scripts/reliability-check.ps1",
     "build": "next build",
     "start": "next start",

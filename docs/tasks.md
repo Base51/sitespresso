@@ -160,7 +160,7 @@
 
 | ID | Task | Priority | Depends On | Status |
 |---|---|---|---|---|
-| T-090 | Configure production Supabase project (separate from dev) | P0 | T-006 | ☐ |
+| T-090 | Configure production Supabase project (separate from dev) | P0 | T-006 | ➡️ Deferred (pre-customer stage; revisit before onboarding real customers) |
 | T-091 | Set all production environment variables in Vercel | P0 | T-007 | ✅ |
 | T-092 | Configure `sitespresso.com` DNS and verify Vercel domain setup | P0 | T-005 | ✅ |
 | T-093 | Run end-to-end smoke test on production environment | P0 | All M1–M8 | ✅ (`docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md`) |
