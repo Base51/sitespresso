@@ -52,6 +52,27 @@ function resolvePublishedSiteUrl(slug: string): string {
   return `${protocol}://${hostname}/`;
 }
 
+function resolvePublishedNavPath(slug: string, target: 'home' | 'about' | 'contact'): string {
+  const headerStore = headers();
+  const rawHost = headerStore.get('x-forwarded-host') || headerStore.get('host') || '';
+  const hostname = rawHost.split(':')[0]?.toLowerCase().replace(/\.$/, '') || '';
+
+  const isPrimaryHost =
+    !hostname ||
+    PRIMARY_APP_HOSTS.has(hostname) ||
+    hostname.endsWith('.vercel.app') ||
+    hostname.endsWith('.vercel.dev') ||
+    hostname.endsWith('.vercel.local');
+
+  if (isPrimaryHost) {
+    if (target === 'home') return `/sites/${slug}`;
+    return `/sites/${slug}/${target}`;
+  }
+
+  if (target === 'home') return '/';
+  return `/${target}`;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const site = await getSiteBySlug(params.slug);
   if (!site) return { title: 'Not Found' };
@@ -294,6 +315,25 @@ export default async function PublishedSitePage({ params }: PageProps) {
 
       {/* Load Google Fonts */}
       {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
+
+      <nav className="border-b border-slate-200 bg-white px-6 py-4 md:px-16">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-center gap-6 text-sm font-medium text-slate-600">
+          {(['home', 'about', 'contact'] as const).map((target) => {
+            const isActive = target === 'home';
+            return (
+              <a
+                key={target}
+                href={resolvePublishedNavPath(params.slug, target)}
+                className="transition hover:text-slate-900"
+                style={isActive ? { color: primary } : undefined}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                {target === 'home' ? 'Home' : target === 'about' ? 'About' : 'Contact'}
+              </a>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* Hero */}
       <section

@@ -47,7 +47,14 @@ Implemented details:
 
 ### Phase 3: Published Routing
 
-Status: ⏳ Next
+Status: ✅ Implemented
+
+Implemented details:
+
+1. Added dynamic published route support for `/sites/[slug]/about` and `/sites/[slug]/contact`.
+2. Middleware rewrites now preserve path suffixes for subdomains and custom domains.
+3. Added top navigation on published pages with host-aware links for home/about/contact.
+4. Added per-page metadata handling for about/contact canonical and social URLs.
 
 1. Add page route support under published slug:
    - `/sites/[slug]` -> Home

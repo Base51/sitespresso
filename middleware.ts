@@ -23,6 +23,11 @@ function isPrimaryAppHostname(hostname: string): boolean {
   );
 }
 
+function resolvePublishedPathname(slug: string, pathname: string): string {
+  const normalizedPathname = pathname === '/' ? '' : pathname;
+  return `/sites/${slug}${normalizedPathname}`;
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const host = request.headers.get('host') ?? '';
   const hostname = normalizeHostname(host.split(':')[0] ?? '');
@@ -34,7 +39,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
     if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
       const url = request.nextUrl.clone();
-      url.pathname = `/sites/${slug}`;
+      url.pathname = resolvePublishedPathname(slug, request.nextUrl.pathname);
       return NextResponse.rewrite(url);
     }
   }
@@ -74,7 +79,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
     if (customDomainSite?.slug) {
       const url = request.nextUrl.clone();
-      url.pathname = `/sites/${customDomainSite.slug}`;
+      url.pathname = resolvePublishedPathname(customDomainSite.slug, request.nextUrl.pathname);
       return NextResponse.rewrite(url);
     }
   }

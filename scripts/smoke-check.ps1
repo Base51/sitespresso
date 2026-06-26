@@ -41,6 +41,7 @@ function Assert-FileContains {
 Assert-PathExists "components/EditorSidebar.tsx" "Editor sidebar exists"
 Assert-PathExists "components/SitePreview.tsx" "Site preview exists"
 Assert-PathExists "app/sites/[slug]/page.tsx" "Published page exists"
+Assert-PathExists "app/sites/[slug]/[page]/page.tsx" "Published multipage route exists"
 Assert-PathExists "lib/schemas/website.ts" "Website schema exists"
 
 Assert-FileContains "components/EditorSidebar.tsx" "applySavedPreset" "Saved preset apply handler present"
@@ -55,6 +56,9 @@ Assert-FileContains "components/SitePreview.tsx" "cta_url" "Preview supports her
 Assert-FileContains "app/sites/[slug]/page.tsx" "section_order" "Published page supports section order"
 Assert-FileContains "app/sites/[slug]/page.tsx" "section_backgrounds" "Published page supports section backgrounds"
 Assert-FileContains "app/sites/[slug]/page.tsx" "cta_url" "Published page supports hero CTA URL"
+Assert-FileContains "app/sites/[slug]/page.tsx" "resolvePublishedNavPath" "Published home route supports page nav links"
+Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "PUBLISHED_PAGES" "Published subpage route validates supported pages"
+Assert-FileContains "middleware.ts" "resolvePublishedPathname" "Middleware preserves host-routed subpage path suffix"
 
 Assert-FileContains "lib/schemas/website.ts" "left" "Schema includes logo left position"
 Assert-FileContains "lib/schemas/website.ts" "center" "Schema includes logo center position"
