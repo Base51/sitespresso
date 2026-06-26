@@ -66,6 +66,8 @@ Then open [http://localhost:3000](http://localhost:3000)
 - **`npm run test:billing-config:all`** — Enforce full 4-tier Stripe config readiness
 - **`npm run test:smoke`** — Run smoke checks for core flows
 - **`npm run test:supabase-isolation`** — Validate Supabase project separation across local/template environments
+- **`npm run test:release-version`** — Validate semver alignment and prevent duplicate release tags
+- **`npm run test:release-version:strict`** — Require next release version to be greater than latest semver tag
 - **`npm run test:reliability`** — Run health + smoke + build pipeline
 - **`npm run build`** — Build for production
 - **`npm start`** — Run production build locally
@@ -78,6 +80,7 @@ If you see a white page, missing styles, or 404 errors on `/_next/static/`, see 
 For Stripe pricing and billing env readiness, see [docs/BILLING_CONFIG_CHECKLIST.md](docs/BILLING_CONFIG_CHECKLIST.md).
 
 For production deploy and release validation steps, see [docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md](docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md).
+For versioning and release-tag rules, see [docs/VERSIONING_POLICY.md](docs/VERSIONING_POLICY.md).
 
 For the latest completed production validation evidence, see [docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md).
 

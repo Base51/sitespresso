@@ -166,7 +166,7 @@
 | T-093 | Run end-to-end smoke test on production environment | P0 | All M1–M8 | ✅ (`docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md`) |
 | T-094 | Set up Vercel error monitoring (Vercel Analytics + Error Tracking) | P1 | T-004 | ✅ (Analytics + Speed Insights wired in app layout) |
 | T-095 | Write production README with setup and deployment instructions | P1 | All tasks | ✅ (`docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md`) |
-| T-096 | Tag `v1.0.0` release on GitHub | P1 | T-093 | ☐ |
+| T-096 | Tag release on GitHub | P1 | T-093 | 🔄 (next valid release tag: `v1.0.1`; enforce `npm run test:release-version:strict` before tagging) |
 
 ---
 
