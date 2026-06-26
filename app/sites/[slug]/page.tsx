@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import type { Website } from '@/lib/schemas/website';
+import { normalizeWebsiteContent, type Website } from '@/lib/schemas/website';
 
 interface PageProps {
   params: { slug: string };
@@ -29,7 +29,7 @@ async function getSiteBySlug(slug: string): Promise<Website | null> {
     .single();
 
   if (error || !data) return null;
-  return data.content as Website;
+  return normalizeWebsiteContent(data.content);
 }
 
 function resolvePublishedSiteUrl(slug: string): string {

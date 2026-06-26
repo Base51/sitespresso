@@ -5,7 +5,7 @@ import Logo from '@/components/Logo';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { createClient } from '@/lib/supabase/server';
 import SitePreview from '@/components/SitePreview';
-import type { Website } from '@/lib/schemas/website';
+import { normalizeWebsiteContent } from '@/lib/schemas/website';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +57,7 @@ export default async function EditorPage({ params }: EditorPageProps): Promise<J
         </Link>
       </div>
 
-      <SitePreview website={site.content as Website} initialDraftId={site.id} />
+      <SitePreview website={normalizeWebsiteContent(site.content)} initialDraftId={site.id} />
     </main>
   );
 }
