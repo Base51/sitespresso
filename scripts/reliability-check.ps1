@@ -38,6 +38,10 @@ if ((Run-Step -Label "Multipage QA" -Command "npm run test:multipage-qa") -ne 0)
     $pipelineFailed = $true
 }
 
+if ((Run-Step -Label "Custom Domain Audit" -Command "npm run test:custom-domain-audit:strict") -ne 0) {
+    $pipelineFailed = $true
+}
+
 if ((Run-Step -Label "Production Build" -Command "npm run build") -ne 0) {
     $pipelineFailed = $true
 }

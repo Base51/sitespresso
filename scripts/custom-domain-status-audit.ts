@@ -114,6 +114,7 @@ async function main(): Promise<void> {
   loadDotEnvFile(resolve(process.cwd(), '.env.local'));
 
   const applyChanges = process.argv.includes('--apply');
+  const strictMode = process.argv.includes('--strict');
 
   const supabaseUrl = readEnv('NEXT_PUBLIC_SUPABASE_URL');
   const serviceRoleKey = readEnv('SUPABASE_SERVICE_ROLE_KEY');
@@ -152,6 +153,7 @@ async function main(): Promise<void> {
 
   console.log(`Found ${rows.length} custom-domain site(s):`);
   console.log(`Mode: ${applyChanges ? 'apply' : 'report-only'}`);
+  console.log(`Strict: ${strictMode ? 'on' : 'off'}`);
   if (!vercelConfig) {
     console.log('Vercel API check: unavailable (missing VERCEL_ACCESS_TOKEN or VERCEL_PROJECT_ID)');
   }
@@ -223,6 +225,10 @@ async function main(): Promise<void> {
 
   if (mismatches > 0 && !applyChanges) {
     console.log('Action: run dashboard -> Check DNS for affected site(s), then Attach to Vercel if verified.');
+  }
+
+  if (strictMode && mismatches > 0) {
+    process.exit(1);
   }
 }
 
