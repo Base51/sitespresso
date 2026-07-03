@@ -5,6 +5,7 @@ import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
 import { normalizePlan } from '@/lib/billing/plans';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
+import { planFromPriceId } from '@/lib/stripe';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
@@ -319,12 +320,23 @@ export async function POST(request: NextRequest) {
     // Get user profile for plan info if authenticated
     let userPlan: 'free' | 'starter' | 'pro' | 'agency' = 'free';
     if (user && supabase) {
-      const { data: profile } = await supabase
+      const [{ data: profile }, { data: subscriptions }] = await Promise.all([
+        supabase
         .from('profiles')
         .select('plan')
         .eq('id', user.id)
-        .single();
-      userPlan = normalizePlan(profile?.plan);
+        .single(),
+        supabase
+          .from('subscriptions')
+          .select('status, stripe_price_id, updated_at')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
+          .order('updated_at', { ascending: false })
+          .limit(1),
+      ]);
+
+      const subscriptionPlan = planFromPriceId(subscriptions?.[0]?.stripe_price_id);
+      userPlan = subscriptionPlan !== 'free' ? subscriptionPlan : normalizePlan(profile?.plan);
 
       const { count: siteCount } = await supabase
         .from('sites')

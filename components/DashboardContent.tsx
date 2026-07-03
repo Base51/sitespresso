@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
@@ -54,6 +54,7 @@ function resolveLiveSiteUrl(site: Site): string | null {
 export default function DashboardContent({ sites, currentPlan }: DashboardContentProps): JSX.Element {
   const router = useRouter();
   const { toast } = useToast();
+  const billingReconciledRef = useRef(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<Site | null>(null);
   const [localSites, setLocalSites] = useState(sites);
@@ -65,6 +66,36 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
   const [attachingDomainId, setAttachingDomainId] = useState<string | null>(null);
   const currentSiteLimit = resolveSiteLimit(currentPlan);
   const reachedSiteLimit = isSiteLimitReached(currentPlan, localSites.length);
+
+  useEffect(() => {
+    if (billingReconciledRef.current) return;
+    billingReconciledRef.current = true;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch('/api/user/reconcile-billing', { method: 'POST' });
+        if (!response.ok || cancelled) return;
+
+        const json = await response.json();
+        if (json?.changed && !cancelled) {
+          router.refresh();
+          toast({
+            type: 'success',
+            title: 'Billing synced',
+            description: 'Your plan was refreshed from Stripe.',
+          });
+        }
+      } catch {
+        // Silent fail: reconciliation is a best-effort self-heal path.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router, toast]);
 
   function openDeleteModal(site: Site) {
     setSiteToDelete(site);
