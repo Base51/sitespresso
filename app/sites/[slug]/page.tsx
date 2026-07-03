@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { cache, type ReactNode } from 'react';
 import { headers } from 'next/headers';
-import { unstable_cache } from 'next/cache';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { normalizeWebsiteContent, type Website } from '@/lib/schemas/website';
@@ -21,25 +20,17 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   contact: '#ffffff',
 };
 
-const getSiteBySlugCached = unstable_cache(
-  async (slug: string): Promise<Website | null> => {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('sites')
-      .select('content, status')
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
-
-    if (error || !data) return null;
-    return normalizeWebsiteContent(data.content);
-  },
-  ['published-site-by-slug-home'],
-  { revalidate: 60 },
-);
-
 const getSiteBySlug = cache(async (slug: string): Promise<Website | null> => {
-  return getSiteBySlugCached(slug);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('sites')
+    .select('content, status')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single();
+
+  if (error || !data) return null;
+  return normalizeWebsiteContent(data.content);
 });
 
 function resolvePublishedSiteUrl(slug: string): string {
