@@ -70,6 +70,7 @@ Then open [http://localhost:3000](http://localhost:3000)
 - **`npm run test:release-version:strict`** — Require next release version to be greater than latest semver tag
 - **`npm run test:multipage-content`** — Dry-run audit for multipage content normalization across existing `sites` rows
 - **`npm run test:multipage-qa`** — Validate published Home/About/Contact routes + canonical URLs on primary and custom hosts
+- **`npm run test:analytics-qa`** — Validate pageview collector and confirm analytics events persist in Supabase
 - **`npm run test:perf-window`** — Run repeated perf sampling rounds and write CSV history under `docs/perf-history/`
 - **`npm run test:perf-window:report`** — Summarize a perf-history CSV (route variance, spikes, and app-vs-total correlation)
 - **`npm run migrate:multipage-content`** — Apply multipage content normalization migration to existing `sites` rows
