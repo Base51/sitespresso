@@ -55,6 +55,21 @@ export const PLAN_FEATURES: Record<PaidPlan, string[]> = {
 
 export const PLAN_ORDER: PaidPlan[] = ['starter', 'pro', 'agency'];
 
+const PLAN_VALUES: Plan[] = ['free', 'starter', 'pro', 'agency'];
+
+export function normalizePlan(value: unknown): Plan {
+  if (typeof value !== 'string') {
+    return 'free';
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (PLAN_VALUES.includes(normalized as Plan)) {
+    return normalized as Plan;
+  }
+
+  return 'free';
+}
+
 export function formatPlanPrice(value: number): string {
   return `${BILLING_CURRENCY_SYMBOL}${value}`;
 }

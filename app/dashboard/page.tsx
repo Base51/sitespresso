@@ -1,7 +1,7 @@
 import { signOut } from '../actions/auth';
 import { hasSupabaseConfig } from '../../lib/supabase/config';
 import { createClient } from '../../lib/supabase/server';
-import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, type Plan } from '@/lib/billing/plans';
+import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { billingIntervalFromPriceId, getStripePlanPricingOverrides, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import ManageBillingButton from '@/components/ManageBillingButton';
@@ -106,7 +106,7 @@ export default async function DashboardPage(): Promise<JSX.Element> {
 
   const typedSites = (sites ?? []) as SiteRow[];
 
-  const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
+  const storedPlan: Plan = normalizePlan(profile?.plan);
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
   const hasActiveSubscription = Boolean(latestSubscription);

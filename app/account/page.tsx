@@ -6,7 +6,7 @@ import UpgradePlanButton from '@/components/UpgradePlanButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
-import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, type Plan } from '@/lib/billing/plans';
+import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { billingIntervalFromPriceId, getStripePlanPricingOverrides, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
@@ -61,7 +61,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const initialEmail = (profile?.email as string | null | undefined) ?? user.email ?? '';
   const latestSubscription = subscriptions?.[0];
   const hasActiveSubscription = Boolean(latestSubscription);
-  const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
+  const storedPlan: Plan = normalizePlan(profile?.plan);
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const currentPlan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
   const stripePricingOverrides = await getStripePlanPricingOverrides();

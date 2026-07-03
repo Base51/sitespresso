@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
+import { normalizePlan } from '@/lib/billing/plans';
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    const userPlan = (profile?.plan as 'free' | 'starter' | 'pro' | 'agency') ?? 'free';
+    const userPlan = normalizePlan(profile?.plan);
 
     // Get rate limit info (which tracks remaining quota)
     const ip =

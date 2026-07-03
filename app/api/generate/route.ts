@@ -3,6 +3,7 @@ import { WebsiteSchema, GenerateInputSchema, normalizeWebsiteContent } from '../
 import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
+import { normalizePlan } from '@/lib/billing/plans';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 const MAX_RETRIES = 2;
@@ -323,7 +324,7 @@ export async function POST(request: NextRequest) {
         .select('plan')
         .eq('id', user.id)
         .single();
-      userPlan = (profile?.plan as typeof userPlan) ?? 'free';
+      userPlan = normalizePlan(profile?.plan);
 
       const { count: siteCount } = await supabase
         .from('sites')

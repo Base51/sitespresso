@@ -6,6 +6,7 @@ import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
 import LogoDisplay from './LogoDisplay';
 import { createClient } from '@/lib/supabase/client';
+import { normalizePlan } from '@/lib/billing/plans';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 interface SitePreviewProps {
@@ -134,7 +135,7 @@ export default function SitePreview({
               .eq('user_id', user.id),
           ]);
 
-          const currentPlan = (profile?.plan as 'free' | 'starter' | 'pro' | 'agency' | undefined) ?? 'free';
+          const currentPlan = normalizePlan(profile?.plan);
           const totalSites = siteCount ?? 0;
           if (isSiteLimitReached(currentPlan, totalSites)) {
             const siteLimit = resolveSiteLimit(currentPlan);
