@@ -61,10 +61,19 @@ export async function POST(
 
     const verification = await verifyCustomDomainDns(site.custom_domain as string, site.slug as string);
 
+    const hadPreviousVerification = Boolean(site.domain_verified);
+    const hasObservedRecords = verification.observedRecords.length > 0;
+    const shouldPreserveVerifiedStatus = hadPreviousVerification && !verification.verified && !hasObservedRecords;
+    const nextVerified = verification.verified || shouldPreserveVerifiedStatus;
+
+    const verificationMessage = shouldPreserveVerifiedStatus
+      ? 'DNS check was inconclusive (no records observed right now). Keeping previously verified status.'
+      : verification.reason;
+
     const { error: updateError } = await supabase
       .from('sites')
       .update({
-        domain_verified: verification.verified,
+        domain_verified: nextVerified,
         updated_at: new Date().toISOString(),
       })
       .eq('id', siteId);
@@ -76,11 +85,11 @@ export async function POST(
     return NextResponse.json({
       success: true,
       customDomain: site.custom_domain,
-      domainVerified: verification.verified,
+      domainVerified: nextVerified,
       expectedTarget: verification.expectedTarget,
       expectedRecords: verification.expectedRecords,
       observedRecords: verification.observedRecords,
-      message: verification.reason,
+      message: verificationMessage,
     });
   } catch (error) {
     console.error('Custom domain verification error:', error);
