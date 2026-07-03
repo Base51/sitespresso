@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { cache, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/server';
-import { normalizeWebsiteContent, type Website } from '@/lib/schemas/website';
+import type { Website } from '@/lib/schemas/website';
+import { getPublishedSiteBySlug } from '@/lib/published-site';
 
 interface PageProps {
   params: { slug: string };
@@ -20,18 +20,7 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   contact: '#ffffff',
 };
 
-const getSiteBySlug = cache(async (slug: string): Promise<Website | null> => {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('sites')
-    .select('content, status')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .single();
-
-  if (error || !data) return null;
-  return normalizeWebsiteContent(data.content);
-});
+const getSiteBySlug = async (slug: string): Promise<Website | null> => getPublishedSiteBySlug(slug);
 
 function resolvePublishedSiteUrl(slug: string): string {
   const fallbackBaseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
