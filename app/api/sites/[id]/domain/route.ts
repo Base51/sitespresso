@@ -35,7 +35,7 @@ export async function PATCH(
 
     const { data: site, error: siteError } = await supabase
       .from('sites')
-      .select('id, user_id, slug, custom_domain')
+      .select('id, user_id, slug, custom_domain, domain_verified, domain_attached')
       .eq('id', siteId)
       .single();
 
@@ -67,6 +67,19 @@ export async function PATCH(
     const validationError = validateCustomDomain(customDomain);
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    const existingDomain = normalizeCustomDomain((site.custom_domain as string | null) ?? '');
+    const isSameDomain = existingDomain === customDomain;
+
+    if (isSameDomain) {
+      return NextResponse.json({
+        success: true,
+        customDomain,
+        domainVerified: Boolean(site.domain_verified),
+        domainAttached: Boolean(site.domain_attached),
+        instructions: getCustomDomainInstructions(customDomain, site.slug as string | null),
+      });
     }
 
     const { data: existingClaim } = await supabase

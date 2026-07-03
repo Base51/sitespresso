@@ -88,7 +88,12 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
       setLocalSites((prev) => prev.map((entry) => (
         entry.id === site.id
-          ? { ...entry, custom_domain: json.customDomain as string, domain_verified: false, domain_attached: false }
+          ? {
+              ...entry,
+              custom_domain: json.customDomain as string,
+              domain_verified: Boolean(json.domainVerified),
+              domain_attached: Boolean(json.domainAttached),
+            }
           : entry
       )));
 
@@ -124,7 +129,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
       setLocalSites((prev) => prev.map((entry) => (
         entry.id === site.id
-          ? { ...entry, domain_verified: Boolean(json.domainVerified), domain_attached: false }
+          ? { ...entry, domain_verified: Boolean(json.domainVerified) }
           : entry
       )));
 
