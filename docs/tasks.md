@@ -16,9 +16,9 @@
 | M4 | Site preview & editor | Week 4 | Complete |
 | M5 | Publishing & subdomain routing | Week 5 | Complete |
 | M6 | Billing (Stripe) | Week 5–6 | Complete |
-| M7 | Dashboard & account management | Week 6 | In Progress |
-| M8 | QA, performance, security review | Week 6 | In Progress (P0 security done) |
-| M9 | Production launch | Week 6 | Not Started |
+| M7 | Dashboard & account management | Week 6 | Complete |
+| M8 | QA, performance, security review | Week 6 | Complete |
+| M9 | Production launch | Week 6 | In Progress (T-090 deferred pre-customer onboarding) |
 
 ---
 
@@ -182,7 +182,7 @@
 | T-101 | Multi-page sites (Home, About, Contact) ✅ (Phases 1-5 complete — `docs/T101_MULTIPAGE_IMPLEMENTATION_PLAN.md`) |
 | T-102 | AI hero image generation (DALL·E 3 or Stability) ✅ (OpenAI image generation route + editor controls + published rendering) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data ✅ |
-| T-104 | Analytics dashboard (page views, unique visitors) |
+| T-104 | Analytics dashboard (page views, unique visitors) ✅ (Pageview collection API + dashboard 24h/30d metrics and per-site breakdown) |
 | T-105 | Google Business Profile embed |
 | T-106 | Booking widget integration (Calendly embed) |
 | T-107 | Google Maps embed for contact section |

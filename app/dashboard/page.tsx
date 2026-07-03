@@ -34,6 +34,36 @@ const PLAN_QUOTAS = {
   agency: 5000,
 } as const;
 
+type SiteRow = {
+  id: string;
+  slug: string | null;
+  business_name: string;
+  business_type: string;
+  city: string;
+  status: 'draft' | 'published' | 'unpublished';
+  custom_domain: string | null;
+  domain_verified: boolean;
+  domain_attached: boolean;
+  updated_at: string | null;
+};
+
+type SitePageViewRow = {
+  site_id: string;
+  viewed_at: string;
+  visitor_fingerprint: string | null;
+};
+
+type SiteAnalyticsSummary = {
+  siteId: string;
+  views30d: number;
+  uniqueVisitors30d: number;
+  lastSeenAt: string | null;
+};
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat().format(value);
+}
+
 export default async function DashboardPage(): Promise<JSX.Element> {
   if (!hasSupabaseConfig()) {
     return (
@@ -74,6 +104,8 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     getStripePlanPricingOverrides(),
   ]);
 
+  const typedSites = (sites ?? []) as SiteRow[];
+
   const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
   const latestSubscription = subscriptions?.[0];
@@ -92,6 +124,76 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   // Get actual remaining quota for this month
   const rateLimit = await checkRateLimit(user.id, plan);
   const totalQuota = PLAN_QUOTAS[plan as keyof typeof PLAN_QUOTAS] || 0;
+
+  const nowMs = Date.now();
+  const last24hIso = new Date(nowMs - (24 * 60 * 60 * 1000)).toISOString();
+  const last30dIso = new Date(nowMs - (30 * 24 * 60 * 60 * 1000)).toISOString();
+
+  let analyticsRows: SitePageViewRow[] = [];
+  let analyticsError: string | null = null;
+
+  if (typedSites.length > 0) {
+    const siteIds = typedSites.map((site) => site.id);
+    const { data: pageViews, error: pageViewsError } = await supabase
+      .from('site_page_views')
+      .select('site_id, viewed_at, visitor_fingerprint')
+      .in('site_id', siteIds)
+      .gte('viewed_at', last30dIso)
+      .order('viewed_at', { ascending: false })
+      .limit(10000);
+
+    if (pageViewsError) {
+      analyticsError = pageViewsError.message;
+    } else {
+      analyticsRows = (pageViews ?? []) as SitePageViewRow[];
+    }
+  }
+
+  const views24hRows = analyticsRows.filter((row) => row.viewed_at >= last24hIso);
+  const uniqueVisitors30d = new Set(
+    analyticsRows
+      .map((row) => row.visitor_fingerprint)
+      .filter((value): value is string => Boolean(value))
+  ).size;
+  const uniqueVisitors24h = new Set(
+    views24hRows
+      .map((row) => row.visitor_fingerprint)
+      .filter((value): value is string => Boolean(value))
+  ).size;
+
+  const perSiteAnalyticsMap = new Map<string, SiteAnalyticsSummary>();
+  for (const row of analyticsRows) {
+    const existing = perSiteAnalyticsMap.get(row.site_id) || {
+      siteId: row.site_id,
+      views30d: 0,
+      uniqueVisitors30d: 0,
+      lastSeenAt: null,
+    };
+
+    existing.views30d += 1;
+    if (!existing.lastSeenAt || row.viewed_at > existing.lastSeenAt) {
+      existing.lastSeenAt = row.viewed_at;
+    }
+    perSiteAnalyticsMap.set(row.site_id, existing);
+  }
+
+  for (const [siteId, summary] of perSiteAnalyticsMap.entries()) {
+    const uniqueVisitors = new Set(
+      analyticsRows
+        .filter((row) => row.site_id === siteId)
+        .map((row) => row.visitor_fingerprint)
+        .filter((value): value is string => Boolean(value))
+    ).size;
+    summary.uniqueVisitors30d = uniqueVisitors;
+    perSiteAnalyticsMap.set(siteId, summary);
+  }
+
+  const perSiteAnalytics = Array.from(perSiteAnalyticsMap.values())
+    .sort((a, b) => b.views30d - a.views30d);
+
+  const topSite = perSiteAnalytics[0]
+    ? typedSites.find((site) => site.id === perSiteAnalytics[0].siteId)
+    : null;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-12">
@@ -183,7 +285,85 @@ export default async function DashboardPage(): Promise<JSX.Element> {
         </p>
       </Card>
 
-      <DashboardContent sites={sites ?? []} currentPlan={plan} />
+      <Card className="p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-semibold text-white">Analytics (last 30 days)</h2>
+            <p className="text-sm text-brand-muted">Page views and unique visitors across your published sites.</p>
+          </div>
+          {topSite ? (
+            <p className="text-xs text-brand-muted">
+              Top site: <span className="font-medium text-white">{topSite.business_name}</span>
+            </p>
+          ) : null}
+        </div>
+
+        {analyticsError ? (
+          <p className="mt-4 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+            Analytics temporarily unavailable: {analyticsError}
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-brand-muted">Views (30d)</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(analyticsRows.length)}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-brand-muted">Unique Visitors (30d)</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(uniqueVisitors30d)}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-brand-muted">Views (24h)</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(views24hRows.length)}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-brand-muted">Unique Visitors (24h)</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{formatNumber(uniqueVisitors24h)}</p>
+              </div>
+            </div>
+
+            {typedSites.length === 0 ? (
+              <p className="mt-4 text-sm text-brand-muted">Create and publish a site to start collecting analytics.</p>
+            ) : perSiteAnalytics.length === 0 ? (
+              <p className="mt-4 text-sm text-brand-muted">No page views recorded yet for the last 30 days.</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto rounded-xl border border-white/10">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-white/[0.04] text-left text-brand-muted">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Site</th>
+                      <th className="px-4 py-3 font-medium">Views (30d)</th>
+                      <th className="px-4 py-3 font-medium">Unique Visitors (30d)</th>
+                      <th className="px-4 py-3 font-medium">Last view</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {perSiteAnalytics.map((entry) => {
+                      const site = typedSites.find((item) => item.id === entry.siteId);
+                      if (!site) return null;
+
+                      return (
+                        <tr key={entry.siteId} className="border-t border-white/10 text-brand-text">
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-white">{site.business_name}</p>
+                            <p className="text-xs text-brand-muted">{site.slug ? `/${site.slug}` : 'No slug yet'}</p>
+                          </td>
+                          <td className="px-4 py-3">{formatNumber(entry.views30d)}</td>
+                          <td className="px-4 py-3">{formatNumber(entry.uniqueVisitors30d)}</td>
+                          <td className="px-4 py-3">{formatDate(entry.lastSeenAt)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
+      <DashboardContent sites={typedSites} currentPlan={plan} />
     </main>
   );
 }

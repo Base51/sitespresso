@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import Image from 'next/image';
 import type { Website } from '@/lib/schemas/website';
 import { getPublishedSiteBySlug } from '@/lib/published-site';
+import PageViewTracker from '@/components/PageViewTracker';
 
 interface PageProps {
   params: { slug: string };
@@ -326,6 +327,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
       data-sitespresso-data-ms={dataFetchMs.toFixed(1)}
       data-sitespresso-render-ms={renderPrepMs.toFixed(1)}
     >
+      <PageViewTracker slug={params.slug} />
 
       {/* Structured data for search engines: LocalBusiness */}
       <script
