@@ -115,6 +115,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublishedSiteSubPage({ params }: PageProps) {
+  const renderStart = performance.now();
   if (!PUBLISHED_PAGES.has(params.page)) {
     notFound();
   }
@@ -122,6 +123,7 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
   const page = params.page as 'about' | 'contact';
   const site = await getSiteBySlug(params.slug);
   if (!site) notFound();
+  const dataFetchMs = performance.now() - renderStart;
 
   const { color_scheme } = site;
   const primary = color_scheme.primary;
@@ -211,6 +213,8 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
       : {}),
   };
 
+  const renderPrepMs = performance.now() - renderStart;
+
   const contentSections: Record<SectionKey, ReactNode> = {
     about: (
       <section
@@ -286,7 +290,12 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
   };
 
   return (
-    <main className="w-full overflow-hidden bg-white text-slate-900">
+    <main
+      className="w-full overflow-hidden bg-white text-slate-900"
+      data-sitespresso-data-ms={dataFetchMs.toFixed(1)}
+      data-sitespresso-render-ms={renderPrepMs.toFixed(1)}
+    >
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageSchema) }}

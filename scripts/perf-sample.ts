@@ -6,6 +6,7 @@ type Sample = {
   status: number;
   elapsedMs: number;
   serverTimingRaw: string | null;
+  pageTiming: Record<string, number>;
 };
 
 type Summary = {
@@ -150,6 +151,28 @@ function parseServerTiming(raw: string | null): Record<string, number> {
   return output;
 }
 
+function parsePageTimingMeta(html: string): Record<string, number> {
+  const output: Record<string, number> = {};
+  const mainTagMatch = html.match(/<main[^>]*>/i);
+  if (!mainTagMatch?.[0]) return output;
+
+  const mainTag = mainTagMatch[0];
+  const patterns: Array<{ key: string; regex: RegExp }> = [
+    { key: 'page_data', regex: /data-sitespresso-data-ms=["']([^"']+)["']/i },
+    { key: 'page_render', regex: /data-sitespresso-render-ms=["']([^"']+)["']/i },
+  ];
+
+  for (const pattern of patterns) {
+    const match = mainTag.match(pattern.regex);
+    if (!match?.[1]) continue;
+    const value = Number(match[1]);
+    if (!Number.isFinite(value)) continue;
+    output[pattern.key] = value;
+  }
+
+  return output;
+}
+
 async function discoverPublishedSlug(baseUrl: string): Promise<string | null> {
   const configuredSlug = readEnv('PERF_SAMPLE_SLUG').trim();
   if (configuredSlug) return configuredSlug;
@@ -197,17 +220,19 @@ async function sampleGet(url: string, count: number): Promise<Sample[]> {
         redirect: 'follow',
         cache: 'no-store',
       });
-      await response.text();
+      const body = await response.text();
       samples.push({
         status: response.status,
         elapsedMs: performance.now() - start,
         serverTimingRaw: response.headers.get('server-timing'),
+        pageTiming: parsePageTimingMeta(body),
       });
     } catch {
       samples.push({
         status: 0,
         elapsedMs: performance.now() - start,
         serverTimingRaw: null,
+        pageTiming: {},
       });
     }
   }
@@ -238,12 +263,14 @@ async function sampleGenerate(url: string, count: number): Promise<Sample[]> {
         status: response.status,
         elapsedMs: performance.now() - start,
         serverTimingRaw: response.headers.get('server-timing'),
+        pageTiming: {},
       });
     } catch {
       samples.push({
         status: 0,
         elapsedMs: performance.now() - start,
         serverTimingRaw: null,
+        pageTiming: {},
       });
     }
   }
@@ -280,6 +307,13 @@ function printSummary(label: string, samples: Sample[]): void {
       }
       timingBreakdown[metric].push(value);
     }
+
+    for (const [metric, value] of Object.entries(sample.pageTiming)) {
+      if (!timingBreakdown[metric]) {
+        timingBreakdown[metric] = [];
+      }
+      timingBreakdown[metric].push(value);
+    }
   }
 
   const metrics = Object.keys(timingBreakdown).sort();
@@ -291,7 +325,9 @@ function printSummary(label: string, samples: Sample[]): void {
   console.log('  server_timing:');
   for (const metric of metrics) {
     const values = timingBreakdown[metric];
-    const metricSummary = summarize(values.map((value) => ({ status: 200, elapsedMs: value, serverTimingRaw: null })));
+    const metricSummary = summarize(
+      values.map((value) => ({ status: 200, elapsedMs: value, serverTimingRaw: null, pageTiming: {} }))
+    );
     console.log(
       `    ${metric}: p50=${metricSummary.p50.toFixed(1)}ms p95=${metricSummary.p95.toFixed(1)}ms avg=${metricSummary.avg.toFixed(1)}ms`
     );

@@ -96,8 +96,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublishedSitePage({ params }: PageProps) {
+  const renderStart = performance.now();
   const site = await getSiteBySlug(params.slug);
   if (!site) notFound();
+  const dataFetchMs = performance.now() - renderStart;
 
   const { color_scheme } = site;
   const primary = color_scheme.primary;
@@ -316,8 +318,15 @@ export default async function PublishedSitePage({ params }: PageProps) {
     inLanguage: 'en',
   };
 
+  const renderPrepMs = performance.now() - renderStart;
+
   return (
-    <main className="w-full overflow-hidden bg-white text-slate-900">
+    <main
+      className="w-full overflow-hidden bg-white text-slate-900"
+      data-sitespresso-data-ms={dataFetchMs.toFixed(1)}
+      data-sitespresso-render-ms={renderPrepMs.toFixed(1)}
+    >
+
       {/* Structured data for search engines: LocalBusiness */}
       <script
         type="application/ld+json"
