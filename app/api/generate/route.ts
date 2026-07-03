@@ -275,14 +275,21 @@ export async function POST(request: NextRequest) {
 
     const input = GenerateInputSchema.parse(sanitized);
 
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const hasSupabaseAuthCookie = request.cookies
+      .getAll()
+      .some((cookie) => cookie.name.includes('sb-') && cookie.name.includes('-auth-token'));
+
+    let user: { id: string } | null = null;
+    const supabase = hasSupabaseAuthCookie ? createClient() : null;
+
+    if (supabase) {
+      const authResult = await supabase.auth.getUser();
+      user = authResult.data.user ?? null;
+    }
 
     // Get user profile for plan info if authenticated
     let userPlan: 'free' | 'starter' | 'pro' | 'agency' = 'free';
-    if (user) {
+    if (user && supabase) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('plan')

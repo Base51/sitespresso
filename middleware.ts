@@ -5,6 +5,8 @@ const ROOT_DOMAIN = 'sitespresso.com';
 const PRIMARY_APP_HOSTS = new Set([ROOT_DOMAIN, `www.${ROOT_DOMAIN}`, 'localhost', '127.0.0.1']);
 const RESERVED_SUBDOMAINS = new Set(['www', 'app', 'api', 'admin']);
 const PROTECTED_PATHS = ['/dashboard', '/admin'];
+const CUSTOM_DOMAIN_CACHE_TTL_MS = 60 * 1000;
+const customDomainCache = new Map<string, { slug: string | null; expiresAt: number }>();
 
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -28,9 +30,27 @@ function resolvePublishedPathname(slug: string, pathname: string): string {
   return `/sites/${slug}${normalizedPathname}`;
 }
 
+function getCachedCustomDomainSlug(hostname: string): string | null | undefined {
+  const entry = customDomainCache.get(hostname);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= Date.now()) {
+    customDomainCache.delete(hostname);
+    return undefined;
+  }
+  return entry.slug;
+}
+
+function setCachedCustomDomainSlug(hostname: string, slug: string | null): void {
+  customDomainCache.set(hostname, {
+    slug,
+    expiresAt: Date.now() + CUSTOM_DOMAIN_CACHE_TTL_MS,
+  });
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const host = request.headers.get('host') ?? '';
   const hostname = normalizeHostname(host.split(':')[0] ?? '');
+  const { pathname } = request.nextUrl;
 
   const isSubdomain = hostname.endsWith(`.${ROOT_DOMAIN}`);
 
@@ -42,6 +62,13 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       url.pathname = resolvePublishedPathname(slug, request.nextUrl.pathname);
       return NextResponse.rewrite(url);
     }
+  }
+
+  const needsAuthCheck = pathname === '/login' || isProtectedPath(pathname);
+  const needsCustomDomainLookup = Boolean(hostname) && !isPrimaryAppHostname(hostname) && !isSubdomain;
+
+  if (!needsAuthCheck && !needsCustomDomainLookup) {
+    return NextResponse.next({ request });
   }
 
   const response = NextResponse.next({ request });
@@ -67,7 +94,18 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     }
   });
 
-  if (hostname && !isPrimaryAppHostname(hostname) && !isSubdomain) {
+  if (needsCustomDomainLookup) {
+    const cachedSlug = getCachedCustomDomainSlug(hostname);
+    if (cachedSlug) {
+      const url = request.nextUrl.clone();
+      url.pathname = resolvePublishedPathname(cachedSlug, pathname);
+      return NextResponse.rewrite(url);
+    }
+
+    if (cachedSlug === null && !needsAuthCheck) {
+      return response;
+    }
+
     const { data: customDomainSite } = await supabase
       .from('sites')
       .select('slug')
@@ -77,18 +115,27 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
       .eq('domain_attached', true)
       .maybeSingle();
 
-    if (customDomainSite?.slug) {
+    const resolvedSlug = customDomainSite?.slug ?? null;
+    setCachedCustomDomainSlug(hostname, resolvedSlug);
+
+    if (resolvedSlug) {
       const url = request.nextUrl.clone();
-      url.pathname = resolvePublishedPathname(customDomainSite.slug, request.nextUrl.pathname);
+      url.pathname = resolvePublishedPathname(resolvedSlug, pathname);
       return NextResponse.rewrite(url);
     }
+
+    if (!needsAuthCheck) {
+      return response;
+    }
+  }
+
+  if (!needsAuthCheck) {
+    return response;
   }
 
   const {
     data: { user }
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   if (!user && isProtectedPath(pathname)) {
     const redirectUrl = request.nextUrl.clone();

@@ -53,25 +53,26 @@ export default async function DashboardPage(): Promise<JSX.Element> {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('plan, stripe_customer_id')
-    .eq('id', user.id)
-    .single();
-
-  const { data: subscriptions } = await supabase
-    .from('subscriptions')
-    .select('status, stripe_price_id, current_period_end, updated_at')
-    .eq('user_id', user.id)
-    .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
-    .order('updated_at', { ascending: false })
-    .limit(1);
-
-  const { data: sites } = await supabase
-    .from('sites')
-    .select('id, slug, business_name, business_type, city, status, custom_domain, domain_verified, domain_attached, updated_at')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false });
+  const [{ data: profile }, { data: subscriptions }, { data: sites }, stripePricingOverrides] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('plan, stripe_customer_id')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('subscriptions')
+      .select('status, stripe_price_id, current_period_end, updated_at')
+      .eq('user_id', user.id)
+      .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
+      .order('updated_at', { ascending: false })
+      .limit(1),
+    supabase
+      .from('sites')
+      .select('id, slug, business_name, business_type, city, status, custom_domain, domain_verified, domain_attached, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }),
+    getStripePlanPricingOverrides(),
+  ]);
 
   const storedPlan = ((profile?.plan as string | undefined) ?? 'free') as Plan;
   const hasStripeCustomer = Boolean(profile?.stripe_customer_id);
@@ -80,7 +81,6 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const billingInterval = billingIntervalFromPriceId(latestSubscription?.stripe_price_id);
   const plan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
-  const stripePricingOverrides = await getStripePlanPricingOverrides();
   const planPricing = mergePlanPricing(stripePricingOverrides);
   const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
   const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];
