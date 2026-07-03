@@ -38,6 +38,18 @@ function formatDate(value: string | null | undefined): string {
   return new Date(value).toLocaleDateString();
 }
 
+function resolveLiveSiteUrl(site: Site): string | null {
+  if (site.status !== 'published' || !site.slug) {
+    return null;
+  }
+
+  if (site.custom_domain && site.domain_verified && site.domain_attached) {
+    return `https://${site.custom_domain}`;
+  }
+
+  return `https://${site.slug}.sitespresso.com`;
+}
+
 export default function DashboardContent({ sites, currentPlan }: DashboardContentProps): JSX.Element {
   const router = useRouter();
   const { toast } = useToast();
@@ -213,7 +225,10 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
           />
         ) : (
           <div className="space-y-3">
-            {localSites.map((site) => (
+            {localSites.map((site) => {
+              const liveSiteUrl = resolveLiveSiteUrl(site);
+
+              return (
               <Card key={site.id} className="p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -237,7 +252,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
 
                     {site.status === 'published' && site.slug ? (
                       <a
-                        href={`https://${site.slug}.sitespresso.com`}
+                        href={liveSiteUrl || undefined}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex"
@@ -353,7 +368,8 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                   )}
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
