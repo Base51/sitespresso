@@ -31,6 +31,7 @@ const ContactSectionSchema = z.object({
   email: z.string().optional(),
   address: z.string().optional(),
   hours: z.string().optional(),
+  map_embed_url: z.string().url().optional(),
 });
 
 const PageSchema = z.object({

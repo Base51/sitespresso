@@ -72,6 +72,10 @@ Assert-FileContains "components/DashboardContent.tsx" "resolveLiveSiteUrl" "Dash
 Assert-FileContains "components/EditorSidebar.tsx" "handleGenerateHeroImage" "Editor supports hero image generation action"
 Assert-FileContains "components/SitePreview.tsx" "hero_image_url" "Preview supports hero image background rendering"
 Assert-FileContains "lib/schemas/website.ts" "hero_image_url" "Schema includes hero image URL field"
+Assert-FileContains "lib/schemas/website.ts" "map_embed_url" "Schema includes contact map embed URL field"
+Assert-FileContains "components/SitePreview.tsx" "map_embed_url" "Preview supports contact map embed rendering"
+Assert-FileContains "app/sites/[slug]/page.tsx" "map_embed_url" "Published home supports contact map embed rendering"
+Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "map_embed_url" "Published subpage supports contact map embed rendering"
 
 Assert-FileContains "lib/schemas/website.ts" "left" "Schema includes logo left position"
 Assert-FileContains "lib/schemas/website.ts" "center" "Schema includes logo center position"

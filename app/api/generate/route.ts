@@ -85,6 +85,7 @@ const websiteResponseSchema = {
           email: { type: 'string' },
           address: { type: 'string' },
           hours: { type: 'string' },
+          map_embed_url: { type: 'string' },
         },
         required: ['title', 'phone', 'email', 'address', 'hours'],
       },

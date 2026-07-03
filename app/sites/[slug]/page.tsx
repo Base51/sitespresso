@@ -64,6 +64,20 @@ function resolvePublishedNavPath(slug: string, target: 'home' | 'about' | 'conta
   return `/${target}`;
 }
 
+function sanitizeMapEmbedUrl(value: string | undefined): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (!/^https:\/\//i.test(raw)) return null;
+  if (/^javascript:/i.test(raw)) return null;
+
+  const lower = raw.toLowerCase();
+  if (!lower.includes('google.com/maps') && !lower.includes('google.com/maps/embed') && !lower.includes('maps.google.com')) {
+    return null;
+  }
+
+  return raw;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const site = await getSiteBySlug(params.slug);
   if (!site) return { title: 'Not Found' };
@@ -271,6 +285,18 @@ export default async function PublishedSitePage({ params }: PageProps) {
               </div>
             )}
           </div>
+
+          {sanitizeMapEmbedUrl(site.contact.map_embed_url) && (
+            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <iframe
+                src={sanitizeMapEmbedUrl(site.contact.map_embed_url) || undefined}
+                title={`${site.business_name} location map`}
+                className="h-72 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )}
         </div>
       </section>
     ),

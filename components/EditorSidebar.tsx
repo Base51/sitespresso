@@ -15,7 +15,7 @@ interface EditorSidebarProps {
   onWebsiteChange: (website: Website) => void;
 }
 
-type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'fonts' | 'colors' | null;
+type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'contact' | 'fonts' | 'colors' | null;
 type SectionKey = 'about' | 'services' | 'contact';
 type SectionBackgrounds = Record<SectionKey, string>;
 
@@ -597,6 +597,19 @@ export default function EditorSidebar({
     updateHeroCta(website.hero.cta_text || 'Get Started', nextUrl);
   }
 
+  function handleContactMapEmbedUrlChange(value: string) {
+    const raw = value.trim();
+    const nextMapUrl = raw.length ? raw : undefined;
+
+    onWebsiteChange({
+      ...website,
+      contact: {
+        ...website.contact,
+        map_embed_url: nextMapUrl,
+      },
+    });
+  }
+
   async function handleGenerateHeroImage() {
     setIsGeneratingHeroImage(true);
 
@@ -936,6 +949,39 @@ export default function EditorSidebar({
                     {isRemovingHeroImage ? 'Removing...' : 'Remove'}
                   </button>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Contact Panel */}
+          <button
+            onClick={() => setActivePanel(activePanel === 'contact' ? null : 'contact')}
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              activePanel === 'contact'
+                ? 'border-teal-500 bg-teal-500/10 text-teal-300'
+                : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            {activePanel === 'contact' ? '▼' : '▶'} 📍 Contact
+          </button>
+          {activePanel === 'contact' && (
+            <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
+              <p className="text-xs text-slate-400">
+                Optional: add a Google Maps embed URL to show a location map in the Contact section.
+              </p>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Map embed URL</label>
+                <input
+                  type="text"
+                  value={website.contact.map_embed_url || ''}
+                  onChange={(e) => handleContactMapEmbedUrlChange(e.target.value)}
+                  placeholder="https://www.google.com/maps/embed?..."
+                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-teal-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Use Google Maps Embed iframe src URL.
+                </p>
               </div>
             </div>
           )}
