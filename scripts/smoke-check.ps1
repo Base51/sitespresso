@@ -76,6 +76,11 @@ Assert-FileContains "lib/schemas/website.ts" "map_embed_url" "Schema includes co
 Assert-FileContains "components/SitePreview.tsx" "map_embed_url" "Preview supports contact map embed rendering"
 Assert-FileContains "app/sites/[slug]/page.tsx" "map_embed_url" "Published home supports contact map embed rendering"
 Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "map_embed_url" "Published subpage supports contact map embed rendering"
+Assert-FileContains "lib/schemas/website.ts" "booking_embed_url" "Schema includes contact booking embed URL field"
+Assert-FileContains "components/EditorSidebar.tsx" "booking_embed_url" "Editor supports Calendly embed URL input"
+Assert-FileContains "components/SitePreview.tsx" "booking_embed_url" "Preview supports booking widget rendering"
+Assert-FileContains "app/sites/[slug]/page.tsx" "booking_embed_url" "Published home supports booking widget rendering"
+Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "booking_embed_url" "Published subpage supports booking widget rendering"
 
 Assert-FileContains "lib/schemas/website.ts" "left" "Schema includes logo left position"
 Assert-FileContains "lib/schemas/website.ts" "center" "Schema includes logo center position"

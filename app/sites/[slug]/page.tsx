@@ -78,6 +78,20 @@ function sanitizeMapEmbedUrl(value: string | undefined): string | null {
   return raw;
 }
 
+function sanitizeBookingEmbedUrl(value: string | undefined): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (!/^https:\/\//i.test(raw)) return null;
+  if (/^javascript:/i.test(raw)) return null;
+
+  const lower = raw.toLowerCase();
+  if (!lower.includes('calendly.com')) {
+    return null;
+  }
+
+  return raw;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const site = await getSiteBySlug(params.slug);
   if (!site) return { title: 'Not Found' };
@@ -294,6 +308,17 @@ export default async function PublishedSitePage({ params }: PageProps) {
                 className="h-72 w-full"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          )}
+
+          {sanitizeBookingEmbedUrl(site.contact.booking_embed_url) && (
+            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <iframe
+                src={sanitizeBookingEmbedUrl(site.contact.booking_embed_url) || undefined}
+                title={`${site.business_name} booking widget`}
+                className="h-[700px] w-full"
+                loading="lazy"
               />
             </div>
           )}

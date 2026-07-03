@@ -610,6 +610,19 @@ export default function EditorSidebar({
     });
   }
 
+  function handleContactBookingEmbedUrlChange(value: string) {
+    const raw = value.trim();
+    const nextBookingUrl = raw.length ? raw : undefined;
+
+    onWebsiteChange({
+      ...website,
+      contact: {
+        ...website.contact,
+        booking_embed_url: nextBookingUrl,
+      },
+    });
+  }
+
   async function handleGenerateHeroImage() {
     setIsGeneratingHeroImage(true);
 
@@ -981,6 +994,20 @@ export default function EditorSidebar({
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
                   Use Google Maps Embed iframe src URL.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Calendly embed URL</label>
+                <input
+                  type="text"
+                  value={website.contact.booking_embed_url || ''}
+                  onChange={(e) => handleContactBookingEmbedUrlChange(e.target.value)}
+                  placeholder="https://calendly.com/your-handle/meeting"
+                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-teal-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Use your Calendly booking page or embed URL.
                 </p>
               </div>
             </div>
