@@ -18,6 +18,14 @@ type Summary = {
   avg: number;
 };
 
+type Target = { label: string; url: string; type: 'get' | 'post-generate' };
+
+type BudgetConfig = {
+  strict: boolean;
+  maxFailureRate: number | null;
+  p95ByTargetKey: Record<string, number>;
+};
+
 function loadDotEnvFile(path: string): void {
   if (!existsSync(path)) return;
 
@@ -68,8 +76,20 @@ function parseArgNumber(flag: string, fallback: number): number {
   return Math.floor(value);
 }
 
+function parseOptionalArgNumber(flag: string): number | null {
+  const arg = process.argv.find((entry) => entry.startsWith(`${flag}=`));
+  if (!arg) return null;
+  const value = Number(arg.split('=').slice(1).join('='));
+  if (!Number.isFinite(value) || value < 0) return null;
+  return value;
+}
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag);
+}
+
+function toTargetKey(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 function percentile(values: number[], p: number): number {
@@ -231,6 +251,20 @@ async function sampleGenerate(url: string, count: number): Promise<Sample[]> {
   return samples;
 }
 
+async function runSamples(target: Target, count: number, warmup: number): Promise<Sample[]> {
+  for (let index = 0; index < warmup; index += 1) {
+    if (target.type === 'post-generate') {
+      await sampleGenerate(target.url, 1);
+    } else {
+      await sampleGet(target.url, 1);
+    }
+  }
+
+  return target.type === 'post-generate'
+    ? sampleGenerate(target.url, count)
+    : sampleGet(target.url, count);
+}
+
 function printSummary(label: string, samples: Sample[]): void {
   const info = summarize(samples);
   console.log(`\n${label}`);
@@ -264,10 +298,58 @@ function printSummary(label: string, samples: Sample[]): void {
   }
 }
 
+function buildBudgetConfig(targets: Target[]): BudgetConfig {
+  const p95ByTargetKey: Record<string, number> = {};
+  for (const target of targets) {
+    const key = toTargetKey(target.label);
+    const value = parseOptionalArgNumber(`--budget-p95-${key}`);
+    if (value != null) {
+      p95ByTargetKey[key] = value;
+    }
+  }
+
+  return {
+    strict: hasFlag('--strict'),
+    maxFailureRate: parseOptionalArgNumber('--budget-failure-rate'),
+    p95ByTargetKey,
+  };
+}
+
+function evaluateBudgets(
+  targets: Target[],
+  summaryByKey: Record<string, Summary>,
+  budget: BudgetConfig,
+): string[] {
+  const failures: string[] = [];
+
+  for (const target of targets) {
+    const key = toTargetKey(target.label);
+    const summary = summaryByKey[key];
+    if (!summary) continue;
+
+    const p95Budget = budget.p95ByTargetKey[key];
+    if (Number.isFinite(p95Budget) && summary.p95 > p95Budget) {
+      failures.push(`${target.label}: p95 ${summary.p95.toFixed(0)}ms > budget ${p95Budget.toFixed(0)}ms`);
+    }
+
+    if (budget.maxFailureRate != null && summary.count > 0) {
+      const failureRate = (summary.failures / summary.count) * 100;
+      if (failureRate > budget.maxFailureRate) {
+        failures.push(
+          `${target.label}: failure rate ${failureRate.toFixed(1)}% > budget ${budget.maxFailureRate.toFixed(1)}%`
+        );
+      }
+    }
+  }
+
+  return failures;
+}
+
 async function main(): Promise<void> {
   loadDotEnvFile(resolve(process.cwd(), '.env.local'));
 
   const count = parseArgNumber('--count', 5);
+  const warmup = parseArgNumber('--warmup', 0);
   const includeGenerate = hasFlag('--include-generate');
 
   const configuredBase =
@@ -280,7 +362,7 @@ async function main(): Promise<void> {
     : configuredBase.replace(/\/$/, '');
   const slug = await discoverPublishedSlug(baseUrl);
 
-  const targets: Array<{ label: string; url: string; type: 'get' | 'post-generate' }> = [
+  const targets: Target[] = [
     { label: 'Home', url: `${baseUrl}/`, type: 'get' },
     { label: 'Robots', url: `${baseUrl}/robots.txt`, type: 'get' },
     { label: 'Sitemap', url: `${baseUrl}/sitemap.xml`, type: 'get' },
@@ -296,24 +378,41 @@ async function main(): Promise<void> {
     targets.push({ label: 'Generate API', url: `${baseUrl}/api/generate`, type: 'post-generate' });
   }
 
+  const budget = buildBudgetConfig(targets);
+  const summaryByKey: Record<string, Summary> = {};
+
   console.log('Running performance sample...');
   console.log(`  base_url=${baseUrl}`);
   console.log(`  samples_per_route=${count}`);
+  console.log(`  warmup_per_route=${warmup}`);
   console.log(`  include_generate=${includeGenerate ? 'yes' : 'no'}`);
+  console.log(`  strict_mode=${budget.strict ? 'yes' : 'no'}`);
   if (!slug) {
     console.log('  slug=not found (published page checks skipped)');
   }
 
   for (const target of targets) {
-    const samples =
-      target.type === 'post-generate'
-        ? await sampleGenerate(target.url, count)
-        : await sampleGet(target.url, count);
+    const samples = await runSamples(target, count, warmup);
 
     printSummary(target.label, samples);
+    summaryByKey[toTargetKey(target.label)] = summarize(samples);
+  }
+
+  const budgetFailures = evaluateBudgets(targets, summaryByKey, budget);
+  if (budgetFailures.length > 0) {
+    console.log('\nPerformance budgets: FAIL');
+    for (const failure of budgetFailures) {
+      console.log(`  - ${failure}`);
+    }
+  } else if (Object.keys(budget.p95ByTargetKey).length > 0 || budget.maxFailureRate != null) {
+    console.log('\nPerformance budgets: PASS');
   }
 
   console.log('\nPerformance sampling complete.');
+
+  if (budget.strict && budgetFailures.length > 0) {
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {

@@ -19,6 +19,7 @@
     "test:multipage-qa": "tsx scripts/multipage-qa.ts",
     "test:perf-sample": "tsx scripts/perf-sample.ts",
     "test:perf-sample:generate": "tsx scripts/perf-sample.ts --include-generate --count=3",
+    "test:perf-budget": "tsx scripts/perf-sample.ts --count=7 --warmup=1 --strict --budget-failure-rate=0 --budget-p95-home=2500 --budget-p95-robots=1000 --budget-p95-sitemap=1000 --budget-p95-published-home=2500 --budget-p95-published-about=3000 --budget-p95-published-contact=2500",
     "migrate:multipage-content": "tsx scripts/migrate-multipage-content.ts --apply",
     "test:reliability": "pwsh -ExecutionPolicy Bypass -File scripts/reliability-check.ps1",
     "build": "next build",
