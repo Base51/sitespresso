@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import { cache, type ReactNode } from 'react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
@@ -20,7 +20,7 @@ const DEFAULT_SECTION_BACKGROUNDS: Record<SectionKey, string> = {
   contact: '#ffffff',
 };
 
-async function getSiteBySlug(slug: string): Promise<Website | null> {
+const getSiteBySlug = cache(async (slug: string): Promise<Website | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('sites')
@@ -31,7 +31,7 @@ async function getSiteBySlug(slug: string): Promise<Website | null> {
 
   if (error || !data) return null;
   return normalizeWebsiteContent(data.content);
-}
+});
 
 function resolvePublishedSiteUrl(slug: string): string {
   const fallbackBaseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://sitespresso.com').replace(/\/$/, '');
