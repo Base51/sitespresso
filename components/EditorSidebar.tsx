@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import type { Website } from '@/lib/schemas/website';
 import LogoUpload from './LogoUpload';
 import FontSelector from './FontSelector';
@@ -901,11 +902,15 @@ export default function EditorSidebar({
 
               {website.hero?.hero_image_url && (
                 <div className="rounded border border-slate-700 bg-slate-800/70 p-2">
-                  <img
-                    src={website.hero.hero_image_url}
-                    alt="Hero image preview"
-                    className="h-24 w-full rounded object-cover"
-                  />
+                  <div className="relative h-24 w-full overflow-hidden rounded">
+                    <Image
+                      src={website.hero.hero_image_url}
+                      alt="Hero image preview"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 320px"
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
               )}
 

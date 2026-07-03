@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { useToast } from '@/hooks/useToast';
 import Spinner from './Spinner';
 
@@ -160,9 +161,12 @@ export default function LogoUpload({ siteId, currentLogoUrl, onLogoDone }: LogoU
       {preview ? (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-600 bg-slate-800/50 p-3">
           <div className="flex items-center gap-3">
-            <img
+            <Image
               src={preview}
               alt="Logo preview"
+              width={40}
+              height={40}
+              unoptimized
               className="h-10 w-10 rounded object-contain"
             />
             <span className="text-sm text-slate-400">Logo uploaded</span>

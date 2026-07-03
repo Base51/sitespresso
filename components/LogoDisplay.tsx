@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { Website } from '@/lib/schemas/website';
 
 interface LogoDisplayProps {
@@ -28,9 +29,12 @@ export default function LogoDisplay({
     <div
       className={`flex gap-4 ${containerClasses} ${editable ? 'group' : ''}`}
     >
-      <img
+      <Image
         src={logo.url}
         alt="Logo"
+        width={width}
+        height={width}
+        unoptimized
         style={{ width: `${width}px`, height: 'auto' }}
         className="object-contain drop-shadow-md"
       />

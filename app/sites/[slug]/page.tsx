@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { normalizeWebsiteContent, type Website } from '@/lib/schemas/website';
 
@@ -376,10 +377,12 @@ export default async function PublishedSitePage({ params }: PageProps) {
           // Logo on left
           <div className="flex w-full items-center justify-center gap-8">
             {site.logo?.url && (
-              <img
+              <Image
                 src={site.logo.url}
                 alt={`${site.business_name} logo`}
                 width={site.logo.width || 100}
+                height={site.logo.width || 100}
+                unoptimized
                 style={{ 
                   maxWidth: `${site.logo.width || 100}px`,
                   height: 'auto',
@@ -423,10 +426,12 @@ export default async function PublishedSitePage({ params }: PageProps) {
               )}
             </div>
             {site.logo?.url && (
-              <img
+              <Image
                 src={site.logo.url}
                 alt={`${site.business_name} logo`}
                 width={site.logo.width || 100}
+                height={site.logo.width || 100}
+                unoptimized
                 style={{ 
                   maxWidth: `${site.logo.width || 100}px`,
                   height: 'auto',
@@ -440,10 +445,12 @@ export default async function PublishedSitePage({ params }: PageProps) {
           // Logo center (default)
           <div className="flex flex-col items-center justify-center gap-4 w-full text-center">
             {site.logo?.url && (
-              <img
+              <Image
                 src={site.logo.url}
                 alt={`${site.business_name} logo`}
                 width={site.logo.width || 100}
+                height={site.logo.width || 100}
+                unoptimized
                 style={{ 
                   maxWidth: `${site.logo.width || 100}px`,
                   height: 'auto',
