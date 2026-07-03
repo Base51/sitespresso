@@ -8,6 +8,16 @@ const PROTECTED_PATHS = ['/dashboard', '/admin'];
 const CUSTOM_DOMAIN_CACHE_TTL_MS = 60 * 1000;
 const customDomainCache = new Map<string, { slug: string | null; expiresAt: number }>();
 
+function finalizeResponse(response: NextResponse, startTimeMs: number): NextResponse {
+  const middlewareMs = Math.max(0, performance.now() - startTimeMs);
+  const metric = `edge_mw;dur=${middlewareMs.toFixed(1)}`;
+  const existing = response.headers.get('server-timing');
+
+  response.headers.set('server-timing', existing ? `${existing}, ${metric}` : metric);
+  response.headers.set('x-sitespresso-mw-ms', middlewareMs.toFixed(1));
+  return response;
+}
+
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
@@ -48,6 +58,8 @@ function setCachedCustomDomainSlug(hostname: string, slug: string | null): void 
 }
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
+  const middlewareStart = performance.now();
+  const finalize = (response: NextResponse): NextResponse => finalizeResponse(response, middlewareStart);
   const host = request.headers.get('host') ?? '';
   const hostname = normalizeHostname(host.split(':')[0] ?? '');
   const { pathname } = request.nextUrl;
@@ -60,7 +72,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
       const url = request.nextUrl.clone();
       url.pathname = resolvePublishedPathname(slug, request.nextUrl.pathname);
-      return NextResponse.rewrite(url);
+      return finalize(NextResponse.rewrite(url));
     }
   }
 
@@ -68,7 +80,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const needsCustomDomainLookup = Boolean(hostname) && !isPrimaryAppHostname(hostname) && !isSubdomain;
 
   if (!needsAuthCheck && !needsCustomDomainLookup) {
-    return NextResponse.next({ request });
+    return finalize(NextResponse.next({ request }));
   }
 
   const response = NextResponse.next({ request });
@@ -77,7 +89,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    return response;
+    return finalize(response);
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -99,11 +111,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (cachedSlug) {
       const url = request.nextUrl.clone();
       url.pathname = resolvePublishedPathname(cachedSlug, pathname);
-      return NextResponse.rewrite(url);
+      return finalize(NextResponse.rewrite(url));
     }
 
     if (cachedSlug === null && !needsAuthCheck) {
-      return response;
+      return finalize(response);
     }
 
     const { data: customDomainSite } = await supabase
@@ -121,16 +133,16 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (resolvedSlug) {
       const url = request.nextUrl.clone();
       url.pathname = resolvePublishedPathname(resolvedSlug, pathname);
-      return NextResponse.rewrite(url);
+      return finalize(NextResponse.rewrite(url));
     }
 
     if (!needsAuthCheck) {
-      return response;
+      return finalize(response);
     }
   }
 
   if (!needsAuthCheck) {
-    return response;
+    return finalize(response);
   }
 
   const {
@@ -141,17 +153,17 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/login';
     redirectUrl.searchParams.set('next', pathname);
-    return NextResponse.redirect(redirectUrl);
+    return finalize(NextResponse.redirect(redirectUrl));
   }
 
   if (user && pathname === '/login') {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/dashboard';
     redirectUrl.searchParams.delete('next');
-    return NextResponse.redirect(redirectUrl);
+    return finalize(NextResponse.redirect(redirectUrl));
   }
 
-  return response;
+  return finalize(response);
 }
 
 export const config = {

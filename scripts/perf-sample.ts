@@ -173,6 +173,25 @@ function parsePageTimingMeta(html: string): Record<string, number> {
   return output;
 }
 
+function parsePageTimingHeaders(responseHeaders: Headers): Record<string, number> {
+  const output: Record<string, number> = {};
+  const patterns: Array<{ key: string; header: string }> = [
+    { key: 'page_data_header', header: 'x-sitespresso-data-ms' },
+    { key: 'page_render_header', header: 'x-sitespresso-render-ms' },
+    { key: 'edge_mw_header', header: 'x-sitespresso-mw-ms' },
+  ];
+
+  for (const pattern of patterns) {
+    const raw = responseHeaders.get(pattern.header);
+    if (!raw) continue;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) continue;
+    output[pattern.key] = value;
+  }
+
+  return output;
+}
+
 async function discoverPublishedSlug(baseUrl: string): Promise<string | null> {
   const configuredSlug = readEnv('PERF_SAMPLE_SLUG').trim();
   if (configuredSlug) return configuredSlug;
@@ -221,11 +240,16 @@ async function sampleGet(url: string, count: number): Promise<Sample[]> {
         cache: 'no-store',
       });
       const body = await response.text();
+      const headerTiming = parsePageTimingHeaders(response.headers);
+      const htmlTiming = parsePageTimingMeta(body);
       samples.push({
         status: response.status,
         elapsedMs: performance.now() - start,
         serverTimingRaw: response.headers.get('server-timing'),
-        pageTiming: parsePageTimingMeta(body),
+        pageTiming: {
+          ...headerTiming,
+          ...htmlTiming,
+        },
       });
     } catch {
       samples.push({
