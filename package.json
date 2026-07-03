@@ -17,6 +17,8 @@
     "test:custom-domain-audit:strict": "tsx scripts/custom-domain-status-audit.ts --strict",
     "test:multipage-content": "tsx scripts/migrate-multipage-content.ts --dry-run",
     "test:multipage-qa": "tsx scripts/multipage-qa.ts",
+    "test:perf-sample": "tsx scripts/perf-sample.ts",
+    "test:perf-sample:generate": "tsx scripts/perf-sample.ts --include-generate --count=3",
     "migrate:multipage-content": "tsx scripts/migrate-multipage-content.ts --apply",
     "test:reliability": "pwsh -ExecutionPolicy Bypass -File scripts/reliability-check.ps1",
     "build": "next build",
