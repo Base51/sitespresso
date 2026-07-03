@@ -183,7 +183,7 @@
 | T-102 | AI hero image generation (DALL·E 3 or Stability) ✅ (OpenAI image generation route + editor controls + published rendering) |
 | T-103 | SEO tools: sitemap.xml, robots.txt, structured data ✅ |
 | T-104 | Analytics dashboard (page views, unique visitors) ✅ (Pageview collection API + dashboard 24h/30d metrics and per-site breakdown) |
-| T-105 | Google Business Profile embed |
+| T-105 | Google Business Profile embed ✅ (Schema + editor input + preview + published route rendering) |
 | T-106 | Booking widget integration (Calendly embed) ✅ (Schema + editor input + preview + published route rendering) |
 | T-107 | Google Maps embed for contact section ✅ (Schema + editor input + preview + published route rendering) |
 | T-108 | Agency plan: unlimited sites, client management |

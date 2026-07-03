@@ -17,6 +17,7 @@ WRITING PRINCIPLES:
 4. Contact section: Multiple contact methods, business hours, local address
    - Optional Google Maps embed URL when appropriate for walk-in businesses
    - Optional Calendly embed URL for appointment-based businesses
+   - Optional Google Business Profile embed URL for discovery/reputation-focused businesses
 5. CTAs: Action-oriented, benefit-driven language ("Get Your Free Quote", "Schedule Now", etc.)
 
 TONE GUIDANCE by Industry:
@@ -78,6 +79,7 @@ REQUIREMENTS FOR JSON:
    - Hours: Business hours appropriate for industry (e.g., "Mon-Fri 9am-5pm, Sat 10am-3pm")
    - map_embed_url: Optional https Google Maps embed URL for the business location
    - booking_embed_url: Optional https Calendly embed URL for appointment scheduling
+   - google_business_profile_embed_url: Optional https Google Business Profile embed URL
 
 5. Color Scheme:
    - Primary: Main brand color (hex) - choose based on ${input.business_type} psychology

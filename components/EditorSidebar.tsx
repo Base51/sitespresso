@@ -623,6 +623,19 @@ export default function EditorSidebar({
     });
   }
 
+  function handleContactGoogleBusinessProfileEmbedUrlChange(value: string) {
+    const raw = value.trim();
+    const nextUrl = raw.length ? raw : undefined;
+
+    onWebsiteChange({
+      ...website,
+      contact: {
+        ...website.contact,
+        google_business_profile_embed_url: nextUrl,
+      },
+    });
+  }
+
   async function handleGenerateHeroImage() {
     setIsGeneratingHeroImage(true);
 
@@ -1008,6 +1021,20 @@ export default function EditorSidebar({
                 />
                 <p className="mt-1 text-[11px] text-slate-500">
                   Use your Calendly booking page or embed URL.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Google Business Profile embed URL</label>
+                <input
+                  type="text"
+                  value={website.contact.google_business_profile_embed_url || ''}
+                  onChange={(e) => handleContactGoogleBusinessProfileEmbedUrlChange(e.target.value)}
+                  placeholder="https://www.google.com/maps/embed?..."
+                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-teal-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Use a Google Business Profile or Google Maps embed URL.
                 </p>
               </div>
             </div>

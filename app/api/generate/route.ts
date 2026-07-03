@@ -87,6 +87,7 @@ const websiteResponseSchema = {
           hours: { type: 'string' },
           map_embed_url: { type: 'string' },
           booking_embed_url: { type: 'string' },
+          google_business_profile_embed_url: { type: 'string' },
         },
         required: ['title', 'phone', 'email', 'address', 'hours'],
       },

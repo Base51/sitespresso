@@ -105,6 +105,24 @@ function sanitizeBookingEmbedUrl(value: string | undefined): string | null {
   return raw;
 }
 
+function sanitizeGoogleBusinessProfileEmbedUrl(value: string | undefined): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (!/^https:\/\//i.test(raw)) return null;
+  if (/^javascript:/i.test(raw)) return null;
+
+  const lower = raw.toLowerCase();
+  if (!lower.includes('google.com')) {
+    return null;
+  }
+
+  if (!lower.includes('/maps/embed') && !lower.includes('maps.google.com')) {
+    return null;
+  }
+
+  return raw;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   if (!PUBLISHED_PAGES.has(params.page)) {
     return { title: 'Not Found' };
@@ -333,6 +351,18 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
                 title={`${site.business_name} booking widget`}
                 className="h-[700px] w-full"
                 loading="lazy"
+              />
+            </div>
+          )}
+
+          {sanitizeGoogleBusinessProfileEmbedUrl(contactSection.google_business_profile_embed_url) && (
+            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <iframe
+                src={sanitizeGoogleBusinessProfileEmbedUrl(contactSection.google_business_profile_embed_url) || undefined}
+                title={`${site.business_name} Google Business Profile`}
+                className="h-[520px] w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
           )}

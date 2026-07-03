@@ -68,6 +68,24 @@ function sanitizeBookingEmbedUrl(value: string | undefined): string | null {
   return raw;
 }
 
+function sanitizeGoogleBusinessProfileEmbedUrl(value: string | undefined): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (!/^https:\/\//i.test(raw)) return null;
+  if (/^javascript:/i.test(raw)) return null;
+
+  const lower = raw.toLowerCase();
+  if (!lower.includes('google.com')) {
+    return null;
+  }
+
+  if (!lower.includes('/maps/embed') && !lower.includes('maps.google.com')) {
+    return null;
+  }
+
+  return raw;
+}
+
 export default function SitePreview({
   website,
   initialDraftId,
@@ -496,6 +514,18 @@ export default function SitePreview({
                 title={`${draft.business_name} booking widget`}
                 className="h-[700px] w-full"
                 loading="lazy"
+              />
+            </div>
+          )}
+
+          {sanitizeGoogleBusinessProfileEmbedUrl(draft.contact.google_business_profile_embed_url) && (
+            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <iframe
+                src={sanitizeGoogleBusinessProfileEmbedUrl(draft.contact.google_business_profile_embed_url) || undefined}
+                title={`${draft.business_name} Google Business Profile`}
+                className="h-[520px] w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
           )}

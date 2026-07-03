@@ -81,6 +81,11 @@ Assert-FileContains "components/EditorSidebar.tsx" "booking_embed_url" "Editor s
 Assert-FileContains "components/SitePreview.tsx" "booking_embed_url" "Preview supports booking widget rendering"
 Assert-FileContains "app/sites/[slug]/page.tsx" "booking_embed_url" "Published home supports booking widget rendering"
 Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "booking_embed_url" "Published subpage supports booking widget rendering"
+Assert-FileContains "lib/schemas/website.ts" "google_business_profile_embed_url" "Schema includes Google Business Profile embed URL field"
+Assert-FileContains "components/EditorSidebar.tsx" "google_business_profile_embed_url" "Editor supports Google Business Profile embed URL input"
+Assert-FileContains "components/SitePreview.tsx" "google_business_profile_embed_url" "Preview supports Google Business Profile embed rendering"
+Assert-FileContains "app/sites/[slug]/page.tsx" "google_business_profile_embed_url" "Published home supports Google Business Profile embed rendering"
+Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "google_business_profile_embed_url" "Published subpage supports Google Business Profile embed rendering"
 
 Assert-FileContains "lib/schemas/website.ts" "left" "Schema includes logo left position"
 Assert-FileContains "lib/schemas/website.ts" "center" "Schema includes logo center position"

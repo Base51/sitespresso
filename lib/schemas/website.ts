@@ -33,6 +33,7 @@ const ContactSectionSchema = z.object({
   hours: z.string().optional(),
   map_embed_url: z.string().url().optional(),
   booking_embed_url: z.string().url().optional(),
+  google_business_profile_embed_url: z.string().url().optional(),
 });
 
 const PageSchema = z.object({
