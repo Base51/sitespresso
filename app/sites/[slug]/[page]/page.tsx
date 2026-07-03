@@ -170,6 +170,58 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
 
   const sectionOrder: SectionKey[] = page === 'about' ? ['about', 'contact'] : ['contact'];
 
+  const pageUrl = resolvePublishedSiteUrl(params.slug, page);
+  const websitePath = resolvePublishedNavPath(params.slug, 'home');
+  const absoluteWebsiteUrl = (() => {
+    if (/^https?:\/\//i.test(websitePath)) return websitePath;
+    const origin = new URL(pageUrl).origin;
+    return `${origin}${websitePath}`;
+  })();
+
+  const webpageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: page === 'about' ? `${site.business_name} About` : `${site.business_name} Contact`,
+    url: pageUrl,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: site.business_name,
+      url: absoluteWebsiteUrl,
+    },
+    ...(page === 'about'
+      ? {
+          description: site.pages?.about?.seo?.description?.trim() || aboutSection.content,
+          mainEntity: {
+            '@type': 'Organization',
+            name: site.business_name,
+          },
+        }
+      : {
+          description: site.pages?.contact?.seo?.description?.trim() || site.contact.hours || site.tagline,
+          mainEntity: {
+            '@type': 'ContactPage',
+            name: `${site.business_name} Contact`,
+          },
+        }),
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: site.business_name,
+    url: absoluteWebsiteUrl,
+    ...(site.logo?.url && { logo: site.logo.url }),
+    ...((contactSection.email || contactSection.phone)
+      ? {
+          contactPoint: {
+            '@type': 'ContactPoint',
+            ...(contactSection.email && { email: contactSection.email }),
+            ...(contactSection.phone && { telephone: contactSection.phone }),
+          },
+        }
+      : {}),
+  };
+
   const contentSections: Record<SectionKey, ReactNode> = {
     about: (
       <section
@@ -246,6 +298,16 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
 
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+
       {googleFontsUrl && <link rel="stylesheet" href={googleFontsUrl} />}
 
       <nav className="border-b border-slate-200 bg-white px-6 py-4 md:px-16">

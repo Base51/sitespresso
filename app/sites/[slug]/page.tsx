@@ -318,6 +318,14 @@ export default async function PublishedSitePage({ params }: PageProps) {
     } : {}),
   };
 
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.business_name,
+    url: pageUrl,
+    inLanguage: 'en',
+  };
+
   return (
     <main className="w-full overflow-hidden bg-white text-slate-900">
       {/* Structured data for search engines: LocalBusiness */}
@@ -330,6 +338,11 @@ export default async function PublishedSitePage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
 
       {/* Load Google Fonts */}
