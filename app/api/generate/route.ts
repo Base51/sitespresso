@@ -7,6 +7,19 @@ import { createClient } from '@/lib/supabase/server';
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
+type TimingEntry = {
+  name: string;
+  durationMs: number;
+};
+
+function toServerTiming(timings: TimingEntry[]): string {
+  return timings.map((entry) => `${entry.name};dur=${entry.durationMs.toFixed(1)}`).join(', ');
+}
+
+function toTimingBreakdown(timings: TimingEntry[]): string {
+  return timings.map((entry) => `${entry.name}:${Math.round(entry.durationMs)}ms`).join(',');
+}
+
 const websiteResponseSchema = {
   name: 'website_generation',
   strict: true,
@@ -254,6 +267,15 @@ function applyDefaults(website: Record<string, unknown>): Record<string, unknown
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  const timings: TimingEntry[] = [];
+  let stepStart = Date.now();
+
+  const markStep = (name: string): void => {
+    const now = Date.now();
+    timings.push({ name, durationMs: now - stepStart });
+    stepStart = now;
+  };
+
   try {
     // Check if OpenAI API key is configured
     if (!process.env.OPENAI_API_KEY) {
@@ -274,6 +296,7 @@ export async function POST(request: NextRequest) {
     const sanitized = sanitizeInput(body);
 
     const input = GenerateInputSchema.parse(sanitized);
+    markStep('input');
 
     const hasSupabaseAuthCookie = request.cookies
       .getAll()
@@ -286,6 +309,7 @@ export async function POST(request: NextRequest) {
       const authResult = await supabase.auth.getUser();
       user = authResult.data.user ?? null;
     }
+    markStep('auth');
 
     // Get user profile for plan info if authenticated
     let userPlan: 'free' | 'starter' | 'pro' | 'agency' = 'free';
@@ -297,10 +321,12 @@ export async function POST(request: NextRequest) {
         .single();
       userPlan = (profile?.plan as typeof userPlan) ?? 'free';
     }
+    markStep('plan');
 
     // Rate limiting with plan-based quota
     const rateLimit = await checkRateLimit(user?.id ?? null, userPlan, ip);
     if (!rateLimit.allowed) {
+      markStep('rate_limit');
       return NextResponse.json(
         {
           error: 'Generation quota exceeded. Check your plan limits or try again next month.',
@@ -312,15 +338,18 @@ export async function POST(request: NextRequest) {
         }
       );
     }
+    markStep('rate_limit');
 
     // Call OpenAI with retry logic
     const jsonResponse = await callOpenAIWithRetry(getUserPrompt(input));
+    markStep('openai');
 
     // Parse and validate response
     const parsed = JSON.parse(extractJsonObject(jsonResponse));
     const withDefaults = applyDefaults(parsed);
     const validated = WebsiteSchema.parse(withDefaults);
     const website = normalizeWebsiteContent(validated);
+    markStep('validate');
 
     const duration = Date.now() - startTime;
     console.log(`✅ Generation for ${input.business_name} (${input.business_type}) completed in ${duration}ms`);
@@ -336,16 +365,28 @@ export async function POST(request: NextRequest) {
     );
 
     response.headers.set('X-Generation-Time-Ms', duration.toString());
+    response.headers.set('Server-Timing', toServerTiming(timings));
+    response.headers.set('X-Generation-Breakdown', toTimingBreakdown(timings));
+
+    console.log(`⏱️ Generation timing breakdown: ${toTimingBreakdown(timings)}`);
     return response;
   } catch (error) {
     const duration = Date.now() - startTime;
+    timings.push({ name: 'error', durationMs: Date.now() - stepStart });
     console.error(`❌ Generation failed after ${duration}ms:`, error);
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Generation failed'
       },
-      { status: 500, headers: { 'X-Generation-Time-Ms': duration.toString() } }
+      {
+        status: 500,
+        headers: {
+          'X-Generation-Time-Ms': duration.toString(),
+          'Server-Timing': toServerTiming(timings),
+          'X-Generation-Breakdown': toTimingBreakdown(timings),
+        },
+      }
     );
   }
 }
