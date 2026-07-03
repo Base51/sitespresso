@@ -3,6 +3,7 @@ import { WebsiteSchema, GenerateInputSchema, normalizeWebsiteContent } from '../
 import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
+import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
@@ -323,6 +324,28 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id)
         .single();
       userPlan = (profile?.plan as typeof userPlan) ?? 'free';
+
+      const { count: siteCount } = await supabase
+        .from('sites')
+        .select('id', { head: true, count: 'exact' })
+        .eq('user_id', user.id);
+
+      const totalSites = siteCount ?? 0;
+      if (isSiteLimitReached(userPlan, totalSites)) {
+        const siteLimit = resolveSiteLimit(userPlan);
+        return NextResponse.json(
+          {
+            error: siteLimit == null
+              ? 'Site creation is temporarily unavailable.'
+              : `Site limit reached (${totalSites}/${siteLimit}). Upgrade your plan to create more sites.`,
+            requiresUpgrade: true,
+            currentPlan: userPlan,
+            siteCount: totalSites,
+            siteLimit,
+          },
+          { status: 403 }
+        );
+      }
     }
     markStep('plan');
 

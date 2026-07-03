@@ -6,6 +6,7 @@ import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
 import LogoDisplay from './LogoDisplay';
 import { createClient } from '@/lib/supabase/client';
+import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 interface SitePreviewProps {
   website: Website;
@@ -121,6 +122,29 @@ export default function SitePreview({
             .update({ content: data, updated_at: new Date().toISOString() })
             .eq('id', savedId);
         } else {
+          const [{ data: profile }, { count: siteCount }] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('plan')
+              .eq('id', user.id)
+              .single(),
+            supabase
+              .from('sites')
+              .select('id', { head: true, count: 'exact' })
+              .eq('user_id', user.id),
+          ]);
+
+          const currentPlan = (profile?.plan as 'free' | 'starter' | 'pro' | 'agency' | undefined) ?? 'free';
+          const totalSites = siteCount ?? 0;
+          if (isSiteLimitReached(currentPlan, totalSites)) {
+            const siteLimit = resolveSiteLimit(currentPlan);
+            throw new Error(
+              siteLimit == null
+                ? 'Site creation is temporarily unavailable.'
+                : `Site limit reached (${totalSites}/${siteLimit}). Upgrade your plan to create more sites.`
+            );
+          }
+
           const baseSlug = data.business_name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')

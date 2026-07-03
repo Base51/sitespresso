@@ -9,6 +9,7 @@ import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import EmptyState from '@/components/EmptyState';
 import { useToast } from '@/hooks/useToast';
 import { getCustomDomainInstructions } from '@/lib/domains';
+import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 interface Site {
   id: string;
@@ -62,6 +63,8 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
   const [savingDomainId, setSavingDomainId] = useState<string | null>(null);
   const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(null);
   const [attachingDomainId, setAttachingDomainId] = useState<string | null>(null);
+  const currentSiteLimit = resolveSiteLimit(currentPlan);
+  const reachedSiteLimit = isSiteLimitReached(currentPlan, localSites.length);
 
   function openDeleteModal(site: Site) {
     setSiteToDelete(site);
@@ -203,12 +206,26 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-2xl font-semibold text-white">Your sites</h2>
-          <Link href="/" className="inline-flex">
-            <Button variant="secondary" size="sm">
-              + New site
-            </Button>
-          </Link>
+          {reachedSiteLimit ? (
+            <Link href="/account" className="inline-flex">
+              <Button variant="secondary" size="sm">
+                Upgrade for more sites
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/" className="inline-flex">
+              <Button variant="secondary" size="sm">
+                + New site
+              </Button>
+            </Link>
+          )}
         </div>
+
+        {reachedSiteLimit && currentSiteLimit != null && (
+          <p className="text-sm text-amber-200">
+            Site limit reached ({localSites.length}/{currentSiteLimit}). Upgrade to create more sites.
+          </p>
+        )}
 
         {!localSites || localSites.length === 0 ? (
           <EmptyState

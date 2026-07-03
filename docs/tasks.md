@@ -186,7 +186,7 @@
 | T-105 | Google Business Profile embed ✅ (Schema + editor input + preview + published route rendering) |
 | T-106 | Booking widget integration (Calendly embed) ✅ (Schema + editor input + preview + published route rendering) |
 | T-107 | Google Maps embed for contact section ✅ (Schema + editor input + preview + published route rendering) |
-| T-108 | Agency plan: unlimited sites, client management |
+| T-108 | Agency plan: unlimited sites, client management 🔄 (Foundation shipped: per-plan site-limit enforcement + dashboard limit UX) |
 | T-109 | White-label mode: custom branding for agency resellers |
 | T-110 | Multi-language generation (Spanish, Portuguese) |
 | T-111 | AI "refresh content" on demand |
