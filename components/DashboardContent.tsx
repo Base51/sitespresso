@@ -9,6 +9,7 @@ import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 import EmptyState from '@/components/EmptyState';
 import { useToast } from '@/hooks/useToast';
 import { getCustomDomainInstructions } from '@/lib/domains';
+import { normalizePlan } from '@/lib/billing/plans';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 
 interface Site {
@@ -64,8 +65,9 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
   const [savingDomainId, setSavingDomainId] = useState<string | null>(null);
   const [verifyingDomainId, setVerifyingDomainId] = useState<string | null>(null);
   const [attachingDomainId, setAttachingDomainId] = useState<string | null>(null);
-  const currentSiteLimit = resolveSiteLimit(currentPlan);
-  const reachedSiteLimit = isSiteLimitReached(currentPlan, localSites.length);
+  const normalizedCurrentPlan = normalizePlan(currentPlan);
+  const currentSiteLimit = resolveSiteLimit(normalizedCurrentPlan);
+  const reachedSiteLimit = isSiteLimitReached(normalizedCurrentPlan, localSites.length);
 
   useEffect(() => {
     if (billingReconciledRef.current) return;
@@ -333,7 +335,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         Bring your own domain. Available on Starter, Pro, and Agency plans.
                       </p>
                     </div>
-                    {currentPlan === 'free' ? (
+                    {normalizedCurrentPlan === 'free' ? (
                       <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-200">
                         Paid feature
                       </span>
@@ -360,12 +362,12 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                         value={domainInputs[site.id] ?? ''}
                         onChange={(event) => setDomainInputs((prev) => ({ ...prev, [site.id]: event.target.value }))}
                         placeholder="example.com"
-                        disabled={currentPlan === 'free' || savingDomainId === site.id}
+                        disabled={normalizedCurrentPlan === 'free' || savingDomainId === site.id}
                         className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-brand-text placeholder:text-brand-muted outline-none transition focus:border-brand-primary/60 focus-visible:ring-2 focus-visible:ring-brand-primary/25 disabled:cursor-not-allowed disabled:opacity-55"
                       />
                     </div>
 
-                    {currentPlan === 'free' ? (
+                    {normalizedCurrentPlan === 'free' ? (
                       <Link href="/account" className="inline-flex">
                         <Button variant="secondary" size="md">
                           Upgrade to unlock
@@ -403,7 +405,7 @@ export default function DashboardContent({ sites, currentPlan }: DashboardConten
                     )}
                   </div>
 
-                  {currentPlan === 'free' ? (
+                  {normalizedCurrentPlan === 'free' ? (
                     <p className="mt-3 text-sm text-brand-muted">
                       Free plans can preview this feature, but custom domains require a paid subscription. Upgrade to connect your brand domain.
                     </p>
