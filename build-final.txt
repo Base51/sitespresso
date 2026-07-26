@@ -1,0 +1,79 @@
+
+> sitespresso@1.0.1 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.production.local, .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+Quota endpoint error: n [Error]: Dynamic server usage: Route /api/user/quota couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\.next\server\chunks\8948.js:1:37220)
+    at f (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\.next\server\app\api\billing\checkout\route.js:1:9475)
+    at a (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\.next\server\app\api\billing\checkout\route.js:1:7592)
+    at d (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\.next\server\app\api\user\quota\route.js:1:1445)
+    at C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
+    at C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\server\lib\trace\tracer.js:140:36
+    at NoopContextManager.with (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\lcarvalho\Downloads\VS CODE\PROJECTS\SITESPRESSO\sitespresso\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854) {
+  description: "Route /api/user/quota couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ Γ£ô Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    7.44 kB         190 kB
+Γö£ Γùï /_not-found                          873 B          88.2 kB
+Γö£ ╞Æ /account                             4.04 kB         100 kB
+Γö£ ╞Æ /admin/billing                       175 B          96.2 kB
+Γö£ ╞Æ /api/account                         0 B                0 B
+Γö£ ╞Æ /api/admin/billing/duplicates        0 B                0 B
+Γö£ ╞Æ /api/analytics/pageview              0 B                0 B
+Γö£ Γùï /api/auth/callback                   0 B                0 B
+Γö£ ╞Æ /api/billing/checkout                0 B                0 B
+Γö£ Γùï /api/billing/plans                   0 B                0 B
+Γö£ ╞Æ /api/billing/portal                  0 B                0 B
+Γö£ ╞Æ /api/generate                        0 B                0 B
+Γö£ ╞Æ /api/leads                           0 B                0 B
+Γö£ ╞Æ /api/referrals                       0 B                0 B
+Γö£ ╞Æ /api/referrals/stats                 0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/delete               0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/domain               0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/domain/attach        0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/domain/verify        0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/hero-image           0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/logo                 0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/publish              0 B                0 B
+Γö£ ╞Æ /api/sites/[id]/refresh-section      0 B                0 B
+Γö£ ╞Æ /api/user/quota                      0 B                0 B
+Γö£ ╞Æ /api/user/reconcile-billing          0 B                0 B
+Γö£ ╞Æ /api/webhooks/stripe                 0 B                0 B
+Γö£ ╞Æ /auth/callback                       0 B                0 B
+Γö£ ╞Æ /dashboard                           5.81 kB         102 kB
+Γö£ ╞Æ /editor/[id]                         195 B           183 kB
+Γö£ ╞Æ /login                               2.76 kB         164 kB
+Γö£ Γùï /robots.txt                          0 B                0 B
+Γö£ Γùï /sitemap.xml                         0 B                0 B
+Γö£ ╞Æ /sites/[slug]                        861 B          94.4 kB
+Γöö ╞Æ /sites/[slug]/[page]                 1.91 kB        89.2 kB
++ First Load JS shared by all            87.3 kB
+  Γö£ chunks/117-48a2f1a945f634b1.js       31.7 kB
+  Γö£ chunks/fd9d1056-b9b281d6c2728617.js  53.6 kB
+  Γöö other shared chunks (total)          1.95 kB
+
+
+╞Æ Middleware                             83.1 kB
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
