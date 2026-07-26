@@ -118,12 +118,27 @@ export async function POST(): Promise<NextResponse> {
     }
 
     if (changed) {
+      console.log(`[reconcile-billing] Updating profile plan: ${currentPlan} → ${nextPlan} (user: ${user.id})`);
       await (admin.from('profiles') as unknown as Updatable)
         .update({ plan: nextPlan, stripe_customer_id: stripeCustomerId })
         .eq('id', user.id);
     }
 
-    return NextResponse.json({ success: true, changed, plan: nextPlan });
+    return NextResponse.json({ 
+      success: true, 
+      changed, 
+      plan: nextPlan,
+      debug: {
+        currentPlan,
+        nextPlan,
+        stripeCustomerId,
+        subscriptionCount: activeLike.length,
+        latestSubscription: latest ? {
+          status: latest.status,
+          priceId: latest.items.data[0]?.price?.id,
+        } : null,
+      }
+    });
   } catch (error) {
     console.error('Billing reconciliation error:', error);
     return NextResponse.json(

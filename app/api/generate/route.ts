@@ -339,14 +339,20 @@ export async function POST(request: NextRequest) {
       const subscriptionPlan = planFromPriceId(subscriptions?.[0]?.stripe_price_id);
       userPlan = subscriptionPlan !== 'free' ? subscriptionPlan : normalizePlan(profile?.plan);
 
+      console.log(`[generate] Plan determination - subscription: ${subscriptionPlan}, stored: ${normalizePlan(profile?.plan)}, determined: ${userPlan}`);
+
       const { count: siteCount } = await supabase
         .from('sites')
         .select('id', { head: true, count: 'exact' })
         .eq('user_id', user.id);
 
       const totalSites = siteCount ?? 0;
-      if (isSiteLimitReached(userPlan, totalSites)) {
-        const siteLimit = resolveSiteLimit(userPlan);
+      const siteLimit = resolveSiteLimit(userPlan);
+      const limitReached = isSiteLimitReached(userPlan, totalSites);
+
+      console.log(`[generate] Site limits - plan: ${userPlan}, sites: ${totalSites}, limit: ${siteLimit}, reached: ${limitReached}`);
+
+      if (limitReached) {
         return NextResponse.json(
           {
             error: siteLimit == null
