@@ -1,0 +1,20 @@
+
+> sitespresso@1.0.1 dev
+> next dev
+
+ ΓÜá Port 3000 is in use, trying 3001 instead.
+  Γû▓ Next.js 14.2.35
+  - Local:        http://localhost:3001
+  - Environments: .env.local
+
+ Γ£ô Starting...
+ Γ£ô Ready in 1559ms
+ Γ£ô Compiled /middleware in 463ms (125 modules)
+ Γùï Compiling /sites/[slug] ...
+ Γ£ô Compiled /sites/[slug] in 2.7s (786 modules)
+ Γ¿» lib\schemas\website.ts (122:32) @ parse
+ Γ¿» ZodError: [
+  {
+    "origin": "string",
+    "code": "too_big",
+    "maximum": 500,
