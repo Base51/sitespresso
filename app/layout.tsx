@@ -6,6 +6,9 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ToastProvider } from '@/components/ToastContext';
 import ToastContainer from '@/components/ToastContainer';
 import GlobalFooter from '@/components/GlobalFooter';
+import { Suspense } from 'react';
+import ReferralCapture from '@/components/ReferralCapture';
+import ReferralApply from '@/components/ReferralApply';
 
 const isVercelRuntime = Boolean(process.env.VERCEL_URL);
 
@@ -31,6 +34,8 @@ export default function RootLayout({ children }: RootLayoutProps): JSX.Element {
             <GlobalFooter />
           </div>
           <ToastContainer />
+          <Suspense fallback={null}><ReferralCapture /></Suspense>
+          <Suspense fallback={null}><ReferralApply /></Suspense>
           {isVercelRuntime ? <Analytics /> : null}
           {isVercelRuntime ? <SpeedInsights /> : null}
         </ToastProvider>

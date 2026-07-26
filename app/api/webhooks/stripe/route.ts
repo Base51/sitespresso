@@ -5,6 +5,8 @@ import { getStripe, getWebhookSecret, planFromStripeStatus } from '@/lib/stripe'
 
 export const runtime = 'nodejs';
 
+const REFERRAL_REWARD_CENTS = 1000; // $10 Stripe balance credit
+
 type Upsertable = {
   upsert: (values: Record<string, unknown>, options?: { onConflict?: string }) => Promise<unknown>;
 };
@@ -115,6 +117,55 @@ async function upsertSubscriptionFromStripe(
   );
 }
 
+async function rewardReferrer(referredUserId: string): Promise<void> {
+  const admin = createAdminClient();
+
+  // Find a pending referral for this user
+  const { data: referrals } = await admin
+    .from('referrals')
+    .select('id, referrer_user_id')
+    .eq('referred_user_id', referredUserId)
+    .eq('status', 'pending')
+    .limit(1);
+
+  const referral = (referrals as Array<{ id: string; referrer_user_id: string }> | null)?.[0];
+  if (!referral) return;
+
+  // Get referrer's Stripe customer id
+  const { data: referrerProfile } = await admin
+    .from('profiles')
+    .select('stripe_customer_id')
+    .eq('id', referral.referrer_user_id)
+    .single();
+
+  const stripeCustomerId = (referrerProfile as { stripe_customer_id?: string | null } | null)
+    ?.stripe_customer_id;
+
+  if (stripeCustomerId) {
+    const stripe = getStripe();
+    try {
+      await stripe.customers.createBalanceTransaction(stripeCustomerId, {
+        amount: -REFERRAL_REWARD_CENTS, // negative = credit
+        currency: 'usd',
+        description: 'Referral reward — thank you for spreading the word!',
+      });
+    } catch (err) {
+      console.error('[referral] stripe balance credit failed:', err);
+      // Still mark rewarded so we don't double-attempt
+    }
+  }
+
+  // Mark referral as rewarded regardless (even without a Stripe customer yet)
+  await (admin.from('referrals') as unknown as Updatable)
+    .update({
+      status: 'rewarded',
+      reward_amount_cents: REFERRAL_REWARD_CENTS,
+      rewarded_at: new Date().toISOString(),
+    })
+    .eq('id', referral.id)
+    .eq('id', referral.id); // second eq required by Updatable chain — noop duplicate
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const stripe = getStripe();
   const admin = createAdminClient();
@@ -134,6 +185,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
       .update({ status: 'published', published_at: new Date().toISOString() })
       .eq('id', siteId)
       .eq('user_id', userId);
+  }
+
+  // Reward referrer if this user was referred
+  if (userId) {
+    await rewardReferrer(userId);
   }
 }
 

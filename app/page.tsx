@@ -10,6 +10,7 @@ import Logo from '@/components/Logo';
 import { useToast } from '@/hooks/useToast';
 import SitePreview from '@/components/SitePreview';
 import PaywallModal from '@/components/PaywallModal';
+import LeadCaptureModal from '@/components/LeadCaptureModal';
 import type { Website } from '@/lib/schemas/website';
 import { isTrialUsed, markTrialUsed } from '@/lib/trial';
 import { createClient } from '@/lib/supabase/client';
@@ -40,6 +41,8 @@ export default function Home() {
   const [publishTime, setPublishTime] = useState<number | null>(null);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [leadCaptureOpen, setLeadCaptureOpen] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PaidPlan>('starter');
   const [selectedBilling, setSelectedBilling] = useState<BillingInterval>('monthly');
@@ -167,6 +170,12 @@ export default function Home() {
   }
 
   async function publishSite(draftId: string | null) {
+    // For unauthenticated users, capture email first (unless already done)
+    if (!user && !leadCaptured) {
+      setLeadCaptureOpen(true);
+      return;
+    }
+
     if (!draftId) {
       toast({
         type: 'warning',
@@ -509,6 +518,8 @@ export default function Home() {
                   setPublishTime(null);
                   setPublishedUrl(null);
                   setPaywallOpen(false);
+                  setLeadCaptureOpen(false);
+                  setLeadCaptured(false);
                 }}
                 className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
               >
@@ -525,6 +536,8 @@ export default function Home() {
                   setGenerationTime(null);
                   setPublishTime(null);
                   setPaywallOpen(false);
+                  setLeadCaptureOpen(false);
+                  setLeadCaptured(false);
                 }}
                 className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
               >
@@ -560,6 +573,19 @@ export default function Home() {
         onPlanChange={setSelectedPlan}
         onBillingChange={setSelectedBilling}
         onContinue={continueToCheckout}
+      />
+
+      <LeadCaptureModal
+        open={leadCaptureOpen}
+        businessName={lastInput?.business_name}
+        businessType={lastInput?.business_type}
+        city={lastInput?.city}
+        onClose={() => setLeadCaptureOpen(false)}
+        onCaptured={() => {
+          setLeadCaptureOpen(false);
+          setLeadCaptured(true);
+          void publishSite(draftId);
+        }}
       />
     </>
   );

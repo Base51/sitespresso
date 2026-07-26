@@ -6,6 +6,7 @@ import UpgradePlanButton from '@/components/UpgradePlanButton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Logo from '@/components/Logo';
+import ReferralPanel from '@/components/ReferralPanel';
 import { NEXT_PLAN, PLAN_LABELS, formatPlanPrice, mergePlanPricing, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { billingIntervalFromPriceId, getStripePlanPricingOverrides, isStripePriceConfigured, planFromPriceId } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
@@ -155,6 +156,8 @@ export default async function AccountPage(): Promise<JSX.Element> {
             : 'Upgrade to a paid plan to create your billing profile and unlock Stripe subscription management.'}
         </p>
       </Card>
+
+      <ReferralPanel />
     </main>
   );
 }
