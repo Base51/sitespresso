@@ -1035,13 +1035,19 @@ export default function EditorSidebar({
           {/* Contact Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'contact' ? null : 'contact')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'contact'
                 ? 'border-teal-500 bg-teal-500/10 text-teal-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'contact' ? '▼' : '▶'} <MapPin size={14} className="inline-block" aria-hidden="true" /> Contact
+            {activePanel === 'contact' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <MapPin size={14} className="shrink-0" aria-hidden="true" />
+            Contact
           </button>
           {activePanel === 'contact' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
