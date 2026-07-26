@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
-import { Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Check, AlertTriangle, X } from 'lucide-react';
 import type { Website } from '@/lib/schemas/website';
 import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
@@ -256,20 +256,34 @@ export default function SitePreview({
     return `https://fonts.googleapis.com/css2?${families.map(f => `family=${f}`).join('&')}&display=swap`;
   }, [draft.fonts?.heading, draft.fonts?.body]);
 
-  const saveLabel: Record<SaveStatus, string> = {
-    idle: '',
-    saving: 'Saving…',
-    saved: lastSaveTime ? `✓ Saved (${lastSaveTime}ms)` : '✓ Draft saved',
-    unauthenticated: '⚠ Sign in to save your draft',
-    error: '✕ Save failed — try again',
-  };
-
-  const saveLabelClass: Record<SaveStatus, string> = {
-    idle: 'text-slate-500',
-    saving: 'text-yellow-400',
-    saved: 'text-green-400',
-    unauthenticated: 'text-amber-400',
-    error: 'text-red-400',
+  const getSaveStatusDisplay = (): ReactNode => {
+    switch (saveStatus) {
+      case 'idle':
+        return null;
+      case 'saving':
+        return <span className="text-yellow-400">Saving…</span>;
+      case 'saved':
+        return (
+          <span className="text-green-400 flex items-center gap-1">
+            <Check size={14} className="shrink-0" aria-hidden="true" />
+            {lastSaveTime ? `Saved (${lastSaveTime}ms)` : 'Draft saved'}
+          </span>
+        );
+      case 'unauthenticated':
+        return (
+          <span className="text-amber-400 flex items-center gap-1">
+            <AlertTriangle size={14} className="shrink-0" aria-hidden="true" />
+            Sign in to save your draft
+          </span>
+        );
+      case 'error':
+        return (
+          <span className="text-red-400 flex items-center gap-1">
+            <X size={14} className="shrink-0" aria-hidden="true" />
+            Save failed — try again
+          </span>
+        );
+    }
   };
 
   const sectionOrder = useMemo(() => {
@@ -599,7 +613,7 @@ export default function SitePreview({
               ))}
             </div>
           </div>
-          <span className={saveLabelClass[saveStatus]}>{saveLabel[saveStatus]}</span>
+          {getSaveStatusDisplay()}
         </div>
 
       {/* Hero */}

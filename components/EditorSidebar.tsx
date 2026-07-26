@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Wand2, BookOpen, Wrench, MapPin } from 'lucide-react';
+import { Wand2, BookOpen, Wrench, MapPin, Settings, Upload, Maximize2, Zap, ImageIcon, Type, Palette, Sparkles, X, ArrowLeft, ArrowDown, ArrowRight, Save } from 'lucide-react';
 import type { Website } from '@/lib/schemas/website';
 import LogoUpload from './LogoUpload';
 import FontSelector from './FontSelector';
@@ -740,9 +740,19 @@ export default function EditorSidebar({
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+        className="w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 flex items-center justify-center gap-2"
       >
-        {isOpen ? '✕ Close Customization' : '⚙️ Customize Site'}
+        {isOpen ? (
+          <>
+            <X size={16} className="shrink-0" aria-hidden="true" />
+            Close Customization
+          </>
+        ) : (
+          <>
+            <Settings size={16} className="shrink-0" aria-hidden="true" />
+            Customize Site
+          </>
+        )}
       </button>
 
       {/* Panels */}
@@ -751,13 +761,19 @@ export default function EditorSidebar({
           {/* Logo Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'logo' ? null : 'logo')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'logo'
                 ? 'border-blue-500 bg-blue-500/10 text-blue-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'logo' ? '▼' : '▶'} 📤 Logo
+            {activePanel === 'logo' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Upload size={14} className="shrink-0" aria-hidden="true" />
+            Logo
           </button>
           {activePanel === 'logo' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -777,13 +793,19 @@ export default function EditorSidebar({
                       <button
                         key={pos}
                         onClick={() => handleLogoPositionChange(pos)}
-                        className={`flex-1 rounded py-2 px-3 text-xs font-medium transition ${
+                        className={`flex-1 rounded py-2 px-3 text-xs font-medium transition flex items-center justify-center gap-1 ${
                           website.logo?.position === pos
                             ? 'bg-blue-600 text-white'
                             : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                         }`}
                       >
-                        {pos === 'left' ? '⬅ Left' : pos === 'center' ? '⬇ Center' : '➡ Right'}
+                        {pos === 'left' ? (
+                          <><ArrowLeft size={12} className="shrink-0" aria-hidden="true" /> Left</>
+                        ) : pos === 'center' ? (
+                          <><ArrowDown size={12} className="shrink-0" aria-hidden="true" /> Center</>
+                        ) : (
+                          <><ArrowRight size={12} className="shrink-0" aria-hidden="true" /> Right</>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -820,13 +842,19 @@ export default function EditorSidebar({
           {/* Layout Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'layout' ? null : 'layout')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'layout'
                 ? 'border-amber-500 bg-amber-500/10 text-amber-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'layout' ? '▼' : '▶'} ↕️ Layout
+            {activePanel === 'layout' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Maximize2 size={14} className="shrink-0" aria-hidden="true" />
+            Layout
           </button>
           {activePanel === 'layout' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -867,13 +895,19 @@ export default function EditorSidebar({
           {/* Hero CTA Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'hero' ? null : 'hero')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'hero'
                 ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'hero' ? '▼' : '▶'} 🚀 Hero CTA
+            {activePanel === 'hero' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Zap size={14} className="shrink-0" aria-hidden="true" />
+            Hero CTA
           </button>
           {activePanel === 'hero' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -925,13 +959,19 @@ export default function EditorSidebar({
           {/* Hero Image Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'heroImage' ? null : 'heroImage')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'heroImage'
                 ? 'border-sky-500 bg-sky-500/10 text-sky-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'heroImage' ? '▼' : '▶'} 🖼 Hero Image
+            {activePanel === 'heroImage' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <ImageIcon size={14} className="shrink-0" aria-hidden="true" />
+            Hero Image
           </button>
           {activePanel === 'heroImage' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -1056,13 +1096,19 @@ export default function EditorSidebar({
           {/* Fonts Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'fonts' ? null : 'fonts')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'fonts'
                 ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'fonts' ? '▼' : '▶'} 🔤 Fonts
+            {activePanel === 'fonts' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Type size={14} className="shrink-0" aria-hidden="true" />
+            Fonts
           </button>
           {activePanel === 'fonts' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -1073,13 +1119,19 @@ export default function EditorSidebar({
           {/* Colors Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'colors' ? null : 'colors')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'colors'
                 ? 'border-purple-500 bg-purple-500/10 text-purple-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'colors' ? '▼' : '▶'} 🎨 Colors
+            {activePanel === 'colors' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Palette size={14} className="shrink-0" aria-hidden="true" />
+            Colors
           </button>
           {activePanel === 'colors' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -1271,13 +1323,19 @@ export default function EditorSidebar({
           {/* Refresh Content Panel */}
           <button
             onClick={() => setActivePanel(activePanel === 'refresh' ? null : 'refresh')}
-            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition flex items-center gap-2 ${
               activePanel === 'refresh'
                 ? 'border-violet-500 bg-violet-500/10 text-violet-300'
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'refresh' ? '▼' : '▶'} ✨ Refresh Content
+            {activePanel === 'refresh' ? (
+              <ArrowDown size={14} className="shrink-0" aria-hidden="true" />
+            ) : (
+              <ArrowRight size={14} className="shrink-0" aria-hidden="true" />
+            )}
+            <Sparkles size={14} className="shrink-0" aria-hidden="true" />
+            Refresh Content
           </button>
           {activePanel === 'refresh' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -1341,8 +1399,9 @@ export default function EditorSidebar({
             </div>
           )}
 
-          <p className="text-xs text-slate-500 pt-2">
-            💾 Changes save automatically as you edit
+          <p className="text-xs text-slate-500 pt-2 flex items-center gap-1">
+            <Save size={12} className="shrink-0" aria-hidden="true" />
+            Changes save automatically as you edit
           </p>
         </div>
       )}
