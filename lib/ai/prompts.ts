@@ -47,6 +47,55 @@ REQUIREMENTS:
 OUTPUT: Valid JSON object only.`;
 }
 
+export type RefreshableSection = 'hero' | 'about' | 'services' | 'contact';
+
+export function getRefreshSectionSystemPrompt(): string {
+  return `You are an expert website copywriter specializing in high-converting local business websites.
+
+Your task is to regenerate a specific website section with fresh, compelling copy.
+Keep the business name, type, city, and brand personality consistent with the provided context.
+Return ONLY the JSON for the requested section — no extra keys, no wrapping object.
+Follow these writing principles:
+- Hero: Immediate value proposition, benefit-focused headline (6-10 words), 80-120 word body
+- About: Trust-building story, credentials, local connection (80-120 words)
+- Services: 4-5 items, specific benefit-driven descriptions (10-15 words each)
+- Contact: Professional details consistent with business type and location
+Return ONLY valid JSON for the requested section.`;
+}
+
+export function getRefreshSectionPrompt(
+  section: RefreshableSection,
+  businessName: string,
+  businessType: string,
+  city: string,
+  currentContent: string,
+  hint?: string,
+): string {
+  const hintClause = hint?.trim()
+    ? `\nUser direction: "${hint.trim()}" — incorporate this while keeping it professional.`
+    : '\nGenerate a fresh variation that is noticeably different from the current copy.';
+
+  const sectionGuide: Record<RefreshableSection, string> = {
+    hero: `Return JSON with keys: title (6-10 words), content (80-120 words), cta_text (action phrase), cta_url (anchor or URL).`,
+    about: `Return JSON with keys: title, content (80-120 words), cta_text, cta_url.`,
+    services: `Return JSON with keys: title, description (1-2 sentences), items (array of 4-5 objects with "name" and "description" keys, each description 10-15 words).`,
+    contact: `Return JSON with keys: title, phone, email, address, hours. Keep realistic values for ${businessType} in ${city}. Do NOT include embed URL fields.`,
+  };
+
+  return `Regenerate the "${section}" section for this business:
+Business: ${businessName}
+Type: ${businessType}
+City: ${city}
+${hintClause}
+
+Current content (for reference, do NOT copy verbatim):
+${currentContent}
+
+${sectionGuide[section]}
+
+Return ONLY valid JSON for this section — no markdown, no wrapper object.`;
+}
+
 export function getUserPrompt(input: GenerateInput): string {
   return `Generate a high-converting professional website JSON for this local business (return ONLY valid JSON):
 

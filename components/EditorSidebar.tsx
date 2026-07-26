@@ -15,7 +15,15 @@ interface EditorSidebarProps {
   onWebsiteChange: (website: Website) => void;
 }
 
-type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'contact' | 'fonts' | 'colors' | null;
+type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'contact' | 'fonts' | 'colors' | 'refresh' | null;
+type RefreshableSection = 'hero' | 'about' | 'services' | 'contact';
+
+const REFRESHABLE_SECTIONS: { key: RefreshableSection; label: string; emoji: string }[] = [
+  { key: 'hero', label: 'Hero', emoji: '🚀' },
+  { key: 'about', label: 'About', emoji: '📖' },
+  { key: 'services', label: 'Services', emoji: '⚙️' },
+  { key: 'contact', label: 'Contact', emoji: '📍' },
+];
 type SectionKey = 'about' | 'services' | 'contact';
 type SectionBackgrounds = Record<SectionKey, string>;
 
@@ -88,6 +96,8 @@ export default function EditorSidebar({
   const [isGeneratingHeroImage, setIsGeneratingHeroImage] = useState(false);
   const [isRemovingHeroImage, setIsRemovingHeroImage] = useState(false);
   const [heroImagePrompt, setHeroImagePrompt] = useState('');
+  const [refreshingSection, setRefreshingSection] = useState<RefreshableSection | null>(null);
+  const [refreshHint, setRefreshHint] = useState('');
 
   useEffect(() => {
     setHeroImagePrompt(website.hero?.hero_image_prompt ?? '');
@@ -1252,6 +1262,79 @@ export default function EditorSidebar({
                   </label>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Refresh Content Panel */}
+          <button
+            onClick={() => setActivePanel(activePanel === 'refresh' ? null : 'refresh')}
+            className={`w-full rounded-lg border px-4 py-2 text-sm font-medium transition ${
+              activePanel === 'refresh'
+                ? 'border-violet-500 bg-violet-500/10 text-violet-300'
+                : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            {activePanel === 'refresh' ? '▼' : '▶'} ✨ Refresh Content
+          </button>
+          {activePanel === 'refresh' && (
+            <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
+              <p className="text-xs text-slate-400">
+                Regenerate any section with fresh AI copy. Optionally give a direction hint.
+              </p>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Direction (optional)</label>
+                <input
+                  type="text"
+                  value={refreshHint}
+                  onChange={(e) => setRefreshHint(e.target.value)}
+                  placeholder='e.g. "More formal" or "Emphasise pricing"'
+                  maxLength={200}
+                  className="w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {REFRESHABLE_SECTIONS.map(({ key, label, emoji }) => (
+                  <button
+                    key={key}
+                    disabled={refreshingSection !== null}
+                    onClick={async () => {
+                      setRefreshingSection(key);
+                      try {
+                        const res = await fetch(`/api/sites/${siteId}/refresh-section`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ section: key, hint: refreshHint.trim() || undefined }),
+                        });
+                        const json = await res.json();
+                        if (!res.ok || !json.success) throw new Error(json.error ?? 'Refresh failed');
+                        onWebsiteChange({
+                          ...website,
+                          [key]: { ...(website[key as keyof typeof website] as object), ...json.data },
+                        });
+                        toast({ type: 'success', title: `${label} refreshed`, description: 'New AI content applied.' });
+                      } catch (err) {
+                        toast({ type: 'error', title: 'Refresh failed', description: err instanceof Error ? err.message : 'Could not refresh section.' });
+                      } finally {
+                        setRefreshingSection(null);
+                      }
+                    }}
+                    className={`flex items-center justify-center gap-1 rounded border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      refreshingSection === key
+                        ? 'border-violet-400 bg-violet-500/20 text-violet-200'
+                        : 'border-slate-600 bg-slate-800/70 text-slate-200 hover:border-violet-500 hover:text-violet-300'
+                    }`}
+                  >
+                    {refreshingSection === key ? (
+                      <span className="animate-pulse">Refreshing…</span>
+                    ) : (
+                      <>{emoji} {label}</>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {refreshingSection && (
+                <p className="text-[11px] text-violet-400">Generating new copy — this takes a few seconds…</p>
+              )}
             </div>
           )}
 

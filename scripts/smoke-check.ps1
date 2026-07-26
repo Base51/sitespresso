@@ -66,6 +66,8 @@ Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "PUBLISHED_PAGES" "Publis
 Assert-FileContains "app/sites/[slug]/[page]/page.tsx" "application/ld+json" "Published subpage route includes structured data"
 Assert-FileContains "middleware.ts" "resolvePublishedPathname" "Middleware preserves host-routed subpage path suffix"
 Assert-FileContains "app/api/generate/route.ts" "normalizeWebsiteContent" "Generation route normalizes multipage content"
+Assert-FileContains "app/api/sites/[id]/refresh-section/route.ts" "getRefreshSectionPrompt" "Refresh-section route uses targeted AI prompt"
+Assert-FileContains "components/EditorSidebar.tsx" "refresh-section" "Editor sidebar wires refresh-section API"
 Assert-FileContains "app/api/generate/route.ts" "isSiteLimitReached" "Generation route enforces per-plan site limits"
 Assert-FileContains "app/api/sites/[id]/domain/route.ts" "isSameDomain" "Domain save preserves flags when domain is unchanged"
 Assert-FileContains "app/api/sites/[id]/domain/verify/route.ts" "shouldPreserveVerifiedStatus" "Verify route avoids demotion on inconclusive DNS checks"
