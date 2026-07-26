@@ -124,6 +124,7 @@ const websiteResponseSchema = {
         },
         required: ['position', 'width'],
       },
+      language: { type: 'string', enum: ['en', 'es', 'pt', 'fr', 'de', 'it'] },
     },
     required: [
       'business_name',
