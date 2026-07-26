@@ -8,6 +8,7 @@ import {
   type RefreshableSection,
 } from '@/lib/ai/prompts';
 import type { Website } from '@/lib/schemas/website';
+import { normalizeLanguage } from '@/lib/i18n/languages';
 
 const RefreshSectionBodySchema = z.object({
   section: z.enum(['hero', 'about', 'services', 'contact']),
@@ -95,6 +96,7 @@ export async function POST(
 
     const content = site.content as Website;
     const currentSectionContent = JSON.stringify(content[section as keyof Website] ?? {});
+    const language = normalizeLanguage(content.language);
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({ error: 'AI service not configured' }, { status: 503 });
@@ -110,12 +112,13 @@ export async function POST(
       site.city,
       currentSectionContent,
       hint,
+      language,
     );
 
     const aiResponse = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: getRefreshSectionSystemPrompt() },
+        { role: 'system', content: getRefreshSectionSystemPrompt(language) },
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.6,

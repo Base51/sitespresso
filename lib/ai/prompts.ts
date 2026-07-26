@@ -1,7 +1,20 @@
 import { GenerateInput } from '@/lib/schemas/website';
+import { getLanguageLabel, normalizeLanguage, type LanguageCode } from '@/lib/i18n/languages';
 
-export function getSystemPrompt(): string {
+function languageDirective(language: LanguageCode): string {
+  if (language === 'en') {
+    return 'Write all copy in natural, native-quality English.';
+  }
+
+  const label = getLanguageLabel(language);
+  return `Write ALL copy (titles, body content, service names, CTAs, hours, section headings) in natural, native-quality ${label}. Do NOT mix in English. Use locally idiomatic phrasing, formatting, and conventions for ${label}-speaking customers. JSON keys must remain in English.`;
+}
+
+
+export function getSystemPrompt(language: LanguageCode = 'en'): string {
   return `You are an expert website strategist and copywriter specializing in high-converting local business websites.
+
+LANGUAGE REQUIREMENT: ${languageDirective(language)}
 
 Your task is to generate a complete, single-page website JSON structure that drives conversions through:
 - Compelling, benefit-focused copy that speaks to local customers
@@ -49,8 +62,10 @@ OUTPUT: Valid JSON object only.`;
 
 export type RefreshableSection = 'hero' | 'about' | 'services' | 'contact';
 
-export function getRefreshSectionSystemPrompt(): string {
+export function getRefreshSectionSystemPrompt(language: LanguageCode = 'en'): string {
   return `You are an expert website copywriter specializing in high-converting local business websites.
+
+LANGUAGE REQUIREMENT: ${languageDirective(language)}
 
 Your task is to regenerate a specific website section with fresh, compelling copy.
 Keep the business name, type, city, and brand personality consistent with the provided context.
@@ -70,6 +85,7 @@ export function getRefreshSectionPrompt(
   city: string,
   currentContent: string,
   hint?: string,
+  language: LanguageCode = 'en',
 ): string {
   const hintClause = hint?.trim()
     ? `\nUser direction: "${hint.trim()}" — incorporate this while keeping it professional.`
@@ -86,6 +102,7 @@ export function getRefreshSectionPrompt(
 Business: ${businessName}
 Type: ${businessType}
 City: ${city}
+Output language: ${getLanguageLabel(normalizeLanguage(language))}
 ${hintClause}
 
 Current content (for reference, do NOT copy verbatim):
@@ -97,11 +114,14 @@ Return ONLY valid JSON for this section — no markdown, no wrapper object.`;
 }
 
 export function getUserPrompt(input: GenerateInput): string {
+  const language = normalizeLanguage(input.language);
+
   return `Generate a high-converting professional website JSON for this local business (return ONLY valid JSON):
 
 Business: ${input.business_name}
 Industry: ${input.business_type}
 Location: ${input.city}
+Output language: ${getLanguageLabel(language)} — ${languageDirective(language)}
 
 REQUIREMENTS FOR JSON:
 1. Hero Section:

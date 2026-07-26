@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import { SUPPORTED_LANGUAGES, normalizeLanguage } from '@/lib/i18n/languages';
+
+const LanguageEnum = z.enum(
+  SUPPORTED_LANGUAGES.map((language) => language.code) as unknown as [string, ...string[]]
+);
 
 // Schema for a single text section (Hero, About, Services, Contact)
 const SectionSchema = z.object({
@@ -53,6 +58,7 @@ export const WebsiteSchema = z.object({
   business_name: z.string().min(1).max(100),
   business_type: z.string().min(1).max(50),
   city: z.string().min(1).max(50),
+  language: z.enum(['en', 'es', 'pt', 'fr', 'de', 'it']).optional(),
   tagline: z.string().min(10).max(150),
   hero: HeroSectionSchema,
   about: SectionSchema,
@@ -188,6 +194,12 @@ export const GenerateInputSchema = z.object({
     .min(1, 'City required')
     .max(50, 'City too long')
     .trim(),
+  language: z
+    .preprocess(
+      (value) => (value === undefined || value === null || value === '' ? undefined : normalizeLanguage(value)),
+      LanguageEnum.optional()
+    )
+    .optional(),
 });
 
 export type GenerateInput = z.infer<typeof GenerateInputSchema>;

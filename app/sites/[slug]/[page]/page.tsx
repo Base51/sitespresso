@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { headers } from 'next/headers';
 import type { Website } from '@/lib/schemas/website';
 import { getPublishedSiteBySlug } from '@/lib/published-site';
+import { normalizeLanguage } from '@/lib/i18n/languages';
 import PageViewTracker from '@/components/PageViewTracker';
 
 interface PageProps {
@@ -174,6 +175,7 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
 
   const { color_scheme } = site;
   const primary = color_scheme.primary;
+  const siteLanguage = normalizeLanguage(site.language);
 
   const fontFamilyMap: Record<string, string> = {
     'Playfair Display': '"Playfair Display", serif',
@@ -373,6 +375,7 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
 
   return (
     <main
+      lang={siteLanguage}
       className="w-full overflow-hidden bg-white text-slate-900"
       data-sitespresso-data-ms={dataFetchMs.toFixed(1)}
       data-sitespresso-render-ms={renderPrepMs.toFixed(1)}

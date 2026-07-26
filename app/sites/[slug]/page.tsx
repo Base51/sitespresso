@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import Image from 'next/image';
 import type { Website } from '@/lib/schemas/website';
 import { getPublishedSiteBySlug } from '@/lib/published-site';
+import { normalizeLanguage } from '@/lib/i18n/languages';
 import PageViewTracker from '@/components/PageViewTracker';
 
 interface PageProps {
@@ -151,6 +152,7 @@ export default async function PublishedSitePage({ params }: PageProps) {
   const { color_scheme } = site;
   const primary = color_scheme.primary;
   const secondary = color_scheme.secondary;
+  const siteLanguage = normalizeLanguage(site.language);
 
   // Google Fonts for selected fonts
   const fontFamilyMap: Record<string, string> = {
@@ -397,13 +399,14 @@ export default async function PublishedSitePage({ params }: PageProps) {
     '@type': 'WebSite',
     name: site.business_name,
     url: pageUrl,
-    inLanguage: 'en',
+    inLanguage: siteLanguage,
   };
 
   const renderPrepMs = performance.now() - renderStart;
 
   return (
     <main
+      lang={siteLanguage}
       className="w-full overflow-hidden bg-white text-slate-900"
       data-sitespresso-data-ms={dataFetchMs.toFixed(1)}
       data-sitespresso-render-ms={renderPrepMs.toFixed(1)}

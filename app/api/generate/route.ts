@@ -4,6 +4,7 @@ import { getSystemPrompt, getUserPrompt } from '../../../lib/ai/prompts';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 import { createClient } from '@/lib/supabase/server';
 import { normalizePlan } from '@/lib/billing/plans';
+import { normalizeLanguage, type LanguageCode } from '@/lib/i18n/languages';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 import { planFromPriceId } from '@/lib/stripe';
 
@@ -169,6 +170,7 @@ function extractJsonObject(content: string): string {
 
 async function callOpenAIWithRetry(
   userPrompt: string,
+  language: LanguageCode = 'en',
   retryCount: number = 0
 ): Promise<string> {
   // Dynamic import to avoid build-time issues
@@ -188,7 +190,7 @@ async function callOpenAIWithRetry(
       messages: [
         {
           role: 'system',
-          content: getSystemPrompt(),
+          content: getSystemPrompt(language),
         },
         {
           role: 'user',
@@ -211,7 +213,7 @@ async function callOpenAIWithRetry(
       await new Promise((resolve) =>
         setTimeout(resolve, RETRY_DELAY_MS * (retryCount + 1))
       );
-      return callOpenAIWithRetry(userPrompt, retryCount + 1);
+      return callOpenAIWithRetry(userPrompt, language, retryCount + 1);
     }
     throw error;
   }
@@ -380,13 +382,14 @@ export async function POST(request: NextRequest) {
     markStep('rate_limit');
 
     // Call OpenAI with retry logic
-    const jsonResponse = await callOpenAIWithRetry(getUserPrompt(input));
+    const language = normalizeLanguage(input.language);
+    const jsonResponse = await callOpenAIWithRetry(getUserPrompt(input), language);
     markStep('openai');
 
     // Parse and validate response
     const parsed = JSON.parse(extractJsonObject(jsonResponse));
     const withDefaults = applyDefaults(parsed);
-    const validated = WebsiteSchema.parse(withDefaults);
+    const validated = WebsiteSchema.parse({ ...withDefaults, language });
     const website = normalizeWebsiteContent(validated);
     markStep('validate');
 
