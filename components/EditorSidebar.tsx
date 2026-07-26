@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Wand2, BookOpen, Wrench, MapPin } from 'lucide-react';
 import type { Website } from '@/lib/schemas/website';
 import LogoUpload from './LogoUpload';
 import FontSelector from './FontSelector';
@@ -18,11 +19,13 @@ interface EditorSidebarProps {
 type Panel = 'logo' | 'layout' | 'hero' | 'heroImage' | 'contact' | 'fonts' | 'colors' | 'refresh' | null;
 type RefreshableSection = 'hero' | 'about' | 'services' | 'contact';
 
-const REFRESHABLE_SECTIONS: { key: RefreshableSection; label: string; emoji: string }[] = [
-  { key: 'hero', label: 'Hero', emoji: '🚀' },
-  { key: 'about', label: 'About', emoji: '📖' },
-  { key: 'services', label: 'Services', emoji: '⚙️' },
-  { key: 'contact', label: 'Contact', emoji: '📍' },
+import type { LucideIcon } from 'lucide-react';
+
+const REFRESHABLE_SECTIONS: { key: RefreshableSection; label: string; Icon: LucideIcon }[] = [
+  { key: 'hero', label: 'Hero', Icon: Wand2 },
+  { key: 'about', label: 'About', Icon: BookOpen },
+  { key: 'services', label: 'Services', Icon: Wrench },
+  { key: 'contact', label: 'Contact', Icon: MapPin },
 ];
 type SectionKey = 'about' | 'services' | 'contact';
 type SectionBackgrounds = Record<SectionKey, string>;
@@ -998,7 +1001,7 @@ export default function EditorSidebar({
                 : 'border-slate-600 bg-slate-800/50 text-slate-300 hover:border-slate-500'
             }`}
           >
-            {activePanel === 'contact' ? '▼' : '▶'} 📍 Contact
+            {activePanel === 'contact' ? '▼' : '▶'} <MapPin size={14} className="inline-block" aria-hidden="true" /> Contact
           </button>
           {activePanel === 'contact' && (
             <div className="space-y-3 rounded-lg bg-slate-900/50 p-3">
@@ -1293,7 +1296,7 @@ export default function EditorSidebar({
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {REFRESHABLE_SECTIONS.map(({ key, label, emoji }) => (
+                {REFRESHABLE_SECTIONS.map(({ key, label, Icon }) => (
                   <button
                     key={key}
                     disabled={refreshingSection !== null}
@@ -1327,7 +1330,7 @@ export default function EditorSidebar({
                     {refreshingSection === key ? (
                       <span className="animate-pulse">Refreshing…</span>
                     ) : (
-                      <>{emoji} {label}</>
+                      <><Icon size={14} className="shrink-0" aria-hidden="true" /> {label}</>
                     )}
                   </button>
                 ))}

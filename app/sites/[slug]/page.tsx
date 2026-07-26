@@ -6,6 +6,7 @@ import Image from 'next/image';
 import type { Website } from '@/lib/schemas/website';
 import { getPublishedSiteBySlug } from '@/lib/published-site';
 import { normalizeLanguage } from '@/lib/i18n/languages';
+import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon } from '@/components/ContactIcons';
 import PageViewTracker from '@/components/PageViewTracker';
 
 interface PageProps {
@@ -293,28 +294,28 @@ export default async function PublishedSitePage({ params }: PageProps) {
           </h2>
           <div className="space-y-3 text-slate-600" style={{ fontFamily: bodyCss }}>
             {site.contact.phone && (
-              <div className="flex gap-2">
-                <span>📞</span>
+              <div className="flex items-start gap-2">
+                <PhoneIcon />
                 <span>{site.contact.phone}</span>
               </div>
             )}
             {site.contact.email && (
-              <div className="flex gap-2">
-                <span>✉️</span>
+              <div className="flex items-start gap-2">
+                <MailIcon />
                 <a href={`mailto:${site.contact.email}`} className="hover:underline">
                   {site.contact.email}
                 </a>
               </div>
             )}
             {site.contact.address && (
-              <div className="flex gap-2">
-                <span>📍</span>
+              <div className="flex items-start gap-2">
+                <MapPinIcon />
                 <span>{site.contact.address}</span>
               </div>
             )}
             {site.contact.hours && (
-              <div className="flex gap-2">
-                <span>🕐</span>
+              <div className="flex items-start gap-2">
+                <ClockIcon />
                 <span>{site.contact.hours}</span>
               </div>
             )}

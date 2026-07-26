@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import type { Website } from '@/lib/schemas/website';
 import { getPublishedSiteBySlug } from '@/lib/published-site';
 import { normalizeLanguage } from '@/lib/i18n/languages';
+import { PhoneIcon, MailIcon, MapPinIcon, ClockIcon } from '@/components/ContactIcons';
 import PageViewTracker from '@/components/PageViewTracker';
 
 interface PageProps {
@@ -307,28 +308,28 @@ export default async function PublishedSiteSubPage({ params }: PageProps) {
           </h2>
           <div className="space-y-3 text-slate-600" style={{ fontFamily: bodyCss }}>
             {contactSection.phone && (
-              <div className="flex gap-2">
-                <span>📞</span>
+              <div className="flex items-start gap-2">
+                <PhoneIcon />
                 <span>{contactSection.phone}</span>
               </div>
             )}
             {contactSection.email && (
-              <div className="flex gap-2">
-                <span>✉️</span>
+              <div className="flex items-start gap-2">
+                <MailIcon />
                 <a href={`mailto:${contactSection.email}`} className="hover:underline">
                   {contactSection.email}
                 </a>
               </div>
             )}
             {contactSection.address && (
-              <div className="flex gap-2">
-                <span>📍</span>
+              <div className="flex items-start gap-2">
+                <MapPinIcon />
                 <span>{contactSection.address}</span>
               </div>
             )}
             {contactSection.hours && (
-              <div className="flex gap-2">
-                <span>🕐</span>
+              <div className="flex items-start gap-2">
+                <ClockIcon />
                 <span>{contactSection.hours}</span>
               </div>
             )}

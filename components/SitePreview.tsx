@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import type { Website } from '@/lib/schemas/website';
 import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
@@ -467,8 +468,8 @@ export default function SitePreview({
           />
           <div className="space-y-3 text-slate-600" style={{ fontFamily: fontMap[draft.fonts?.body || 'Inter'] }}>
             {draft.contact.phone && (
-              <div className="flex gap-2">
-                <span>📞</span>
+              <div className="flex items-start gap-2">
+                <Phone size={16} className="mt-0.5 shrink-0 text-slate-500" aria-hidden="true" />
                 <EditableField
                   tag="span"
                   value={draft.contact.phone}
@@ -480,8 +481,8 @@ export default function SitePreview({
               </div>
             )}
             {draft.contact.email && (
-              <div className="flex gap-2">
-                <span>✉️</span>
+              <div className="flex items-start gap-2">
+                <Mail size={16} className="mt-0.5 shrink-0 text-slate-500" aria-hidden="true" />
                 <EditableField
                   tag="span"
                   value={draft.contact.email}
@@ -493,8 +494,8 @@ export default function SitePreview({
               </div>
             )}
             {draft.contact.address && (
-              <div className="flex gap-2">
-                <span>📍</span>
+              <div className="flex items-start gap-2">
+                <MapPin size={16} className="mt-0.5 shrink-0 text-slate-500" aria-hidden="true" />
                 <EditableField
                   tag="span"
                   value={draft.contact.address}
@@ -506,8 +507,8 @@ export default function SitePreview({
               </div>
             )}
             {draft.contact.hours && (
-              <div className="flex gap-2">
-                <span>🕐</span>
+              <div className="flex items-start gap-2">
+                <Clock size={16} className="mt-0.5 shrink-0 text-slate-500" aria-hidden="true" />
                 <EditableField
                   tag="span"
                   value={draft.contact.hours}
