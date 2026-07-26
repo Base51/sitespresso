@@ -112,7 +112,12 @@ export default async function DashboardPage(): Promise<JSX.Element> {
   const hasActiveSubscription = Boolean(latestSubscription);
   const subscriptionPlan = planFromPriceId(latestSubscription?.stripe_price_id);
   const billingInterval = billingIntervalFromPriceId(latestSubscription?.stripe_price_id);
-  const plan = subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan;
+  
+  // Plan determination: prioritize stored plan if it's agency (to handle manual agency assignments)
+  // Otherwise use subscription plan if not free, fallback to stored plan
+  const plan: Plan = storedPlan === 'agency' 
+    ? 'agency'
+    : (subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan);
   const planPricing = mergePlanPricing(stripePricingOverrides);
   const nextPlan = plan === 'agency' ? null : NEXT_PLAN[plan];
   const currentPlanLabel = plan === 'free' ? 'Free' : PLAN_LABELS[plan];

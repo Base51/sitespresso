@@ -337,7 +337,12 @@ export async function POST(request: NextRequest) {
       ]);
 
       const subscriptionPlan = planFromPriceId(subscriptions?.[0]?.stripe_price_id);
-      userPlan = subscriptionPlan !== 'free' ? subscriptionPlan : normalizePlan(profile?.plan);
+      const storedPlan = normalizePlan(profile?.plan);
+      
+      // Prioritize stored plan if it's agency (manual assignment), otherwise subscription-based
+      userPlan = storedPlan === 'agency' 
+        ? 'agency'
+        : (subscriptionPlan !== 'free' ? subscriptionPlan : storedPlan);
 
       console.log(`[generate] Plan determination - subscription: ${subscriptionPlan}, stored: ${normalizePlan(profile?.plan)}, determined: ${userPlan}`);
 
