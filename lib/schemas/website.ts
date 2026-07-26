@@ -8,7 +8,7 @@ const LanguageEnum = z.enum(
 // Schema for a single text section (Hero, About, Services, Contact)
 const SectionSchema = z.object({
   title: z.string().min(1).max(100),
-  content: z.string().min(10).max(500),
+  content: z.string().min(10).max(2000),
   cta_text: z.string().max(50).optional(),
   cta_url: z.string().optional(),
 });
@@ -21,12 +21,12 @@ const HeroSectionSchema = SectionSchema.extend({
 // Schema for service items within Services section
 const ServiceSchema = z.object({
   name: z.string().min(1).max(50),
-  description: z.string().min(10).max(150),
+  description: z.string().min(10).max(500),
 });
 
 const ServicesSectionSchema = z.object({
   title: z.string().min(1).max(100),
-  description: z.string().min(10).max(200),
+  description: z.string().min(10).max(1000),
   items: z.array(ServiceSchema).min(1).max(8),
 });
 
@@ -59,7 +59,7 @@ export const WebsiteSchema = z.object({
   business_type: z.string().min(1).max(50),
   city: z.string().min(1).max(50),
   language: z.enum(['en', 'es', 'pt', 'fr', 'de', 'it']).optional(),
-  tagline: z.string().min(10).max(150),
+  tagline: z.string().min(10).max(500),
   hero: HeroSectionSchema,
   about: SectionSchema,
   services: ServicesSectionSchema,
