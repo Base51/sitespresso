@@ -28,7 +28,7 @@ function formatBillingInterval(value: 'monthly' | 'annual' | null): string {
 export default async function AccountPage(): Promise<JSX.Element> {
   if (!hasSupabaseConfig()) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-4 px-6 py-16">
+      <main className="mx-auto flex min-h-full w-full max-w-2xl flex-col gap-4 px-6 py-16">
         <h1 className="text-3xl font-semibold text-white">Account settings</h1>
         <p className="text-slate-300">Supabase environment variables are not configured yet.</p>
       </main>
@@ -77,7 +77,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const nextPlanAnnualAvailable = nextPlan ? isStripePriceConfigured(nextPlan, 'annual') : false;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12">
+    <main className="mx-auto flex min-h-full w-full max-w-2xl flex-col gap-8 px-6 py-12">
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-3">
           <Logo href="/dashboard" compact />

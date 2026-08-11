@@ -23,7 +23,7 @@ export default async function AdminBillingPage(): Promise<JSX.Element> {
 
   if (!adminSession.ok) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-6 py-12">
+      <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6 px-6 py-12">
         <Logo href="/dashboard" compact />
         <Card className="space-y-3">
           <p className="text-sm uppercase tracking-[0.18em] text-brand-muted">Admin access denied</p>
@@ -41,7 +41,7 @@ export default async function AdminBillingPage(): Promise<JSX.Element> {
   const report = await buildBillingDuplicatesReport(admin);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-6 py-12">
+    <main className="mx-auto flex min-h-full w-full max-w-6xl flex-col gap-6 px-6 py-12">
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-3">
           <Logo href="/dashboard" compact />
