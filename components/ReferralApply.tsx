@@ -17,20 +17,23 @@ export default function ReferralApply(): null {
     const supabase = createClient();
 
     void (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Clear first to avoid duplicate requests on re-renders
-      clearReferralCode();
-
       try {
-        await fetch('/api/referrals', {
+        const response = await fetch('/api/referrals', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ referral_code: code }),
+          body: JSON.stringify({ referral_code: code })
         });
+
+        if (response.ok || response.status === 400 || response.status === 404) {
+          clearReferralCode();
+        }
       } catch {
-        // best-effort — silently drop
+        // Retain the code so a later authenticated page load can retry.
       }
     })();
   }, []);

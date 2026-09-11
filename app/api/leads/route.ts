@@ -5,7 +5,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export const runtime = 'nodejs';
 
 type Upsertable = {
-  upsert: (values: Record<string, unknown>, options?: { onConflict?: string }) => Promise<{ error: { message: string } | null }>;
+  upsert: (
+    values: Record<string, unknown>,
+    options?: { onConflict?: string }
+  ) => Promise<{ error: { message: string } | null }>;
 };
 
 const LeadSchema = z.object({
@@ -13,7 +16,7 @@ const LeadSchema = z.object({
   business_name: z.string().max(100).optional(),
   business_type: z.string().max(50).optional(),
   city: z.string().max(50).optional(),
-  source: z.enum(['generate_form', 'homepage']).default('generate_form'),
+  source: z.enum(['generate_form', 'homepage']).default('generate_form')
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -30,14 +33,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         business_type: lead.business_type ?? null,
         city: lead.city ?? null,
         source: lead.source,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
-      { onConflict: 'email' },
+      { onConflict: 'email' }
     );
 
     if (error) {
       console.error('[leads] upsert error:', error.message);
-      // Return success to avoid leaking DB internals — lead capture is best-effort
+      return NextResponse.json({ error: 'Could not save lead.' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
@@ -45,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (err instanceof z.ZodError) {
       return NextResponse.json(
         { error: err.issues[0]?.message ?? 'Invalid input.' },
-        { status: 400 },
+        { status: 400 }
       );
     }
     console.error('[leads] unexpected error:', err);

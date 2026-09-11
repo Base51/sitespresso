@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { deriveReferralCode } from '@/lib/referral';
 
 export const runtime = 'nodejs';
 
@@ -11,12 +10,17 @@ type Insertable = {
 };
 
 const BodySchema = z.object({
-  referral_code: z.string().min(6).max(12).toUpperCase(),
+  referral_code: z
+    .string()
+    .regex(/^(?:[A-F0-9]{8}|[A-F0-9]{12})$/i)
+    .toUpperCase()
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
@@ -31,21 +35,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const admin = createAdminClient();
 
-  // Find the referrer: scan all profiles and check if derived code matches
-  // This is efficient because codes are deterministic — no extra column needed.
   const { data: profiles, error: profilesError } = await admin
     .from('profiles')
     .select('id')
-    .neq('id', user.id);
+    .like('referral_code', `${referralCode}%`)
+    .neq('id', user.id)
+    .limit(2);
 
   if (profilesError) {
     console.error('[referral] profiles fetch error:', profilesError.message);
     return NextResponse.json({ error: 'Internal error.' }, { status: 500 });
   }
 
-  const referrer = (profiles as Array<{ id: string }> | null)?.find(
-    (profile) => deriveReferralCode(profile.id) === referralCode,
-  );
+  const matchingProfiles = (profiles as Array<{ id: string }> | null) ?? [];
+  const referrer = matchingProfiles.length === 1 ? matchingProfiles[0] : null;
 
   if (!referrer) {
     return NextResponse.json({ error: 'Referral code not found.' }, { status: 404 });
@@ -56,11 +59,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   // Check that this user hasn't already been attributed a referral
-  const { data: existing } = await admin
+  const { data: existing, error: existingError } = await admin
     .from('referrals')
     .select('id')
     .eq('referred_user_id', user.id)
     .limit(1);
+
+  if (existingError) {
+    console.error('[referral] existing referral lookup error:', existingError.message);
+    return NextResponse.json({ error: 'Internal error.' }, { status: 500 });
+  }
 
   if ((existing as Array<{ id: string }> | null)?.length) {
     // Idempotent — already recorded, that's fine
@@ -71,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     referrer_user_id: referrer.id,
     referred_user_id: user.id,
     status: 'pending',
-    created_at: new Date().toISOString(),
+    created_at: new Date().toISOString()
   });
 
   if (insertError) {

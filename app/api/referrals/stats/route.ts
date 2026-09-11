@@ -8,26 +8,34 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<NextResponse> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
   const admin = createAdminClient();
 
-  const { data: referrals } = await admin
+  const { data: referrals, error } = await admin
     .from('referrals')
     .select('referred_user_id, status, reward_amount_cents, created_at, rewarded_at')
     .eq('referrer_user_id', user.id)
     .order('created_at', { ascending: false });
 
-  const rows = (referrals as Array<{
-    referred_user_id: string;
-    status: string;
-    reward_amount_cents: number | null;
-    created_at: string;
-    rewarded_at: string | null;
-  }> | null) ?? [];
+  if (error) {
+    console.error('[referral] stats lookup error:', error.message);
+    return NextResponse.json({ error: 'Internal error.' }, { status: 500 });
+  }
+
+  const rows =
+    (referrals as Array<{
+      referred_user_id: string;
+      status: string;
+      reward_amount_cents: number | null;
+      created_at: string;
+      rewarded_at: string | null;
+    }> | null) ?? [];
 
   const totalEarnedCents = rows
     .filter((row) => row.status === 'rewarded')
@@ -39,8 +47,8 @@ export async function GET(): Promise<NextResponse> {
       status: row.status,
       reward_amount_cents: row.reward_amount_cents,
       created_at: row.created_at,
-      rewarded_at: row.rewarded_at,
+      rewarded_at: row.rewarded_at
     })),
-    totalEarnedCents,
+    totalEarnedCents
   });
 }

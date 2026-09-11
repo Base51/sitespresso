@@ -75,6 +75,7 @@ Then open [http://localhost:3000](http://localhost:3000)
 - **`npm run test:perf-window:report`** — Summarize a perf-history CSV (route variance, spikes, and app-vs-total correlation)
 - **`npm run migrate:multipage-content`** — Apply multipage content normalization migration to existing `sites` rows
 - **`npm run test:reliability`** — Run health + smoke + build pipeline
+- **`npm run test:reliability:ci`** — Run portable reliability checks without credential-dependent or production-host QA
 - **`npm run build`** — Build for production
 - **`npm start`** — Run production build locally
 - **`npm run clean`** — Clean cache without restarting
@@ -89,4 +90,3 @@ For production deploy and release validation steps, see [docs/PRODUCTION_DEPLOYM
 For versioning and release-tag rules, see [docs/VERSIONING_POLICY.md](docs/VERSIONING_POLICY.md).
 
 For the latest completed production validation evidence, see [docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md).
-

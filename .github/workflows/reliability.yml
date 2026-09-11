@@ -25,5 +25,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run reliability pipeline
-        run: npm run test:reliability
+      - name: Run portable reliability pipeline
+        run: npm run test:reliability:ci

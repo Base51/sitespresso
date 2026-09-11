@@ -21,7 +21,7 @@ export default function LeadCaptureModal({
   businessType,
   city,
   onClose,
-  onCaptured,
+  onCaptured
 }: LeadCaptureModalProps): JSX.Element | null {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -45,7 +45,7 @@ export default function LeadCaptureModal({
 
     setLoading(true);
     try {
-      await fetch('/api/leads', {
+      const response = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -53,18 +53,27 @@ export default function LeadCaptureModal({
           business_name: businessName,
           business_type: businessType,
           city,
-          source: 'generate_form',
-        }),
+          source: 'generate_form'
+        })
       });
+
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        throw new Error(body.error ?? 'Could not save your email.');
+      }
+
       // Store email in session storage so signup can pre-fill
       sessionStorage.setItem('lead_email', email.trim().toLowerCase());
-    } catch {
-      // best-effort — proceed regardless
+      onCaptured();
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'Could not save your email. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
-
-    onCaptured();
   }
 
   function handleSignUp() {
@@ -89,7 +98,8 @@ export default function LeadCaptureModal({
             Save your website
           </h3>
           <p className="text-sm leading-relaxed text-brand-muted">
-            Drop your email and we&apos;ll save your site and keep it ready to publish when you&apos;re set.
+            Drop your email and we&apos;ll save your site and keep it ready to publish when
+            you&apos;re set.
           </p>
         </div>
 

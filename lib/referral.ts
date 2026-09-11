@@ -5,11 +5,10 @@ const REFERRAL_TTL_MS = REFERRAL_TTL_DAYS * 24 * 60 * 60 * 1000;
 /**
  * Generate a short alphanumeric referral code from a user id.
  * Deterministic so we can always derive the code without a DB round-trip on the client.
- * Format: first 8 chars of userId hex, uppercased (sufficient for a friendly code).
+ * Format: first 12 chars of userId hex, uppercased.
  */
 export function deriveReferralCode(userId: string): string {
-  // Use the first 8 chars of the UUID without hyphens
-  return userId.replace(/-/g, '').slice(0, 8).toUpperCase();
+  return userId.replace(/-/g, '').slice(0, 12).toUpperCase();
 }
 
 /** Persist a referral code to localStorage with a TTL. */
@@ -18,7 +17,7 @@ export function storeReferralCode(code: string): void {
   try {
     localStorage.setItem(
       REFERRAL_CODE_KEY,
-      JSON.stringify({ code: code.toUpperCase(), storedAt: Date.now() }),
+      JSON.stringify({ code: code.toUpperCase(), storedAt: Date.now() })
     );
   } catch {
     // Storage blocked or full — silently drop.

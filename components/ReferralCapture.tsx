@@ -13,7 +13,7 @@ export default function ReferralCapture(): null {
 
   useEffect(() => {
     const ref = searchParams.get('ref');
-    if (ref && /^[A-Z0-9]{6,12}$/i.test(ref)) {
+    if (ref && /^(?:[A-F0-9]{8}|[A-F0-9]{12})$/i.test(ref)) {
       storeReferralCode(ref.toUpperCase());
     }
   }, [searchParams]);
