@@ -55,7 +55,7 @@ npm run test:billing-config
 - **App layout**: `app/layout.tsx`
 - **Styles**: `app/globals.css` (Tailwind)
 - **API routes**: `app/api/`
-- **Config**: `next.config.js`, `tailwind.config.ts`
+- **Config**: `next.config.js`, `tailwind.config.js`
 
 ## Documentation
 

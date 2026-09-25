@@ -1,5 +1,8 @@
 # SiteSpresso — Implementation Backlog
 
+> **Status pointer:** The current, reconciled project status is in [ROADMAP.md](../ROADMAP.md), and the ordered next steps are in [NEXT_ACTIONS.md](../NEXT_ACTIONS.md). This backlog keeps the original task IDs referenced there.
+
+
 > Version: 1.1 | Status: Active | Date: 2026-06-22
 > Format: `[PRIORITY] Task — Status`
 > Priorities: **P0** (launch blocker) | **P1** (launch target) | **P2** (post-MVP)
