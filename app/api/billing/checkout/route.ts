@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
   getStripe,
   getStripePriceId,
@@ -82,10 +83,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
       stripeCustomerId = customer.id;
 
-      await supabase
-        .from('profiles')
+      // Billing columns are server-only (clients lost UPDATE on stripe_customer_id),
+      // so this write uses the service role.
+      // The admin client is untyped (no generated DB types), so narrow it like the webhook does.
+      type ProfileUpdatable = {
+        update: (values: Record<string, unknown>) => {
+          eq: (column: string, value: string) => Promise<{ error: unknown }>;
+        };
+      };
+      const { error: customerUpdateError } = await (createAdminClient().from('profiles') as unknown as ProfileUpdatable)
         .update({ stripe_customer_id: stripeCustomerId })
         .eq('id', user.id);
+
+      if (customerUpdateError) {
+        console.error('[billing:checkout] Failed to save stripe_customer_id:', customerUpdateError);
+      }
     }
 
     const baseUrl = getBaseUrl(request);
