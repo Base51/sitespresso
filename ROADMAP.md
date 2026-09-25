@@ -27,7 +27,7 @@ Code bills in **EUR** (`BILLING_CURRENCY_CODE = 'EUR'`, symbol `€` in `lib/bil
 | M5 Publishing & subdomains | Slugs + reserved list, publish route, subdomain rewrite, published renderer, SEO meta | `lib/slug.ts`, `app/api/sites/[id]/publish/route.ts`, `middleware.ts`, `app/sites/[slug]/page.tsx` |
 | M6 Billing (Stripe) | Checkout, portal, signed webhook, paywall | `app/api/billing/checkout/route.ts`, `app/api/billing/portal/route.ts`, `app/api/webhooks/stripe/route.ts`, `components/PaywallModal.tsx` |
 | M7 Dashboard & account | Dashboard, site cards, billing buttons, account settings | `app/dashboard/page.tsx`, `components/DashboardContent.tsx`, `app/account/page.tsx` |
-| M8 QA / perf / security | RLS + key-leak audit, Lighthouse, edge cases, cross-browser, WCAG | [docs/m8-security-audit.md](docs/m8-security-audit.md), `.lighthouse-*.json` |
+| M8 QA / perf / security | RLS + key-leak audit, Lighthouse, edge cases, cross-browser, WCAG | [docs/m8-security-audit.md](docs/m8-security-audit.md), Lighthouse scores in [docs/tasks.md](docs/tasks.md) (T-080; raw `.lighthouse-*.json` reports untracked, still in git history) |
 
 Notes on M8:
 
@@ -102,4 +102,4 @@ T-090 changes production environment variables, so it **requires owner approval*
 | Stripe sandbox integration tests (Q-102) | `docs/TIER_IMPLEMENTATION_ROADMAP.md` Q-102 | Not started. |
 | Review aggregation | PRD v3.0 | Not started. |
 | Custom-domain monitoring/alerts, in-product apex help link | `docs/CUSTOM_DOMAINS_IMPLEMENTATION.md` Phase 5 | Not started. |
-| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Untracking CLI temp state and build logs. (Done: admin "View JSON" dead link removed in PR #5; `/api/debug/subscription` restricted to admins in the `fix/admin-gate-debug-subscription` PR.) |
+| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Done: admin "View JSON" dead link removed in PR #5; `/api/debug/subscription` restricted to admins in PR #6; Supabase CLI temp state, build logs and Lighthouse JSON untracked and ignored in the `chore/untrack-temp-and-logs` PR (no history rewrite). |

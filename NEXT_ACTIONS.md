@@ -10,7 +10,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 - **Done in:** the `fix/admin-billing-dead-link` PR (2026-09-25).
 - **What changed:** the "View JSON" button in `app/admin/billing/page.tsx` pointed at `GET /api/admin/billing/duplicates`, which was removed in `f21df91`. The button is gone, and [docs/ADMIN_BILLING_OPERATIONS.md](docs/ADMIN_BILLING_OPERATIONS.md) now describes the endpoint as history. Data fetching and billing behaviour are unchanged: the page still renders the report through `buildBillingDuplicatesReport()`.
-- **Leftovers (tracked elsewhere):** the endpoint still appears in the committed build logs (`build-*.txt`), which item 4 will untrack. `requireAdminSession()` in `lib/admin/guards.ts` was kept and is now used by the admin-gated debug route (item 3).
+- **Leftovers (tracked elsewhere):** the endpoint appeared in the committed build logs (`build-*.txt`), which item 4 has since untracked. `requireAdminSession()` in `lib/admin/guards.ts` was kept and is now used by the admin-gated debug route (item 3).
 
 ## 2. Add Vitest unit tests for pure functions and run them in CI (Q-101)
 
@@ -39,16 +39,16 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - The admin response body is unchanged. Per the owner's instruction, the env echo was kept for admins rather than dropped. Responses are `Cache-Control: no-store` and the route is `force-dynamic`. Unexpected errors now return a generic `Internal error` (details go to the server log) instead of the raw exception message.
 - **No middleware change:** the middleware matcher already excludes `/api`, and auth is enforced inside the route.
 
-## 4. Untrack Supabase CLI temp state, build logs and Lighthouse JSON (security hygiene)
+## 4. ✅ Done: untracked Supabase CLI temp state, build logs and Lighthouse JSON (security hygiene)
 
-- **Goal:** These are committed but shouldn't be (see [docs/DEVICE_MIGRATION_WINDOWS_MACOS.md](docs/DEVICE_MIGRATION_WINDOWS_MACOS.md), which says not to commit Supabase CLI temp state):
-  - `supabase/.temp/*` and `templates/nextjs-app/supabase/.temp/*`: project linkage metadata.
-  - `build-final.txt`, `build-output.txt`, `build-test-prev.txt`, `build-test-revert.txt`, `build-with-lucide.txt`, `dev-output.txt`, `vercel-build-log.txt`.
-  - `.lighthouse-home.json`, `.lighthouse-prod-home.json` (~750 KB).
-- Run `git rm --cached` on them and add ignore patterns.
-- **Files:** `.gitignore` and the untracked paths. (Keep Lighthouse evidence elsewhere if wanted, for example a summary in `docs/`.)
-- **Risk:** Low. The files stay in git history, so if anything sensitive is ever found in them, rotating that credential is the fix; untracking alone doesn't remove it. The linked project metadata isn't a secret key.
-- **Verify:** `git ls-files supabase/.temp` is empty; `npm run build` and CI stay green.
+- **Done in:** the `chore/untrack-temp-and-logs` PR (2026-09-25). No history rewrite.
+- **What changed:** 27 files removed from the tree with `git rm --cached` (local copies are unaffected) and ignore patterns added so they aren't committed again:
+  - `supabase/.temp/*` and `templates/nextjs-app/supabase/.temp/*` (9 files each): Supabase CLI project linkage metadata.
+  - `build-final.txt`, `build-output.txt`, `build-test-prev.txt`, `build-test-revert.txt`, `build-with-lucide.txt`, `dev-output.txt`, `vercel-build-log.txt`: ad-hoc local build/dev logs.
+  - `.lighthouse-home.json`, `.lighthouse-prod-home.json`: raw Lighthouse reports. The scores stay recorded in [docs/tasks.md](docs/tasks.md) (T-080).
+- **Ignore patterns:** root `.gitignore` gained `**/supabase/.temp/`, `/build-*.txt`, `/dev-output.txt`, `/vercel-build-log.txt` and `/.lighthouse-*.json`. `templates/nextjs-app/.gitignore` gained `supabase/.temp/`. `supabase/migrations/`, `supabase/config.toml` and `docs/perf-history/*.csv` are not ignored.
+- **Kept:** `docs/perf-history/*.csv`, which `scripts/perf-window.ts` writes and `scripts/perf-window-report.ts` reads as an intended artifact. No code, script, workflow or `package.json` entry read any of the removed files.
+- **Still in git history:** the removed files' contents remain readable in the public repository's history, because history was not rewritten (owner decision). The linkage metadata includes the project ref/name, organisation id/slug, service versions and a connection-pooler URL. The committed pooler URL has a username and host but no password, and a pattern scan of the removed files found no API keys, JWTs, webhook secrets or passwords. As a precaution, the owner may want to review the database credentials and decide whether rotating the database password is warranted. Rotating credentials is the effective fix if anything sensitive is ever found in history. Untracking alone doesn't remove it.
 
 ## 5. Close PR #2 as superseded
 
