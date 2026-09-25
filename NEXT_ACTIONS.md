@@ -12,22 +12,23 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **What changed:** the "View JSON" button in `app/admin/billing/page.tsx` pointed at `GET /api/admin/billing/duplicates`, which was removed in `f21df91`. The button is gone, and [docs/ADMIN_BILLING_OPERATIONS.md](docs/ADMIN_BILLING_OPERATIONS.md) now describes the endpoint as history. Data fetching and billing behaviour are unchanged: the page still renders the report through `buildBillingDuplicatesReport()`.
 - **Leftovers (tracked elsewhere):** the endpoint appeared in the committed build logs (`build-*.txt`), which item 4 has since untracked. `requireAdminSession()` in `lib/admin/guards.ts` was kept and is now used by the admin-gated debug route (item 3).
 
-## 2. Add Vitest unit tests for pure functions and run them in CI (Q-101)
+## 2. ✅ Done: Vitest unit tests for pure functions, run in CI (Q-101 partially addressed)
 
-- **Goal:** There is no unit-test framework today. Add Vitest and test pure functions **without changing their behaviour**:
-  - `lib/slug.ts` (`generateSlug`, `isReservedSlug`)
-  - `lib/billing/site-limits.ts` (`resolveSiteLimit`, `isSiteLimitReached`, `getSiteLimitMessage`)
-  - `lib/billing/plans.ts` (`normalizePlan`, `mergePlanPricing`, `formatPlanPrice`)
-  - `lib/stripe.ts` (`planFromPriceId`, `billingIntervalFromPriceId`, `planFromStripeStatus`), using stubbed env vars with fake IDs.
-  - `lib/domains.ts` validation helpers.
-- Add an `npm test` script and a CI step (for example in `.github/workflows/build-verify.yml`).
-- **Files:** `package.json`, `package-lock.json`, new `vitest.config.ts`, new `tests/**` (or `*.test.ts`), one workflow file.
-- **Risk:** Low. It adds dev dependencies and a CI step. The billing modules are only read by tests, not modified. If a test exposes a bug, report it rather than fixing billing logic in the same PR (billing changes need owner approval).
-- **Verify:** `npm test` passes locally and in CI; `npm run build` is unaffected.
-- **Manual edge-case checks (T-084–T-087):** their status is *asserted, execution unrecorded* (see [ROADMAP.md](ROADMAP.md)). Either re-run the manual checklist in [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md) and record the date, environment and pass/fail for each case in `docs/`, or replace the cases that can be automated (slug generation/reserved slugs, webhook signature rejection, rate-limit responses) with Vitest tests in this item and record the rest manually. Checks that touch Stripe must use test mode only.
-- **Also fixes these test gaps:**
-  - `scripts/test-slug-edge-cases.mjs` (`npm run test:edges`) copies the slug logic instead of importing `lib/slug.ts`, so it can drift from real code. Its "retry logic" checks assert constants against themselves. It isn't in CI. Replace it with Vitest tests, or make it import the real module.
-  - Most `test:*` scripts are PowerShell (`pwsh`) or `tsx` scripts that check file contents/presence (`scripts/smoke-check.ps1`) or need cloud credentials (multipage/analytics/custom-domain QA, perf budget). They're skipped in CI via `test:reliability:ci`. They aren't a substitute for unit tests.
+- **Done in:** the `test/vitest-unit-tests` PR (2026-09-25).
+- **What changed:** Vitest 4.1 (`vitest.config.ts`, with the `@/` alias mirrored from `tsconfig.json`) and `npm test` / `npm run test:watch`. The suite runs as a step in `.github/workflows/build-verify.yml`. Tests live in `tests/unit/`, need no secrets or network, and use obviously fake Stripe price IDs via `vi.stubEnv`. App code is unchanged.
+- **Covered:**
+  - `lib/slug.ts`: `generateSlug`, `isReservedSlug`, and `findUniqueSlug` collision/limit logic, with the Supabase client mocked.
+  - `lib/billing/site-limits.ts` and `lib/billing/plans.ts` (`normalizePlan`, `formatPlanPrice`, `mergePlanPricing`).
+  - `lib/stripe.ts` price/plan mapping: `planFromPriceId`, `billingIntervalFromPriceId`, `planFromStripeStatus`, price-config helpers, type guards.
+  - `lib/domains.ts` validation and `lib/i18n/languages.ts` `normalizeLanguage`.
+- **Not covered (Q-101/Q-102 remainder):**
+  - quota calculation per tier;
+  - tier upgrade/downgrade transitions and webhook handling;
+  - coverage targets;
+  - the `/api/generate` retry logic, which is internal to the route and not exported;
+  - Stripe sandbox integration tests (Q-102).
+- **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-087 (auth, webhook idempotency, generation-failure UX) are still unrecorded manual checks.
+- **Suspected bugs found (not fixed; see item 8):** tests are `it.skip`/`it.todo` in `tests/unit/`.
 
 ## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
 
@@ -50,12 +51,9 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Kept:** `docs/perf-history/*.csv`, which `scripts/perf-window.ts` writes and `scripts/perf-window-report.ts` reads as an intended artifact. No code, script, workflow or `package.json` entry read any of the removed files.
 - **Still in git history:** the removed files' contents remain readable in the public repository's history, because history was not rewritten (owner decision). The linkage metadata includes the project ref/name, organisation id/slug, service versions and a connection-pooler URL. The committed pooler URL has a username and host but no password, and a pattern scan of the removed files found no API keys, JWTs, webhook secrets or passwords. As a precaution, the owner may want to review the database credentials and decide whether rotating the database password is warranted. Rotating credentials is the effective fix if anything sensitive is ever found in history. Untracking alone doesn't remove it.
 
-## 5. Close PR #2 as superseded
+## 5. ✅ Done: closed PR #2 as superseded
 
-- **Goal:** Draft PR #2, "Install Vercel Speed Insights" (vercel[bot]), adds `@vercel/speed-insights` ^1.1.0. `main` already has ^2.0.0 wired in `app/layout.tsx` (T-094).
-- **Files:** none (GitHub action only).
-- **Risk:** None. **Owner to confirm** before closing.
-- **Verify:** PR #2 closed with a comment pointing to `app/layout.tsx` on `main`.
+- Draft PR #2, "Install Vercel Speed Insights" (vercel[bot], `@vercel/speed-insights` ^1.1.0), was closed on 2026-09-25 with the owner's approval. `main` already has ^2.0.0 wired in `app/layout.tsx` (T-094).
 
 ## 6. T-090 — separate production Supabase project (requires owner approval)
 
@@ -79,3 +77,16 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **T-084–T-087 manual edge-case tests:** asserted, execution unrecorded. There's no record of the manual runs, which doesn't prove they never happened. Follow-up is in item 2 above.
 - **Production URL:** `https://sitespresso.com` is canonical. `app.sitespresso.com` also serves the app through the `*.sitespresso.com` wildcard, with canonical metadata pointing to the apex. Optional follow-up is in item 7.
 - **T-090:** still conditional. The `v1.0.0` release-candidate trigger is stale; the other re-open triggers remain (item 6).
+
+## 8. (Needs owner approval) Fix suspected bugs found by the unit tests
+
+These were found while writing the item 2 tests. App code was left unchanged. The matching tests are skipped or todo in `tests/unit/`, so un-skip them together with each fix.
+
+- **Agency site limit (billing behaviour, high impact):** `lib/billing/site-limits.ts` maps `agency` to `null` (unlimited), but `resolveSiteLimit()` returns `SITE_LIMIT_BY_PLAN[plan] ?? 1`, and `null ?? 1` is `1`. So Agency currently resolves to a **1-site limit**. `/api/generate` enforces it, as do the dashboard and preview UI, and `getSiteLimitMessage('agency')` shows "up to 1 site". Tests: `it.skip` in `tests/unit/site-limits.test.ts`.
+- **Slug generation (`lib/slug.ts`, lower impact):** `\w` is ASCII-only.
+  - Accented letters are dropped, not transliterated ("Café Lisboa" → `caf-lisboa`, "São Paulo" → `so-paulo`).
+  - Names written entirely in a non-Latin script produce an empty slug, which the publish route doesn't reject.
+  - Underscores are kept, but they aren't valid in hostnames.
+  - There's no cap at the 63-character DNS label limit.
+  - Tests: `it.todo` in `tests/unit/slug.test.ts`.
+- **Doc mismatch:** [docs/edge-case-test-plan.md](docs/edge-case-test-plan.md) T-084.1 lists "Admin Services", "API Solutions" and "www-something" as reserved examples. They slugify to non-reserved slugs, and only exact matches such as "Admin" or "API" are rejected. It also says there are 25 reserved slugs; there are 27.

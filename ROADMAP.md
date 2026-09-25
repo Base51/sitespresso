@@ -31,8 +31,8 @@ Code bills in **EUR** (`BILLING_CURRENCY_CODE = 'EUR'`, symbol `€` in `lib/bil
 
 Notes on M8:
 
-- **T-084–T-087: ⚠️ asserted, execution unrecorded.** They are marked ✅ in `docs/tasks.md`, but the edge-case docs ([docs/t084-087-summary.md](docs/t084-087-summary.md), [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md)) still list the manual tests as pending, and no execution record exists. The owner reviewed this on 2026-09-25: completion was asserted but can't be substantiated from the records. That doesn't prove the tests never ran. Re-running and recording them (or replacing them with automated tests) is tracked in [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
-- The "37/37 unit tests" in those docs come from `scripts/test-slug-edge-cases.mjs`, which copies slug logic instead of importing `lib/slug.ts`, and whose retry checks assert constants against themselves. It is not run in CI. See [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
+- **T-084–T-087: ⚠️ asserted, execution unrecorded.** They are marked ✅ in `docs/tasks.md`, but the edge-case docs ([docs/t084-087-summary.md](docs/t084-087-summary.md), [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md)) still list the manual tests as pending, and no execution record exists. The owner reviewed this on 2026-09-25: completion was asserted but can't be substantiated from the records. That doesn't prove the tests never ran. Since 2026-09-25, the T-084 slug cases (sanitisation, reserved slugs, conflict suffixes, the 10-attempt limit) are covered by Vitest unit tests against the real `lib/slug.ts` (`npm test`, run in CI). T-085–T-087 are still unrecorded manual checks. See [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
+- The "37/37 unit tests" in those docs came from `scripts/test-slug-edge-cases.mjs`, which copied slug logic instead of importing `lib/slug.ts`. It has been replaced by `tests/unit/slug.test.ts` (`npm run test:edges` now runs that suite). The unit tests surfaced suspected bugs, including the Agency plan resolving to a 1-site limit. They're not fixed yet and need owner approval: see [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8.
 
 ### M9 launch items done
 
@@ -98,8 +98,8 @@ T-090 changes production environment variables, so it **requires owner approval*
 | T-109 White-label mode for agency resellers | `docs/tasks.md`, PRD v2.1 | Not started. |
 | Agency features: team invites/roles, analytics export API | `docs/TIER_IMPLEMENTATION_ROADMAP.md` M-302 | Not started. |
 | Multi-site management extras: bulk delete, export | `docs/TIER_IMPLEMENTATION_ROADMAP.md` M-301d/e | Not started. |
-| Real unit tests for billing and slug logic (Q-101) | `docs/TIER_IMPLEMENTATION_ROADMAP.md` Q-101 | No test framework yet — [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2. |
+| Real unit tests for billing and slug logic (Q-101) | `docs/TIER_IMPLEMENTATION_ROADMAP.md` Q-101 | Partly done: Vitest suite in `tests/unit/` (plan normalisation, site limits, Stripe price/status mapping, slugs, domains), run in CI. Quota, tier-transition and webhook tests are still open. See [NEXT_ACTIONS.md](NEXT_ACTIONS.md) items 2 and 8. |
 | Stripe sandbox integration tests (Q-102) | `docs/TIER_IMPLEMENTATION_ROADMAP.md` Q-102 | Not started. |
 | Review aggregation | PRD v3.0 | Not started. |
 | Custom-domain monitoring/alerts, in-product apex help link | `docs/CUSTOM_DOMAINS_IMPLEMENTATION.md` Phase 5 | Not started. |
-| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Done: admin "View JSON" dead link removed in PR #5; `/api/debug/subscription` restricted to admins in PR #6; Supabase CLI temp state, build logs and Lighthouse JSON untracked and ignored in the `chore/untrack-temp-and-logs` PR (no history rewrite). |
+| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Done: admin "View JSON" dead link removed in PR #5; `/api/debug/subscription` restricted to admins in PR #6; Supabase CLI temp state, build logs and Lighthouse JSON untracked and ignored in PR #7 (no history rewrite); superseded PR #2 closed. |

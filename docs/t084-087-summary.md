@@ -26,6 +26,8 @@
 
 **Run anytime**: `npm run test:edges`
 
+> **2026-09-25:** the original script copied the slug logic. It has been replaced by the Vitest suite `tests/unit/slug.test.ts`, which imports the real `lib/slug.ts`. `npm run test:edges` runs that suite, and `npm test` runs all unit tests. The retry-logic checks were dropped because they only asserted constants against themselves. See [NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 2.
+
 ### Code Verification ✅
 - `generateSlug()` sanitization logic working correctly
 - `isReservedSlug()` detects all reserved slugs
@@ -90,7 +92,7 @@
 **New Files**:
 - `docs/edge-case-test-plan.md` — Full test specifications
 - `docs/edge-case-test-execution.md` — Manual test checklist
-- `scripts/test-slug-edge-cases.mjs` — Automated unit tests
+- `scripts/test-slug-edge-cases.mjs` — Automated unit tests (removed 2026-09-25; replaced by `tests/unit/slug.test.ts`)
 
 **Updated Files**:
 - `docs/tasks.md` — T-084-087 status updated
