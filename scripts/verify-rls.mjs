@@ -1,3 +1,7 @@
+// Verifies RLS and grants against a NON-PRODUCTION Supabase project.
+// Do not run this against production: it creates and deletes test users and rows.
+// Requires SUPABASE_SERVICE_ROLE_KEY to seed rows, because clients can no longer
+// insert into `sites` directly (see docs/RLS_PLAN_AND_SITE_INSERTS.md).
 import { createClient } from '@supabase/supabase-js';
 
 function readEnv(name) {
@@ -175,25 +179,7 @@ try {
       },
     ]);
   } else {
-    await user2Client.from('sites').insert({
-      user_id: user2.id,
-      slug: publicSlug,
-      business_name: 'Public Site',
-      business_type: 'test',
-      city: 'Test City',
-      content: { title: 'Public' },
-      status: 'published',
-    });
-
-    await user2Client.from('sites').insert({
-      user_id: user2.id,
-      slug: otherDraftSlug,
-      business_name: 'Other Draft Site',
-      business_type: 'test',
-      city: 'Test City',
-      content: { title: 'Draft' },
-      status: 'draft',
-    });
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required to seed test rows (client site inserts are blocked).');
   }
 
   const ownProfile = await user1Client.from('profiles').select('id').eq('id', user1.id).maybeSingle();
@@ -213,7 +199,41 @@ try {
     updateOtherProfile.error?.message ?? ''
   );
 
-  const ownSiteInsert = await user1Client
+  const ownSiteInsert = await user1Client.from('sites').insert({
+    user_id: user1.id,
+    slug: privateSlug,
+    business_name: 'Private Site',
+    business_type: 'test',
+    city: 'Test City',
+    content: { title: 'Private' },
+    status: 'draft',
+  });
+  addResult('sites: own site insert blocked (server route only)', Boolean(ownSiteInsert.error), ownSiteInsert.error?.message ?? '');
+
+  const ownPlanUpdate = await user1Client.from('profiles').update({ plan: 'agency' }).eq('id', user1.id);
+  addResult('profiles: own plan update blocked', Boolean(ownPlanUpdate.error), ownPlanUpdate.error?.message ?? '');
+
+  const ownCustomerUpdate = await user1Client
+    .from('profiles')
+    .update({ stripe_customer_id: `cus_rls_${runId}` })
+    .eq('id', user1.id);
+  addResult('profiles: own stripe_customer_id update blocked', Boolean(ownCustomerUpdate.error), ownCustomerUpdate.error?.message ?? '');
+
+  const ownProfileInsert = await user1Client.from('profiles').insert({ id: user1.id, email: user1Email, plan: 'agency' });
+  addResult('profiles: direct insert blocked', Boolean(ownProfileInsert.error), ownProfileInsert.error?.message ?? '');
+
+  const ownNameUpdate = await user1Client
+    .from('profiles')
+    .update({ full_name: 'RLS User One Renamed', style_presets: [] })
+    .eq('id', user1.id)
+    .select('id');
+  addResult(
+    'profiles: own full_name/style_presets update allowed',
+    !ownNameUpdate.error && ownNameUpdate.data?.length === 1,
+    ownNameUpdate.error?.message ?? ''
+  );
+
+  const ownSeed = await admin
     .from('sites')
     .insert({
       user_id: user1.id,
@@ -224,12 +244,17 @@ try {
       content: { title: 'Private' },
       status: 'draft',
     })
-    .select('id,user_id')
+    .select('id')
     .single();
+  const ownSiteUpdate = await user1Client
+    .from('sites')
+    .update({ business_name: 'Private Site Edited' })
+    .eq('id', ownSeed.data?.id ?? '')
+    .select('id');
   addResult(
-    'sites: own site insert allowed',
-    !ownSiteInsert.error && ownSiteInsert.data?.user_id === user1.id,
-    ownSiteInsert.error?.message ?? ''
+    'sites: own site update allowed',
+    !ownSeed.error && !ownSiteUpdate.error && ownSiteUpdate.data?.length === 1,
+    ownSeed.error?.message ?? ownSiteUpdate.error?.message ?? ''
   );
 
   const foreignSiteInsert = await user1Client.from('sites').insert({

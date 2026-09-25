@@ -71,6 +71,14 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 ---
 
+## 9. In review: block client billing writes and direct site inserts (migration NOT applied)
+
+- **Branch:** `fix/rls-plan-and-site-inserts`. Plan, SQL, access matrix, rollback and apply steps: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md).
+- **Why:** the `for all` policies "Own profile" and "Own sites" let a signed-in user set `profiles.plan = 'agency'` (unlimited sites plus the agency generation quota) and insert `sites` rows past the limit.
+- **App side (safe to deploy first):** new `POST /api/sites` (limit check, then service-role insert), `SitePreview` uses it, checkout writes `stripe_customer_id` with the service role.
+- **Database side:** grants-only migration. **Production apply waits for the owner's "Apply migration".** Apply via the Supabase SQL Editor after the app is deployed.
+- **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
+
 ## Owner confirmations (resolved 2026-09-25)
 
 - **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).

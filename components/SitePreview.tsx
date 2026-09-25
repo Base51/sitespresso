@@ -7,9 +7,6 @@ import EditableField from './EditableField';
 import EditorSidebar from './EditorSidebar';
 import LogoDisplay from './LogoDisplay';
 import { createClient } from '@/lib/supabase/client';
-import { normalizePlan } from '@/lib/billing/plans';
-import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
-import { appendSlugSuffix, generateSlug } from '@/lib/slug-format';
 
 interface SitePreviewProps {
   website: Website;
@@ -125,52 +122,18 @@ export default function SitePreview({
             .update({ content: data, updated_at: new Date().toISOString() })
             .eq('id', savedId);
         } else {
-          const [{ data: profile }, { count: siteCount }] = await Promise.all([
-            supabase
-              .from('profiles')
-              .select('plan')
-              .eq('id', user.id)
-              .single(),
-            supabase
-              .from('sites')
-              .select('id', { head: true, count: 'exact' })
-              .eq('user_id', user.id),
-          ]);
-
-          const currentPlan = normalizePlan(profile?.plan);
-          const totalSites = siteCount ?? 0;
-          if (isSiteLimitReached(currentPlan, totalSites)) {
-            const siteLimit = resolveSiteLimit(currentPlan);
-            throw new Error(
-              siteLimit == null
-                ? 'Site creation is temporarily unavailable.'
-                : `Site limit reached (${totalSites}/${siteLimit}). Upgrade your plan to create more sites.`
-            );
+          // Clients can no longer insert into `sites` directly. The server route
+          // enforces the plan's site limit and inserts with the service role.
+          const response = await fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: data }),
+          });
+          const payload = (await response.json().catch(() => ({}))) as { id?: string; error?: string };
+          if (!response.ok) {
+            throw new Error(payload.error || `Failed to create draft (HTTP ${response.status}).`);
           }
-
-          // Temporary draft slug; the publish route generates the final slug.
-          const draftSlug = appendSlugSuffix(
-            generateSlug(data.business_name),
-            crypto.randomUUID().slice(0, 8),
-          );
-          console.log(`📝 Inserting new draft with slug: ${draftSlug}`);
-          const { data: row, error: insertError } = await supabase
-            .from('sites')
-            .insert({
-              user_id: user.id,
-              slug: draftSlug,
-              business_name: data.business_name,
-              business_type: data.business_type,
-              city: data.city,
-              content: data,
-              status: 'draft',
-            })
-            .select('id')
-            .single();
-          if (insertError) {
-            console.error(`❌ Insert error:`, insertError);
-            throw new Error(`Failed to create draft: ${insertError.message}`);
-          }
+          const row = payload.id ? { id: payload.id } : null;
           if (row?.id) {
             console.log(`✅ Draft created with ID: ${row.id}`);
             setSavedId(row.id);

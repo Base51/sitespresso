@@ -77,7 +77,7 @@ create table public.profiles (
 ```
 
 ### `sites`
-Multiple sites per user, capped per plan in `lib/billing/site-limits.ts`: **Free 1, Starter 1, Pro 3, Agency unlimited**. Enforced in `app/api/generate/route.ts`, `components/SitePreview.tsx` (draft insert) and `components/DashboardContent.tsx`. The limit is enforced only in the app. No database constraint, trigger or RLS policy caps sites per user (`Own sites` only checks ownership), and the `SitePreview` check runs client-side before its draft insert.
+Multiple sites per user, capped per plan in `lib/billing/site-limits.ts`: **Free 1, Starter 1, Pro 3, Agency unlimited**. Enforced in `app/api/generate/route.ts`, `POST /api/sites` (`lib/sites/create-draft.ts`, server-side draft insert with the service role) and `components/DashboardContent.tsx`. No database constraint or trigger caps sites per user. Until the grants migration in [RLS_PLAN_AND_SITE_INSERTS.md](RLS_PLAN_AND_SITE_INSERTS.md) is applied (owner: "Apply migration"), a client can still insert `sites` rows directly and bypass the limit.
 
 Other tables added by later migrations: `site_page_views` (analytics), `leads`, `referrals` (see `supabase/migrations/`).
 
@@ -141,15 +141,18 @@ create policy "Own subscriptions" on public.subscriptions
   using (auth.uid() = user_id);
 ```
 
+**Pending grants migration (not applied):** `supabase/migrations/20260925150000_restrict_client_billing_and_site_inserts.sql` removes client INSERT on `profiles` and `sites` and limits client UPDATE on `profiles` to `email`, `full_name`, `style_presets`. Policies are unchanged. Plan, access matrix and rollback: [RLS_PLAN_AND_SITE_INSERTS.md](RLS_PLAN_AND_SITE_INSERTS.md).
+
 ---
 
 ## 4. API Design
 
-All routes are Next.js Route Handlers under `app/api/`. This list matches the tree on `main` (2026-09-25). Site drafts are created client-side through the Supabase client under RLS (`components/SitePreview.tsx`); there is **no** `POST /api/sites` route (the original draft listed one).
+All routes are Next.js Route Handlers under `app/api/`. This list matches the tree on `main` (2026-09-25). Site drafts are created server-side by `POST /api/sites` (called from `components/SitePreview.tsx` on the first save); later saves update the draft through the Supabase client under RLS.
 
 | Method(s) | Route | Purpose | Auth |
 |---|---|---|---|
 | POST | `/api/generate` | Generate website JSON with OpenAI; enforces per-plan site limit and monthly quota | Guest allowed (free quota); signed-in users get their plan's limits |
+| POST | `/api/sites` | Create a draft site: checks the plan's site limit with the user's session, then inserts with the service role (`user_id` from the session) | User |
 | PATCH | `/api/account` | Update profile (display name, email) | User |
 | POST | `/api/analytics/pageview` | Record a published-site page view | Public |
 | GET | `/api/auth/callback` | Auth callback helper (primary callback is `app/auth/callback/route.ts`) | — |
