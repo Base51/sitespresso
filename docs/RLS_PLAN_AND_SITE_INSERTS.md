@@ -1,8 +1,9 @@
 # Plan: restrict client billing writes and direct site inserts
 
-Status: **PLAN + PR only. Nothing applied to any database.**
-Production apply waits for the owner's explicit message **"Apply migration"**.
-Branch: `fix/rls-plan-and-site-inserts`.
+Status: **App changes merged in PR #11 (`005004c`, 2026-09-25). Migration applied on production 2026-09-25 at about 16:53 PT** from the Supabase SQL Editor, after the owner's "Apply migration".
+Supabase's migration history does not record it (SQL Editor, not the CLI). The post-check matched (22 table-level grant rows; `authenticated` may update only `email`, `full_name`, `style_presets`; policies unchanged).
+QA post-migration retest: PASS (draft save, account name, style preset, dashboard limit 1/1). Checkout was not retested, by owner decision.
+Branch: `fix/rls-plan-and-site-inserts` (merged).
 
 ## Problem
 
