@@ -1,8 +1,8 @@
 # Plan: restrict client billing writes and direct site inserts
 
-Status: **PLAN + PR only. Nothing applied to any database.**
+Status: **App changes merged in PR #11 (`005004c`, 2026-09-25). Migration NOT applied to any database.**
 Production apply waits for the owner's explicit message **"Apply migration"**.
-Branch: `fix/rls-plan-and-site-inserts`.
+Branch: `fix/rls-plan-and-site-inserts` (merged).
 
 ## Problem
 

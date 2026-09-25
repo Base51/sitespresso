@@ -1,6 +1,6 @@
 # SiteSpresso — Next Actions
 
-> Last reconciled: 2026-09-25 against `main` @ `50b7d24`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
+> Last reconciled: 2026-09-25 against `main` @ `005004c`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
 
 Ordered list of small follow-up PRs. Each one gets its own feature branch and PR against `main`. After each merge, update this file and [ROADMAP.md](ROADMAP.md).
 
@@ -71,12 +71,14 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 ---
 
-## 9. In review: block client billing writes and direct site inserts (migration NOT applied)
+## 9. App side merged (PR #11, `005004c`); migration NOT applied yet
 
-- **Branch:** `fix/rls-plan-and-site-inserts`. Plan, SQL, access matrix, rollback and apply steps: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md).
+- **Merged:** PR #11 as merge commit `005004c` (2026-09-25, owner-approved, including the checkout change under AGENTS.md rule 5). Branch was `fix/rls-plan-and-site-inserts`. Plan, SQL, access matrix, rollback and apply steps: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md).
 - **Why:** the `for all` policies "Own profile" and "Own sites" let a signed-in user set `profiles.plan = 'agency'` (unlimited sites plus the agency generation quota) and insert `sites` rows past the limit.
 - **App side (safe to deploy first):** new `POST /api/sites` (limit check, then service-role insert), `SitePreview` uses it, checkout writes `stripe_customer_id` with the service role.
 - **Database side:** grants-only migration. **Production apply waits for the owner's "Apply migration".** Apply via the Supabase SQL Editor after the app is deployed.
+- **Next step:** after the deploy, save a new draft on production to confirm `POST /api/sites` works. Then the owner says **"Apply migration"** and the SQL Editor steps in the plan doc run. Until then clients can still set `plan` and insert `sites` directly.
+- **Follow-up (not in scope):** owners can still UPDATE any column on their own `sites` rows, including `status`, so a client could publish without the publish route.
 - **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
 
 ## Owner confirmations (resolved 2026-09-25)
