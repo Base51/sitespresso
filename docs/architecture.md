@@ -380,7 +380,7 @@ export function middleware(request: NextRequest) {
 | **Stripe webhook tampering** | `stripe.webhooks.constructEvent` signature verification on every event |
 | **Unauthorized site access** | Supabase RLS enforces row-level ownership; server components use user JWT |
 | **Prompt injection** | User input sanitized before inclusion in AI prompt; input length capped at 100 chars per field |
-| **Slug hijacking** | Slugs validated as URL-safe, unique constraint in DB, reserved slug list (www, app, api, admin) |
+| **Slug hijacking** | Slugs generated as DNS-safe labels (`[a-z0-9-]`, 1–63 chars, accents transliterated) in `lib/slug-format.ts`; unique constraint in DB; publish rejects the 27 reserved slugs (exact match); middleware never routes the `www`/`app`/`api`/`admin` subdomains to sites |
 | **Mass generation abuse** | Per-plan monthly quotas on `/api/generate`, keyed by user or IP (Redis, with in-memory fallback) |
 | **CSRF** | Next.js App Router server actions use built-in CSRF protection; Stripe webhook uses signature |
 | **XSS on published sites** | User-edited content rendered via React (auto-escaped); no `dangerouslySetInnerHTML` |

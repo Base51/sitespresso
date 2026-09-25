@@ -9,6 +9,7 @@ import LogoDisplay from './LogoDisplay';
 import { createClient } from '@/lib/supabase/client';
 import { normalizePlan } from '@/lib/billing/plans';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
+import { appendSlugSuffix, generateSlug } from '@/lib/slug-format';
 
 interface SitePreviewProps {
   website: Website;
@@ -147,11 +148,11 @@ export default function SitePreview({
             );
           }
 
-          const baseSlug = data.business_name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-          const draftSlug = `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
+          // Temporary draft slug; the publish route generates the final slug.
+          const draftSlug = appendSlugSuffix(
+            generateSlug(data.business_name),
+            crypto.randomUUID().slice(0, 8),
+          );
           console.log(`📝 Inserting new draft with slug: ${draftSlug}`);
           const { data: row, error: insertError } = await supabase
             .from('sites')

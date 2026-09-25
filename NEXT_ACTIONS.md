@@ -28,7 +28,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
   - the `/api/generate` retry logic, which is internal to the route and not exported;
   - Stripe sandbox integration tests (Q-102).
 - **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-087 (auth, webhook idempotency, generation-failure UX) are still unrecorded manual checks.
-- **Suspected bugs found (see item 8):** 8.1 (the Agency site limit) is now fixed. The slug issues are still `it.todo` in `tests/unit/slug.test.ts`.
+- **Suspected bugs found (see item 8):** all fixed. 8.1 was the Agency site limit, 8.2 slug generation.
 
 ## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
 
@@ -78,9 +78,9 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Production URL:** `https://sitespresso.com` is canonical. `app.sitespresso.com` also serves the app through the `*.sitespresso.com` wildcard, with canonical metadata pointing to the apex. Optional follow-up is in item 7.
 - **T-090:** still conditional. The `v1.0.0` release-candidate trigger is stale; the other re-open triggers remain (item 6).
 
-## 8. Fix suspected bugs found by the unit tests (8.1 done; the rest need owner approval)
+## 8. ✅ Done: fixed the bugs found by the unit tests
 
-These were found while writing the item 2 tests. The matching tests are skipped or todo in `tests/unit/`, so un-skip them together with each fix.
+These were found while writing the item 2 tests. Both fixes were owner-approved. No tests remain skipped or todo.
 
 - **8.1 ✅ Done: Agency site limit** (owner-approved billing-behaviour fix, `fix/agency-unlimited-sites` PR, 2026-09-25).
   - **The bug:** `lib/billing/site-limits.ts` maps `agency` to `null` (unlimited), but `resolveSiteLimit()` returned `SITE_LIMIT_BY_PLAN[plan] ?? 1`. Because `null ?? 1` is `1`, Agency was limited to 1 site.
@@ -88,10 +88,12 @@ These were found while writing the item 2 tests. The matching tests are skipped 
   - **Callers:** `/api/generate`, `components/SitePreview.tsx` and `components/DashboardContent.tsx` already handled `null`, so none needed changing.
   - **Database:** no migration, RLS policy or trigger limits sites per user, so no data migration is needed. Existing Agency accounts can create more sites as soon as this deploys.
   - **Tests:** the 3 skipped tests are re-enabled and extended in `tests/unit/site-limits.test.ts`.
-- **Slug generation (`lib/slug.ts`, lower impact):** `\w` is ASCII-only.
-  - Accented letters are dropped, not transliterated ("Café Lisboa" → `caf-lisboa`, "São Paulo" → `so-paulo`).
-  - Names written entirely in a non-Latin script produce an empty slug, which the publish route doesn't reject.
-  - Underscores are kept, but they aren't valid in hostnames.
-  - There's no cap at the 63-character DNS label limit.
-  - Tests: `it.todo` in `tests/unit/slug.test.ts`.
-- **Doc mismatch:** [docs/edge-case-test-plan.md](docs/edge-case-test-plan.md) T-084.1 lists "Admin Services", "API Solutions" and "www-something" as reserved examples. They slugify to non-reserved slugs, and only exact matches such as "Admin" or "API" are rejected. It also says there are 25 reserved slugs; there are 27.
+- **8.2 ✅ Done: slug generation** (owner-approved, `fix/slug-generation` PR, 2026-09-25). Only new slugs are affected: existing sites keep their slugs, and no database rewrite or migration was done.
+  - The pure helpers moved to the client-safe `lib/slug-format.ts`. `lib/slug.ts` re-exports them and keeps `findUniqueSlug()`.
+  - **Accents:** transliterated via NFKD plus stripping combining marks, with explicit mappings for ß/æ/ø/œ/ł/đ/ð/þ and similar ("Café Lisboa" → `cafe-lisboa`, "São Paulo" → `sao-paulo`).
+  - **Characters and separators:** output is only `[a-z0-9-]`. Underscores, dots, slashes and similar become hyphens, and there are no leading, trailing or repeated hyphens.
+  - **Length:** capped at 63 characters, the DNS label limit. `findUniqueSlug()` and the draft slug in `components/SitePreview.tsx` truncate the base before appending `-N` or the random suffix.
+  - **Empty results:** a name with no usable Latin characters (for example Japanese or Cyrillic) gets a deterministic `site-<hash>` fallback. `findUniqueSlug()` now rejects malformed (for example empty) base slugs.
+  - **Draft slugs:** `SitePreview` now uses `generateSlug()` instead of its own inline slug logic. Previously an empty name could produce a draft slug with a leading hyphen.
+  - **No user slug input:** there's no user-editable slug field. Slugs come only from the business name.
+- **8.3 ✅ Done: doc mismatch** (fixed in the same PR; the reserved list and exact-match behaviour are unchanged). [docs/edge-case-test-plan.md](docs/edge-case-test-plan.md) T-084.1 listed "Admin Services", "API Solutions" and "www-something" as reserved examples. They slugify to non-reserved slugs, and only exact matches such as "Admin" or "API" are rejected. It also said there were 25 reserved slugs; there are 27.
