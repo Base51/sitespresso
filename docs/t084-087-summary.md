@@ -21,7 +21,7 @@
 
 ### Unit Tests: 37/37 PASSED
 - Slug generation: removes special chars, collapses hyphens, lowercases
-- Reserved slug detection: all 25 reserved slugs detected case-insensitively
+- Reserved slug detection: all 27 reserved slugs detected case-insensitively (exact match; the original doc said 25)
 - Retry logic: MAX_RETRIES=2, exponential backoff verified
 
 **Run anytime**: `npm run test:edges`

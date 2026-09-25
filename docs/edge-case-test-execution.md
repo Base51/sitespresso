@@ -33,7 +33,7 @@ T-084.1-4: Slug Generation Edge Cases
 
 T-084.1: Reserved Slug Detection
 --------------------------------------------------
-✓ 25 reserved slugs detected (www, app, api, admin, dashboard, etc.)
+✓ 27 reserved slugs detected (www, app, api, admin, dashboard, etc.; exact match; corrected from 25)
 ✓ Non-reserved slugs allowed
 ✓ Case-insensitive detection
 ✓ "API" is reserved (uppercase)
@@ -45,7 +45,7 @@ RESULT: ✅ 28 tests PASSED
 
 **Code Verification**:
 - `generateSlug()` correctly sanitizes: removes special chars, replaces spaces, collapses hyphens
-- `isReservedSlug()` detects all 25 reserved slugs case-insensitively
+- `isReservedSlug()` detects all 27 reserved slugs case-insensitively (exact match)
 - `findUniqueSlug()` attempts up to 10 variants before giving up
 
 ### ✅ T-087: Retry Logic (Code Verification)

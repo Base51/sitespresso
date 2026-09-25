@@ -20,7 +20,10 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-const { generateSlug, isReservedSlug, findUniqueSlug } = await import('@/lib/slug');
+const { MAX_SLUG_LENGTH, appendSlugSuffix, findUniqueSlug, generateSlug, isReservedSlug, isValidSlug } =
+  await import('@/lib/slug');
+
+const SLUG_SHAPE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 describe('generateSlug', () => {
   it.each([
@@ -41,26 +44,157 @@ describe('generateSlug', () => {
     expect(generateSlug(input)).toBe(expected);
   });
 
-  it('returns an empty string for whitespace-only or punctuation-only input', () => {
-    expect(generateSlug('')).toBe('');
-    expect(generateSlug('   ')).toBe('');
-    expect(generateSlug('---!!!')).toBe('');
+  it('never returns an empty slug: empty, whitespace-only or punctuation-only input gets a valid site-<hash> fallback', () => {
+    // Changed expectation: these used to return '' (NEXT_ACTIONS item 8).
+    for (const input of ['', '   ', '---!!!', '___']) {
+      const slug = generateSlug(input);
+      expect(slug).toMatch(/^site-[a-z0-9]+$/);
+      expect(slug).toMatch(SLUG_SHAPE);
+    }
   });
 
   it('is idempotent on an already clean slug', () => {
     expect(generateSlug('janes-salon')).toBe('janes-salon');
   });
 
-  // Suspected bugs, left as todos (no app-code changes in this PR). Current behaviour:
-  //   generateSlug('Café Lisboa') === 'caf-lisboa', generateSlug('São Paulo') === 'so-paulo'
-  //   (\w is ASCII-only, so accented letters are dropped rather than transliterated).
-  it.todo('transliterates accented Latin letters (e.g. "Café Lisboa" -> "cafe-lisboa")');
-  //   generateSlug('東京寿司') === '' -> the publish route does not reject an empty base slug.
-  it.todo('never produces an empty slug for a non-empty business name (e.g. non-Latin scripts)');
-  //   generateSlug('My_Shop') === 'my_shop' (\w keeps "_", which is not valid in hostnames).
-  it.todo('replaces underscores, which are not valid in subdomain hostnames');
-  //   No length cap: a 100-char name yields a 100-char slug; DNS labels allow at most 63.
-  it.todo('caps slug length at the 63-character DNS label limit');
+  describe('transliterates accented Latin letters', () => {
+    it.each([
+      // Portuguese
+      ['Café Lisboa', 'cafe-lisboa'],
+      ['São Paulo', 'sao-paulo'],
+      ['Açaí', 'acai'],
+      ['Pastelaria Conceição & Irmãos', 'pastelaria-conceicao-irmaos'],
+      // Spanish
+      ['Peluquería Muñoz', 'peluqueria-munoz'],
+      ['Jalapeño Niño', 'jalapeno-nino'],
+      // French
+      ['Crème Brûlée Pâtisserie', 'creme-brulee-patisserie'],
+      ['Garçon Français', 'garcon-francais'],
+      ['Œuvre Cœur', 'oeuvre-coeur'],
+      // German
+      ['Bäckerei Müller', 'backerei-muller'],
+      ['Straße & Söhne', 'strasse-sohne'],
+      ['GROẞE Brötchen', 'grosse-brotchen'],
+      // Nordic / other Latin letters that don't decompose
+      ['Smørrebrød', 'smorrebrod'],
+      ['Ærø Æble', 'aero-aeble'],
+      ['Łódź Pierogi', 'lodz-pierogi'],
+      ['Đurđevac', 'durdevac'],
+      ['Þórður Guðmundsson', 'thordur-gudmundsson'],
+      // Compatibility forms
+      ['ﬁne Ｃafé', 'fine-cafe'],
+    ])('%j -> %j', (input, expected) => {
+      expect(generateSlug(input)).toBe(expected);
+    });
+  });
+
+  describe('separators', () => {
+    it.each([
+      ['My_Shop', 'my-shop'],
+      ['snake_case__name', 'snake-case-name'],
+      ['Joe.Coffee', 'joe-coffee'],
+      ['Dr. Smith', 'dr-smith'],
+      ['Food/Drink', 'food-drink'],
+      ['Bar | Grill', 'bar-grill'],
+      ['Café — Bar', 'cafe-bar'],
+      ['3.5 Stars', '3-5-stars'],
+    ])('%j -> %j', (input, expected) => {
+      expect(generateSlug(input)).toBe(expected);
+    });
+  });
+
+  describe('length cap (63-char DNS label)', () => {
+    it('caps long names at 63 characters', () => {
+      const slug = generateSlug('a'.repeat(100));
+      expect(slug).toBe('a'.repeat(63));
+      expect(slug).toMatch(SLUG_SHAPE);
+    });
+
+    it('trims a trailing hyphen left by the cut', () => {
+      // 62 chars + space: the cut at 63 would land on the hyphen.
+      const slug = generateSlug(`${'b'.repeat(62)} tail`);
+      expect(slug).toBe('b'.repeat(62));
+      expect(slug).toMatch(SLUG_SHAPE);
+    });
+
+    it('keeps long multi-word names valid', () => {
+      const slug = generateSlug(
+        'The Very Long Name Of A Family Owned Portuguese Bakery And Coffee Shop In Lisbon Since 1920',
+      );
+      expect(slug.length).toBeLessThanOrEqual(MAX_SLUG_LENGTH);
+      expect(slug).toMatch(SLUG_SHAPE);
+      expect(slug.startsWith('the-very-long-name-of-a-family-owned')).toBe(true);
+    });
+  });
+
+  describe('non-Latin names get a valid, deterministic fallback', () => {
+    it.each(['東京カフェ', 'Москва', 'مطعم', '🍕🍕🍕'])('%j', (input) => {
+      const slug = generateSlug(input);
+      expect(slug).toMatch(/^site-[a-z0-9]+$/);
+      expect(slug).toMatch(SLUG_SHAPE);
+      expect(isReservedSlug(slug)).toBe(false);
+      expect(generateSlug(input)).toBe(slug); // deterministic
+    });
+
+    it('different names get different fallbacks', () => {
+      expect(generateSlug('東京カフェ')).not.toBe(generateSlug('Москва'));
+    });
+
+    it('mixed scripts keep the Latin part', () => {
+      expect(generateSlug('Sushi 東京')).toBe('sushi');
+    });
+  });
+
+  it('leading digits are allowed; output never starts or ends with a hyphen', () => {
+    expect(generateSlug('24/7 Plumbing')).toBe('24-7-plumbing');
+    for (const input of ['-x-', '__init__', ' ...dots... ', '—Café—']) {
+      expect(generateSlug(input)).toMatch(SLUG_SHAPE);
+    }
+  });
+
+  it.each([
+    "John's Coffee Shop",
+    'Café Lisboa',
+    'Straße & Söhne',
+    'My_Shop',
+    '東京カフェ',
+    'a'.repeat(100),
+    `${'b'.repeat(62)} tail`,
+    '',
+  ])('is idempotent: generateSlug(generateSlug(%j)) === generateSlug(%j)', (input) => {
+    const once = generateSlug(input);
+    expect(generateSlug(once)).toBe(once);
+  });
+});
+
+describe('appendSlugSuffix', () => {
+  it('appends -suffix to short slugs', () => {
+    expect(appendSlugSuffix('plumber', '2')).toBe('plumber-2');
+  });
+
+  it('truncates the base so the result stays within 63 characters', () => {
+    const base = 'c'.repeat(63);
+    expect(appendSlugSuffix(base, '10')).toBe(`${'c'.repeat(60)}-10`);
+    expect(appendSlugSuffix(base, '10')).toHaveLength(63);
+    expect(appendSlugSuffix(base, 'abcd1234')).toHaveLength(63);
+  });
+
+  it('does not leave a double hyphen when the cut lands on a hyphen', () => {
+    const base = `${'d'.repeat(60)}-ee`; // 63 chars; cut at 61 ends with "-"
+    const result = appendSlugSuffix(base, '2');
+    expect(result).toBe(`${'d'.repeat(60)}-2`);
+    expect(result).toMatch(SLUG_SHAPE);
+  });
+});
+
+describe('isValidSlug', () => {
+  it.each(['a', 'abc', 'a-b', '123', `${'a'.repeat(63)}`, 'site-1x2y3z'])('accepts %j', (slug) => {
+    expect(isValidSlug(slug)).toBe(true);
+  });
+
+  it.each(['', '-a', 'a-', 'A', 'a_b', 'café', 'a b', `${'a'.repeat(64)}`])('rejects %j', (slug) => {
+    expect(isValidSlug(slug)).toBe(false);
+  });
 });
 
 describe('isReservedSlug', () => {
@@ -86,8 +220,7 @@ describe('isReservedSlug', () => {
   });
 
   it('only matches whole slugs (names that merely start with a reserved word are allowed)', () => {
-    // Current behaviour. docs/edge-case-test-plan.md T-084.1 lists "Admin Services" and
-    // "API Solutions" as reserved examples, but they slugify to non-reserved slugs.
+    // Reserved matching is exact (whole slug), as documented in docs/edge-case-test-plan.md T-084.1.
     expect(isReservedSlug(generateSlug('Admin Services'))).toBe(false);
     expect(isReservedSlug(generateSlug('API Solutions'))).toBe(false);
     expect(isReservedSlug(generateSlug('www-something'))).toBe(false);
@@ -129,6 +262,27 @@ describe('findUniqueSlug (Supabase client mocked)', () => {
     await expect(findUniqueSlug('plumber')).resolves.toBeNull();
     expect(queriedSlugs).toHaveLength(10);
     expect(queriedSlugs).not.toContain('plumber-11');
+  });
+
+  it('returns null for a malformed base slug (e.g. empty) without querying the database', async () => {
+    await expect(findUniqueSlug('')).resolves.toBeNull();
+    await expect(findUniqueSlug('-bad-')).resolves.toBeNull();
+    expect(queriedSlugs).toEqual([]);
+  });
+
+  it('keeps -N candidates within 63 characters for a 63-char base', async () => {
+    const base = generateSlug('e'.repeat(80));
+    expect(base).toHaveLength(63);
+    takenSlugs.add(base);
+    const result = await findUniqueSlug(base);
+    expect(result).toBe(`${'e'.repeat(61)}-2`);
+    expect(result).toMatch(SLUG_SHAPE);
+  });
+
+  it('a non-Latin name fallback works with the -N suffix', async () => {
+    const base = generateSlug('東京カフェ');
+    takenSlugs.add(base);
+    await expect(findUniqueSlug(base)).resolves.toBe(`${base}-2`);
   });
 
   it('honours a custom maxAttempts', async () => {

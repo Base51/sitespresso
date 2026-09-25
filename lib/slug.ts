@@ -1,63 +1,25 @@
 import { createClient } from './supabase/server';
+import { appendSlugSuffix, isReservedSlug, isValidSlug } from './slug-format';
 
-const RESERVED_SLUGS = new Set([
-  'www',
-  'app',
-  'api',
-  'admin',
-  'dashboard',
-  'login',
-  'auth',
-  'signup',
-  'sign-up',
-  'pricing',
-  'docs',
-  'help',
-  'support',
-  'contact',
-  'blog',
-  'status',
-  'webhook',
-  'cdn',
-  'mail',
-  'ftp',
-  'smtp',
-  'imap',
-  'pop',
-  'ssh',
-  'vpn',
-  'git',
-  'svn',
-]);
+export {
+  MAX_SLUG_LENGTH,
+  SLUG_PATTERN,
+  appendSlugSuffix,
+  generateSlug,
+  isReservedSlug,
+  isValidSlug,
+} from './slug-format';
 
 /**
- * Generate a URL-safe slug from business name.
- */
-export function generateSlug(businessName: string): string {
-  return businessName
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove non-word chars except spaces and hyphens
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Collapse multiple hyphens
-    .replace(/(^-|-$)/g, ''); // Remove leading/trailing hyphens
-}
-
-/**
- * Check if a slug is reserved.
- */
-export function isReservedSlug(slug: string): boolean {
-  return RESERVED_SLUGS.has(slug.toLowerCase());
-}
-
-/**
- * Find a unique slug by appending a counter if necessary.
+ * Find a unique slug by appending a counter if necessary (`-2` … `-maxAttempts`).
+ * Returns null for reserved or malformed base slugs, or when every candidate is taken.
+ * Suffixed candidates are truncated to stay within the 63-character DNS label limit.
  */
 export async function findUniqueSlug(
   baseSlug: string,
   maxAttempts = 10,
 ): Promise<string | null> {
-  if (isReservedSlug(baseSlug)) return null;
+  if (!isValidSlug(baseSlug) || isReservedSlug(baseSlug)) return null;
 
   const supabase = await createClient();
 
@@ -74,7 +36,7 @@ export async function findUniqueSlug(
 
   // Try numbered variants
   for (let i = 2; i <= maxAttempts; i++) {
-    const candidateSlug = `${baseSlug}-${i}`;
+    const candidateSlug = appendSlugSuffix(baseSlug, String(i));
     const { data: exists } = await supabase
       .from('sites')
       .select('id')

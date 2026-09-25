@@ -12,12 +12,12 @@
 
 #### T-084.1: Reserved Slug Detection
 - **Setup**: User creates site with business name that resolves to reserved slug
-- **Examples**: "Admin Services", "API Solutions", "Dashboard Pro", "www-something"
+- **Examples**: business names whose whole slug is reserved, e.g. "Admin", "API", " Dashboard ", "Sign Up". Matching is **exact** (whole slug, case-insensitive), so "Admin Services" → `admin-services`, "API Solutions" → `api-solutions` and "www-something" are **allowed**.
 - **Expected**: 
   - Error returned: "Business name resolves to a reserved slug. Please choose a different name."
   - Site NOT created
   - No publish attempt made
-- **Status**: ✅ CODE VERIFIED (`lib/slug.ts:isReservedSlug()` checks 25 reserved slugs)
+- **Status**: ✅ Unit-tested (`isReservedSlug()` in `lib/slug-format.ts`: exact match against 27 reserved slugs; `tests/unit/slug.test.ts`). *(Corrected 2026-09-25: this previously said 25 slugs and listed prefix examples as reserved.)*
 
 #### T-084.2: Slug Conflict Resolution
 - **Setup**: Two users create sites with same business name
@@ -39,14 +39,19 @@
   - "Test---Multiple---Hyphens" → `test-multiple-hyphens` (collapsed)
   - "  Leading spaces  " → `leading-spaces` (trimmed)
   - "ALL-CAPS SLUG" → `all-caps-slug` (lowercased)
-- **Expected**: All special chars removed, spaces → hyphens, lowercase
-- **Status**: ✅ CODE VERIFIED (`generateSlug()` regex and transformations)
+  - "Café Lisboa" → `cafe-lisboa`, "Straße" → `strasse` (accents transliterated, since 2026-09-25)
+  - "My_Shop" → `my-shop` (underscores and other separators → hyphens)
+  - Names longer than 63 chars are capped at 63 (the DNS label limit), including `-N` suffixes
+  - "東京カフェ" → `site-<hash>` (non-empty, valid fallback when no Latin characters remain)
+- **Expected**: output contains only `[a-z0-9-]`, lowercase, with no leading, trailing or repeated hyphens, 1–63 chars
+- **Status**: ✅ Unit-tested (`tests/unit/slug.test.ts`, `npm test`)
 
 ### Manual Test Checklist
 
 - [ ] Attempt to publish site named "API Services" → error shown
 - [ ] Create two sites with name "Plumber" → both publish, 2nd is `plumber-2`
 - [ ] Create site with name "O'Reilly's Shop" → special chars handled
+- [ ] Create site with name "Café São Paulo" → published slug `cafe-sao-paulo`
 - [ ] Create 11 duplicate names → 11th fails gracefully
 
 ---

@@ -19,7 +19,7 @@
 ## Phase 1: Slug Tests (T-084) — ~20 mins
 
 ### T-084.1: Reserved Slug Detection ✓ [CODE VERIFIED]
-**Status**: Already verified via unit tests (25 reserved slugs detected)  
+**Status**: Already verified via unit tests (27 reserved slugs, exact match; corrected from 25)  
 **No manual test needed** — code guaranteed to reject "Admin", "API", etc.
 
 ### T-084.2: Slug Conflict Resolution [MANUAL] — ~10 mins
@@ -313,7 +313,7 @@
 ## Summary Checklist
 
 ### Auto-Verified (Unit Tests) ✅
-- [ ] T-084.1: Reserved slug detection (25 slugs) — `npm run test:edges`
+- [ ] T-084.1: Reserved slug detection (27 slugs, exact match) — `npm run test:edges`
 - [ ] T-087: Retry logic (MAX_RETRIES=2, backoff)
 
 ### Manual Testing
