@@ -1,15 +1,33 @@
 import { NextResponse } from 'next/server';
+import { requireAdminSession } from '@/lib/admin/guards';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store, max-age=0' } as const;
+
+function withNoStore(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(NO_STORE_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 export async function GET(): Promise<NextResponse> {
   try {
+    // Admin gate runs before any subscription, profile or env data is read.
+    // 401 unauthenticated, 403 non-admin, 500 if the allowlist is not configured (fail closed).
+    const admin = await requireAdminSession();
+    if (!admin.ok) {
+      return withNoStore(admin.response);
+    }
+
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return withNoStore(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
     // Get subscription info
@@ -31,7 +49,7 @@ export async function GET(): Promise<NextResponse> {
     const envAgencyAnnual = process.env.STRIPE_AGENCY_ANNUAL_PRICE_ID;
     const latestPriceId = subscriptions?.[0]?.stripe_price_id;
 
-    return NextResponse.json({
+    const payload = {
       user: {
         id: user.id,
         email: user.email,
@@ -51,11 +69,14 @@ export async function GET(): Promise<NextResponse> {
         matchesAgencyMonthly: latestPriceId === envAgencyMonthly,
         matchesAgencyAnnual: latestPriceId === envAgencyAnnual,
       },
-    });
+    };
+
+    return NextResponse.json(payload, { headers: NO_STORE_HEADERS });
   } catch (error) {
+    console.error('[debug/subscription] request failed:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { error: 'Internal error' },
+      { status: 500, headers: NO_STORE_HEADERS },
     );
   }
 }

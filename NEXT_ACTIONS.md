@@ -10,7 +10,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 - **Done in:** the `fix/admin-billing-dead-link` PR (2026-09-25).
 - **What changed:** the "View JSON" button in `app/admin/billing/page.tsx` pointed at `GET /api/admin/billing/duplicates`, which was removed in `f21df91`. The button is gone, and [docs/ADMIN_BILLING_OPERATIONS.md](docs/ADMIN_BILLING_OPERATIONS.md) now describes the endpoint as history. Data fetching and billing behaviour are unchanged: the page still renders the report through `buildBillingDuplicatesReport()`.
-- **Leftovers (tracked elsewhere):** the endpoint still appears in the committed build logs (`build-*.txt`), which item 4 will untrack. `requireAdminSession()` in `lib/admin/guards.ts` has no callers since `f21df91`; it was kept as the likely guard for item 3 option (b).
+- **Leftovers (tracked elsewhere):** the endpoint still appears in the committed build logs (`build-*.txt`), which item 4 will untrack. `requireAdminSession()` in `lib/admin/guards.ts` was kept and is now used by the admin-gated debug route (item 3).
 
 ## 2. Add Vitest unit tests for pure functions and run them in CI (Q-101)
 
@@ -29,13 +29,15 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
   - `scripts/test-slug-edge-cases.mjs` (`npm run test:edges`) copies the slug logic instead of importing `lib/slug.ts`, so it can drift from real code. Its "retry logic" checks assert constants against themselves. It isn't in CI. Replace it with Vitest tests, or make it import the real module.
   - Most `test:*` scripts are PowerShell (`pwsh`) or `tsx` scripts that check file contents/presence (`scripts/smoke-check.ps1`) or need cloud credentials (multipage/analytics/custom-domain QA, perf budget). They're skipped in CI via `test:reliability:ci`. They aren't a substitute for unit tests.
 
-## 3. Decide the future of `app/api/debug/subscription` (security — needs owner decision)
+## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
 
-- **Goal:** `GET /api/debug/subscription` (added in `b1f501a`) returns the caller's profile/subscription rows plus the configured Agency Stripe price env values to **any signed-in user**, and it's deployed with the app. Price IDs aren't secret keys, but a production debug surface should be a deliberate choice.
-- **Options:** (a) delete the route; (b) gate it with the existing admin allowlist (`lib/admin/guards.ts`) and drop the env echo; (c) keep it (document why).
-- **Files:** `app/api/debug/subscription/route.ts` (and docs).
-- **Risk:** Low for (a)/(b), but it touches billing diagnostics, so **owner decision required before any change**.
-- **Verify:** `npm run build`; a request as a non-admin user returns 401/403 (option b) or 404 (option a).
+- **Done in:** the `fix/admin-gate-debug-subscription` PR (2026-09-25), after the owner chose option (b).
+- **What changed:** `GET /api/debug/subscription` (added in `b1f501a`) used to return the caller's plan/subscription rows plus the configured Agency Stripe price env values to **any signed-in user**. It now calls `requireAdminSession()` (`lib/admin/guards.ts`) before reading anything else:
+  - 401 when not signed in
+  - 403 when signed in but not on the `ADMIN_ALLOWLIST_EMAILS` allowlist
+  - 500 "Admin allowlist is not configured." when the allowlist is empty (fails closed)
+- The admin response body is unchanged. Per the owner's instruction, the env echo was kept for admins rather than dropped. Responses are `Cache-Control: no-store` and the route is `force-dynamic`. Unexpected errors now return a generic `Internal error` (details go to the server log) instead of the raw exception message.
+- **No middleware change:** the middleware matcher already excludes `/api`, and auth is enforced inside the route.
 
 ## 4. Untrack Supabase CLI temp state, build logs and Lighthouse JSON (security hygiene)
 

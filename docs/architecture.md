@@ -156,7 +156,7 @@ All routes are Next.js Route Handlers under `app/api/`. This list matches the tr
 | POST | `/api/billing/checkout` | Create Stripe Checkout session for `plan` (`starter`/`pro`/`agency`) + `billing` (`monthly`/`annual`); returns 400 if that price isn't configured | User |
 | GET | `/api/billing/plans` | Public plan/price availability payload | Public |
 | POST | `/api/billing/portal` | Create Stripe Billing Portal session | User |
-| GET | `/api/debug/subscription` | Debug: caller's plan/subscription + configured Agency price env values (see [NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 3) | Any signed-in user |
+| GET | `/api/debug/subscription` | Debug: caller's plan/subscription + configured Agency price env values; `no-store` | **Admin only** (`requireAdminSession()`: 401 unauthenticated, 403 non-admin, 500 if the allowlist isn't configured) |
 | POST | `/api/leads` | Capture email before anonymous publish | Public |
 | POST | `/api/referrals` | Apply a referral code after login | User |
 | GET | `/api/referrals/stats` | Referral stats for account page | User |
