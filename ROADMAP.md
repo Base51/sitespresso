@@ -4,7 +4,7 @@
 > Sources: [docs/tasks.md](docs/tasks.md) (task IDs), [docs/prd.md](docs/prd.md) (phase roadmap), and the code tree.
 > This file is the single source of truth for project status. Next concrete steps live in [NEXT_ACTIONS.md](NEXT_ACTIONS.md); working rules for agents/contributors live in [AGENTS.md](AGENTS.md).
 
-Status legend: ✅ done · 🔄 in progress · ➡️ deferred · ☐ planned · ⚠️ Unverified — owner to confirm
+Status legend: ✅ done · 🔄 in progress · ➡️ deferred · ☐ planned · ⚠️ asserted, execution unrecorded
 
 ---
 
@@ -31,13 +31,14 @@ Code bills in **EUR** (`BILLING_CURRENCY_CODE = 'EUR'`, symbol `€` in `lib/bil
 
 Notes on M8:
 
-- T-084–T-087 are marked ✅ in `docs/tasks.md`, but the edge-case docs ([docs/t084-087-summary.md](docs/t084-087-summary.md), [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md)) still list the manual tests as pending. Whether the manual tests were executed: **⚠️ Unverified — owner to confirm.**
+- **T-084–T-087: ⚠️ asserted, execution unrecorded.** They are marked ✅ in `docs/tasks.md`, but the edge-case docs ([docs/t084-087-summary.md](docs/t084-087-summary.md), [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md)) still list the manual tests as pending, and no execution record exists. The owner reviewed this on 2026-09-25: completion was asserted but can't be substantiated from the records. That doesn't prove the tests never ran. Re-running and recording them (or replacing them with automated tests) is tracked in [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
 - The "37/37 unit tests" in those docs come from `scripts/test-slug-edge-cases.mjs`, which copies slug logic instead of importing `lib/slug.ts`, and whose retry checks assert constants against themselves. It is not run in CI. See [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
 
 ### M9 launch items done
 
-- T-091 production env vars in Vercel ✅ (per `docs/tasks.md`). Whether **all six** tier price IDs are configured in Vercel production: **⚠️ Unverified — owner to confirm.**
-- T-092 `sitespresso.com` DNS ✅, T-093 production E2E ✅ ([docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md)), T-094 Vercel Analytics + Speed Insights ✅ (`app/layout.tsx`, `@vercel/speed-insights` ^2 in `package.json`), T-095 runbook ✅ ([docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md](docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md)), T-096 release tag ✅ (`v1.0.1` exists; `package.json` is `1.0.1`).
+- T-091 production env vars in Vercel ✅ (per `docs/tasks.md`). All six tier Stripe price IDs (Starter/Pro/Agency × monthly/annual) are configured in Vercel Production, **confirmed by the owner on 2026-09-25**.
+- T-092 `sitespresso.com` DNS ✅. `https://sitespresso.com` is the canonical production URL; Vercel has verified `sitespresso.com` and `*.sitespresso.com` (owner-confirmed 2026-09-25).
+- T-093 production E2E ✅ ([docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md)), T-094 Vercel Analytics + Speed Insights ✅ (`app/layout.tsx`, `@vercel/speed-insights` ^2 in `package.json`), T-095 runbook ✅ ([docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md](docs/PRODUCTION_DEPLOYMENT_RUNBOOK.md)), T-096 release tag ✅ (`v1.0.1` exists; `package.json` is `1.0.1`).
 
 ### Post-MVP items done
 
@@ -80,7 +81,9 @@ Deferred on 2026-06-26 for the pre-customer stage ([docs/SUPABASE_PROD_ISOLATION
 1. Onboarding the first external paying customer.
 2. Enabling broad public sign-up.
 3. Running non-trivial migration work that could affect production data safety.
-4. Creating a release candidate for `v1.0.0` (note: `v1.0.1` was already tagged while T-090 was deferred; whether this trigger still applies: **⚠️ Unverified — owner to confirm**).
+4. ~~Creating a release candidate for `v1.0.0`~~: **stale.** The `v1.0.1` tag points to the 2026-06-26 release commit. Tagging it neither completed nor revoked T-090 (owner-confirmed 2026-09-25).
+
+T-090 is **still conditional**: triggers 1–3 remain in force, most importantly **before the first external paying customer**.
 
 **Exit criteria:** `npm run test:supabase-isolation` passes; Vercel Production points only to the production Supabase project; local/template/preview point to a non-production project; post-cutover smoke and billing checks pass.
 

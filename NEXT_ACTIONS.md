@@ -25,6 +25,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Files:** `package.json`, `package-lock.json`, new `vitest.config.ts`, new `tests/**` (or `*.test.ts`), one workflow file.
 - **Risk:** Low. It adds dev dependencies and a CI step. The billing modules are only read by tests, not modified. If a test exposes a bug, report it rather than fixing billing logic in the same PR (billing changes need owner approval).
 - **Verify:** `npm test` passes locally and in CI; `npm run build` is unaffected.
+- **Manual edge-case checks (T-084–T-087):** their status is *asserted, execution unrecorded* (see [ROADMAP.md](ROADMAP.md)). Either re-run the manual checklist in [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md) and record the date, environment and pass/fail for each case in `docs/`, or replace the cases that can be automated (slug generation/reserved slugs, webhook signature rejection, rate-limit responses) with Vitest tests in this item and record the rest manually. Checks that touch Stripe must use test mode only.
 - **Also fixes these test gaps:**
   - `scripts/test-slug-edge-cases.mjs` (`npm run test:edges`) copies the slug logic instead of importing `lib/slug.ts`, so it can drift from real code. Its "retry logic" checks assert constants against themselves. It isn't in CI. Replace it with Vitest tests, or make it import the real module.
   - Most `test:*` scripts are PowerShell (`pwsh`) or `tsx` scripts that check file contents/presence (`scripts/smoke-check.ps1`) or need cloud credentials (multipage/analytics/custom-domain QA, perf budget). They're skipped in CI via `test:reliability:ci`. They aren't a substitute for unit tests.
@@ -57,15 +58,23 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 ## 6. T-090 — separate production Supabase project (requires owner approval)
 
-- **Goal:** Complete the deferred T-090 before any re-open trigger fires (first paying customer, broad public sign-up, risky migrations). See [docs/SUPABASE_PROD_ISOLATION_AUDIT_2026-06-25.md](docs/SUPABASE_PROD_ISOLATION_AUDIT_2026-06-25.md) and [ROADMAP.md](ROADMAP.md).
+- **Goal:** Complete the deferred T-090 before any remaining re-open trigger fires: first external paying customer, broad public sign-up, or risky migrations. The earlier "before a `v1.0.0` release candidate" trigger is stale: the `v1.0.1` tag (2026-06-26 release commit) neither completed nor revoked T-090 (owner-confirmed 2026-09-25). T-090 is still conditional. See [docs/SUPABASE_PROD_ISOLATION_AUDIT_2026-06-25.md](docs/SUPABASE_PROD_ISOLATION_AUDIT_2026-06-25.md) and [ROADMAP.md](ROADMAP.md).
 - **Files:** mainly Vercel/Supabase configuration (not in the repo), then runbook/doc updates.
 - **Risk:** **High.** It changes production environment variables and the data plane. **Owner approval required.** Don't start without an explicit go-ahead and a rollback plan.
 - **Verify:** `npm run test:supabase-isolation`; production login, dashboard, billing webhook and custom-domain checks per the audit's exit criteria.
 
+## 7. (Low priority) Decide whether `app.sitespresso.com` should redirect to the apex
+
+- **Goal:** `app.sitespresso.com` currently returns HTTP 200 without a redirect. It's served through the verified `*.sitespresso.com` wildcard, and robots metadata points to `sitespresso.com` as canonical. **No decision has been made.** Options: leave as is, or add a 301 from `app.` to `https://sitespresso.com`.
+- **Files:** probably none in the repo (Vercel domain / redirect configuration). A code alternative would touch `middleware.ts`.
+- **Risk:** Low–medium. It's a DNS/Vercel configuration change, so it **requires owner approval**.
+- **Verify:** `curl -sI https://app.sitespresso.com` shows the chosen behaviour; `https://sitespresso.com` and published subdomains are unaffected.
+
 ---
 
-## Owner confirmations needed (from the 2026-09-25 reconciliation)
+## Owner confirmations (resolved 2026-09-25)
 
-- Whether all six tier Stripe price IDs are configured in Vercel production: **⚠️ Unverified — owner to confirm.**
-- Whether the T-084–T-087 manual edge-case tests were actually run: **⚠️ Unverified — owner to confirm.**
-- Production app URL (`sitespresso.com` per runbook and code defaults vs `app.sitespresso.com` in the original architecture draft): **⚠️ Unverified — owner to confirm.**
+- **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).
+- **T-084–T-087 manual edge-case tests:** asserted, execution unrecorded. There's no record of the manual runs, which doesn't prove they never happened. Follow-up is in item 2 above.
+- **Production URL:** `https://sitespresso.com` is canonical. `app.sitespresso.com` also serves the app through the `*.sitespresso.com` wildcard, with canonical metadata pointing to the apex. Optional follow-up is in item 7.
+- **T-090:** still conditional. The `v1.0.0` release-candidate trigger is stale; the other re-open triggers remain (item 6).

@@ -285,7 +285,7 @@ User → Sign in with Google / Magic Link
 ### Stripe Products Setup
 - **Plans:** Starter, Pro, Agency, each monthly and annual (`lib/stripe.ts`)
 - **Currency:** EUR. Default display prices in `lib/billing/plans.ts`: Starter €9/mo · €79/yr, Pro €19/mo · €159/yr, Agency €49/mo · €399/yr; overridden by live Stripe price amounts when available
-- **Price IDs:** stored in env vars `STRIPE_STARTER_PRICE_ID`, `STRIPE_STARTER_ANNUAL_PRICE_ID`, `STRIPE_PRO_PRICE_ID`, `STRIPE_PRO_ANNUAL_PRICE_ID`, `STRIPE_AGENCY_PRICE_ID`, `STRIPE_AGENCY_ANNUAL_PRICE_ID`. Whether all six are configured in Vercel production: **Unverified — owner to confirm**
+- **Price IDs:** stored in env vars `STRIPE_STARTER_PRICE_ID`, `STRIPE_STARTER_ANNUAL_PRICE_ID`, `STRIPE_PRO_PRICE_ID`, `STRIPE_PRO_ANNUAL_PRICE_ID`, `STRIPE_AGENCY_PRICE_ID`, `STRIPE_AGENCY_ANNUAL_PRICE_ID`. All six are configured in Vercel Production (owner-confirmed 2026-09-25)
 
 ### Checkout Flow
 1. User clicks "Publish" on free plan → modal appears
@@ -351,14 +351,14 @@ export function middleware(request: NextRequest) {
 ### Vercel Project Setup
 - **Framework preset:** Next.js
 - **Environment variables:** set per-environment (preview / production)
-- **Domains:** `sitespresso.com`, `www.sitespresso.com`, `app.sitespresso.com`, `*.sitespresso.com`
+- **Domains:** `sitespresso.com` and `*.sitespresso.com` are verified in Vercel (owner-confirmed 2026-09-25). `app.sitespresso.com` resolves through the wildcard; `sitespresso.com` is canonical.
 - **Build command:** `next build`
 - **Output:** standard Next.js output (no `output: export`)
 
 ### Environments
 | Environment | Branch | URL |
 |---|---|---|
-| Production | `main` | `https://sitespresso.com` per [PRODUCTION_DEPLOYMENT_RUNBOOK.md](PRODUCTION_DEPLOYMENT_RUNBOOK.md) and code defaults (`NEXT_PUBLIC_SITE_URL` fallback). The original draft said `app.sitespresso.com`; the canonical production host is **Unverified — owner to confirm**. The GitHub repo homepage is set to `sitespresso.vercel.app`. |
+| Production | `main` | **`https://sitespresso.com`** (canonical; matches [PRODUCTION_DEPLOYMENT_RUNBOOK.md](PRODUCTION_DEPLOYMENT_RUNBOOK.md) and the `NEXT_PUBLIC_SITE_URL` fallback in code). `app.sitespresso.com` also returns 200 without a redirect, because it's served by the verified `*.sitespresso.com` wildcard; its canonical/robots metadata points to `sitespresso.com`. Whether `app.` should 301 to the apex is an open, owner-approval item ([NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 7). The GitHub repo homepage field is set to `sitespresso.vercel.app`. |
 | Preview | feature branches | Vercel preview deployments |
 
 ### CI/CD

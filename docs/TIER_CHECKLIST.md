@@ -4,7 +4,7 @@
 >
 > **Actual status (reconciled 2026-09-25 against the code tree):**
 > - M-101–M-106 are implemented in code: four tiers × monthly/annual price env keys (`lib/stripe.ts`), plan constants and labels (`lib/billing/plans.ts`, prices in **EUR**), `planFromStripeStatus(status, priceId)` / `planFromPriceId()` (`lib/stripe.ts`), checkout accepting `plan` + `billing` (`app/api/billing/checkout/route.ts`), and plan display/upgrade buttons (`app/dashboard/page.tsx`, `app/account/page.tsx`). The file names suggested below (`lib/billing/constants.ts`, `lib/supabase/types.ts`) were never created.
-> - Whether all six Stripe price IDs are configured in Vercel production: **Unverified — owner to confirm.**
+> - All six Stripe price IDs are configured in Vercel Production (owner-confirmed 2026-09-25).
 > - M-201 custom domains: done, including DNS verify and Vercel attach (see [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md)).
 > - M-301 multi-site: per-plan site limits are done (`lib/billing/site-limits.ts`: Free 1, Starter 1, Pro 3, Agency unlimited). Bulk actions/export are not built.
 > - M-302 Agency features (teams, white-label, analytics API), M-107 pricing docs, Q-101/Q-102 tests and the `*_TIER_ENABLED` flags: not built. `npm run test` / `npm run type-check` scripts don't exist; use `npx tsc --noEmit`.
