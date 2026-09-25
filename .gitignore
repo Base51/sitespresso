@@ -40,3 +40,12 @@ coverage/
 *.tsbuildinfo
 .vercel
 .env*
+
+# Supabase CLI local state (project linkage metadata; never commit)
+**/supabase/.temp/
+
+# Ad-hoc local build/dev logs and Lighthouse reports (root only)
+/build-*.txt
+/dev-output.txt
+/vercel-build-log.txt
+/.lighthouse-*.json
