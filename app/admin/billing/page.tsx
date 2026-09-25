@@ -56,9 +56,6 @@ export default async function AdminBillingPage(): Promise<JSX.Element> {
           <Link href="/admin/billing" className="inline-flex">
             <Button variant="secondary" size="sm">Refresh</Button>
           </Link>
-          <Link href="/api/admin/billing/duplicates" className="inline-flex">
-            <Button variant="ghost" size="sm">View JSON</Button>
-          </Link>
           <Link href="/dashboard" className="inline-flex">
             <Button variant="secondary" size="sm">Dashboard</Button>
           </Link>

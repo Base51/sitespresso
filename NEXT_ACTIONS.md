@@ -6,12 +6,11 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 ---
 
-## 1. Remove the dead admin "View JSON" link and fix the admin billing runbook
+## 1. ✅ Done: removed the dead admin "View JSON" link and fixed the admin billing runbook
 
-- **Goal:** `GET /api/admin/billing/duplicates` was removed in commit `f21df91` (there is no `app/api/admin/` in the tree), but `app/admin/billing/page.tsx` still links to it (the link returns 404). Remove the link. The report page itself still works because it calls `buildBillingDuplicatesReport()` directly.
-- **Files:** `app/admin/billing/page.tsx`; [docs/ADMIN_BILLING_OPERATIONS.md](docs/ADMIN_BILLING_OPERATIONS.md) (this PR already notes the removal; tidy up after the code change).
-- **Risk:** Very low (UI link only). The page is admin-only and allowlist-gated.
-- **Verify:** `npm run lint`, `npx tsc --noEmit`, `npm run build`; open `/admin/billing` as an allowlisted admin and confirm there's no dead link.
+- **Done in:** the `fix/admin-billing-dead-link` PR (2026-09-25).
+- **What changed:** the "View JSON" button in `app/admin/billing/page.tsx` pointed at `GET /api/admin/billing/duplicates`, which was removed in `f21df91`. The button is gone, and [docs/ADMIN_BILLING_OPERATIONS.md](docs/ADMIN_BILLING_OPERATIONS.md) now describes the endpoint as history. Data fetching and billing behaviour are unchanged: the page still renders the report through `buildBillingDuplicatesReport()`.
+- **Leftovers (tracked elsewhere):** the endpoint still appears in the committed build logs (`build-*.txt`), which item 4 will untrack. `requireAdminSession()` in `lib/admin/guards.ts` has no callers since `f21df91`; it was kept as the likely guard for item 3 option (b).
 
 ## 2. Add Vitest unit tests for pure functions and run them in CI (Q-101)
 

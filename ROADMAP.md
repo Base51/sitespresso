@@ -102,4 +102,4 @@ T-090 changes production environment variables, so it **requires owner approval*
 | Stripe sandbox integration tests (Q-102) | `docs/TIER_IMPLEMENTATION_ROADMAP.md` Q-102 | Not started. |
 | Review aggregation | PRD v3.0 | Not started. |
 | Custom-domain monitoring/alerts, in-product apex help link | `docs/CUSTOM_DOMAINS_IMPLEMENTATION.md` Phase 5 | Not started. |
-| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Admin link fix, debug route decision, untracking CLI temp state and build logs. |
+| Repo hygiene and security follow-ups | [NEXT_ACTIONS.md](NEXT_ACTIONS.md) | Debug route decision, untracking CLI temp state and build logs. (Admin "View JSON" dead link: fixed in the `fix/admin-billing-dead-link` PR.) |

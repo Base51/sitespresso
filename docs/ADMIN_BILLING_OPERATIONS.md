@@ -1,6 +1,6 @@
 # Admin Billing Operations
 
-> **Update (2026-09-25):** The JSON endpoint `GET /api/admin/billing/duplicates` was **removed in commit `f21df91`** ("remove billing duplicates report endpoint"). There is no `app/api/admin/` route in the tree. The admin page `/admin/billing` still renders the report server-side via `buildBillingDuplicatesReport()` (`lib/admin/billing-report.ts`). Its "View JSON" button still points at the removed endpoint and returns 404; removing that link is tracked in [NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 1.
+> **History:** A JSON version of this report used to be served at `GET /api/admin/billing/duplicates`. That endpoint was removed in commit `f21df91` ("remove billing duplicates report endpoint"), and the page's leftover "View JSON" button was removed in the `fix/admin-billing-dead-link` PR (2026-09-25). There is no machine-readable export now. The report is only available as the `/admin/billing` page, which builds it server-side with `buildBillingDuplicatesReport()` (`lib/admin/billing-report.ts`).
 
 ## Purpose
 
