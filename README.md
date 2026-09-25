@@ -1,49 +1,16 @@
-# project-factory
+# SiteSpresso
 
-A GitHub template repository that serves as the base for all future projects.
+SiteSpresso is an AI-powered website builder for local businesses. An owner enters a business name, type and city (and optionally a language). SiteSpresso generates a multi-page site (Home / About / Contact) with OpenAI, lets the owner edit it in the browser, and publishes it to `{slug}.sitespresso.com` or a custom domain on a paid plan.
 
-The deployable SiteSpresso app now lives at the repository root. The `templates/` folder remains as scaffold/source material for future projects.
+**Stack:** Next.js 14 (App Router, TypeScript) · Tailwind CSS · Supabase (Postgres, Auth, Storage, RLS) · OpenAI (`gpt-4o`, `gpt-image-1`) · Stripe (Starter / Pro / Agency, monthly or annual, billed in EUR) · Redis (rate limits) · Vercel.
 
-## Structure
+## Project docs
 
-```
-project-factory/
-├── .github/
-│   └── copilot-instructions.md   # Copilot coding conventions & AI guidance
-├── templates/
-│   ├── static-website/           # Plain HTML/CSS/JS site scaffold
-│   ├── react-app/                # React application scaffold
-│   ├── nextjs-app/               # Next.js application scaffold
-│   └── power-platform/           # Microsoft Power Platform solution scaffold
-├── prompts/
-│   ├── brainstorming.md          # Prompt for idea exploration
-│   ├── mvp.md                    # Prompt for MVP scoping
-│   ├── prd.md                    # Prompt for Product Requirements Document
-│   └── architecture.md           # Prompt for technical architecture design
-├── docs/                         # Project documentation
-├── scripts/                      # Automation and utility scripts
-└── README.md
-```
-
-## How to Use
-
-1. Click **"Use this template"** on GitHub to create a new repository from this base.
-2. Choose the relevant template from the `templates/` folder as your starting point.
-3. Use the prompts in `prompts/` with GitHub Copilot or another AI assistant to plan your project.
-4. Add documentation to `docs/` and automation scripts to `scripts/` as the project grows.
-
-## Templates
-
-| Template | Description |
-|---|---|
-| `static-website` | Minimal HTML/CSS/JS site, no build tooling required |
-| `react-app` | React SPA with Vite |
-| `nextjs-app` | Next.js app with App Router |
-| `power-platform` | Microsoft Power Platform solution structure |
-
-## Contributing
-
-Add new templates under `templates/`, each with its own `README.md` describing setup and usage.
+- [ROADMAP.md](ROADMAP.md): current status (done / in progress / deferred / planned)
+- [NEXT_ACTIONS.md](NEXT_ACTIONS.md): ordered next PRs
+- [AGENTS.md](AGENTS.md): working rules, verification commands, key paths
+- [QUICK_START.md](QUICK_START.md): install and daily commands
+- [docs/](docs/): architecture, PRD, runbooks, audits ([docs/architecture.md](docs/architecture.md), [docs/tasks.md](docs/tasks.md))
 
 ## Local Development
 
@@ -90,3 +57,49 @@ For production deploy and release validation steps, see [docs/PRODUCTION_DEPLOYM
 For versioning and release-tag rules, see [docs/VERSIONING_POLICY.md](docs/VERSIONING_POLICY.md).
 
 For the latest completed production validation evidence, see [docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md](docs/PRODUCTION_E2E_VALIDATION_2026-06-25.md).
+
+## Project-factory template (legacy)
+
+This repository started from the **project-factory** GitHub template. The deployable SiteSpresso app lives at the repository root; the `templates/` and `prompts/` folders remain as scaffold/source material for future projects.
+
+
+### Structure
+
+```
+project-factory/
+├── .github/
+│   └── copilot-instructions.md   # Copilot coding conventions & AI guidance
+├── templates/
+│   ├── static-website/           # Plain HTML/CSS/JS site scaffold
+│   ├── react-app/                # React application scaffold
+│   ├── nextjs-app/               # Next.js application scaffold
+│   └── power-platform/           # Microsoft Power Platform solution scaffold
+├── prompts/
+│   ├── brainstorming.md          # Prompt for idea exploration
+│   ├── mvp.md                    # Prompt for MVP scoping
+│   ├── prd.md                    # Prompt for Product Requirements Document
+│   └── architecture.md           # Prompt for technical architecture design
+├── docs/                         # Project documentation
+├── scripts/                      # Automation and utility scripts
+└── README.md
+```
+
+### How to Use
+
+1. Click **"Use this template"** on GitHub to create a new repository from this base.
+2. Choose the relevant template from the `templates/` folder as your starting point.
+3. Use the prompts in `prompts/` with GitHub Copilot or another AI assistant to plan your project.
+4. Add documentation to `docs/` and automation scripts to `scripts/` as the project grows.
+
+### Templates
+
+| Template | Description |
+|---|---|
+| `static-website` | Minimal HTML/CSS/JS site, no build tooling required |
+| `react-app` | React SPA with Vite |
+| `nextjs-app` | Next.js app with App Router |
+| `power-platform` | Microsoft Power Platform solution structure |
+
+### Contributing
+
+Add new templates under `templates/`, each with its own `README.md` describing setup and usage.

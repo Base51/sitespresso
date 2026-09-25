@@ -1,6 +1,8 @@
 # SiteSpresso — Architecture
 
-> Version: 1.0 | Status: Draft | Date: 2026-06-18
+> Version: 1.1 | Status: Living document | Originally drafted: 2026-06-18 | Reconciled with code: 2026-09-25
+>
+> Sections 2, 3 (`sites`), 4, 5, 7 and 9 were updated on 2026-09-25 to match the code on `main` (`50b7d24`). Project status lives in [ROADMAP.md](../ROADMAP.md).
 
 ---
 
@@ -49,11 +51,12 @@ graph TD
 | **Frontend** | Next.js 14 (App Router) | SSR + RSC, file-based routing, API routes in one repo |
 | **Styling** | Tailwind CSS | Utility-first, fast iteration, consistent design system |
 | **Database** | Supabase (PostgreSQL) | Managed Postgres, RLS, real-time, generous free tier |
-| **Auth** | Supabase Auth | Google OAuth, magic link, and email/password, JWT integration with RLS |
-| **AI** | OpenAI GPT-4o | Best-in-class structured output, function calling / JSON mode |
-| **Billing** | Stripe | Industry standard, Checkout + Portal + Webhooks |
+| **Auth** | Supabase Auth | Google OAuth, email magic link (OTP), and email/password (all three wired in `app/login/page.tsx`), JWT integration with RLS |
+| **AI** | OpenAI `gpt-4o` (text, `json_schema` structured output) and `gpt-image-1` (hero images) | Structured output validated with Zod |
+| **Billing** | Stripe | Checkout + Portal + Webhooks; 3 paid plans × monthly/annual, billed in **EUR** |
+| **Rate limits / quotas** | Redis (`REDIS_URL`) with in-memory fallback | Per-plan monthly generation quotas (`lib/redis/rate-limiter.ts`) |
 | **Deployment** | Vercel | Native Next.js support, wildcard domains, Edge runtime |
-| **Storage** | Supabase Storage | Future-use for images/exports; minimal for MVP |
+| **Storage** | Supabase Storage | Logo uploads (`logos` bucket migration) |
 
 ---
 
@@ -74,7 +77,9 @@ create table public.profiles (
 ```
 
 ### `sites`
-One site per user for MVP. Extended to many post-MVP.
+Multiple sites per user, capped per plan in `lib/billing/site-limits.ts`: **Free 1, Starter 1, Pro 3, Agency unlimited**. Enforced in `app/api/generate/route.ts`, `components/SitePreview.tsx` (draft insert) and `components/DashboardContent.tsx`.
+
+Other tables added by later migrations: `site_page_views` (analytics), `leads`, `referrals` (see `supabase/migrations/`).
 
 ```sql
 create table public.sites (
@@ -140,55 +145,70 @@ create policy "Own subscriptions" on public.subscriptions
 
 ## 4. API Design
 
-All routes are Next.js Route Handlers under `/app/api/`.
+All routes are Next.js Route Handlers under `app/api/`. This list matches the tree on `main` (2026-09-25). Site drafts are created client-side through the Supabase client under RLS (`components/SitePreview.tsx`); there is **no** `POST /api/sites` route (the original draft listed one).
 
-### `POST /api/generate`
-Calls OpenAI and returns website JSON. Available to guests for initial preview; repeat generation is gated in the client flow until sign-in.
+| Method(s) | Route | Purpose | Auth |
+|---|---|---|---|
+| POST | `/api/generate` | Generate website JSON with OpenAI; enforces per-plan site limit and monthly quota | Guest allowed (free quota); signed-in users get their plan's limits |
+| PATCH | `/api/account` | Update profile (display name, email) | User |
+| POST | `/api/analytics/pageview` | Record a published-site page view | Public |
+| GET | `/api/auth/callback` | Auth callback helper (primary callback is `app/auth/callback/route.ts`) | — |
+| POST | `/api/billing/checkout` | Create Stripe Checkout session for `plan` (`starter`/`pro`/`agency`) + `billing` (`monthly`/`annual`); returns 400 if that price isn't configured | User |
+| GET | `/api/billing/plans` | Public plan/price availability payload | Public |
+| POST | `/api/billing/portal` | Create Stripe Billing Portal session | User |
+| GET | `/api/debug/subscription` | Debug: caller's plan/subscription + configured Agency price env values (see [NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 3) | Any signed-in user |
+| POST | `/api/leads` | Capture email before anonymous publish | Public |
+| POST | `/api/referrals` | Apply a referral code after login | User |
+| GET | `/api/referrals/stats` | Referral stats for account page | User |
+| DELETE | `/api/sites/[id]/delete` | Delete a site | Owner |
+| PATCH | `/api/sites/[id]/domain` | Save custom domain (resets verification) | Owner, paid plan |
+| POST | `/api/sites/[id]/domain/verify` | DNS check (CNAME, or A/AAAA for apex) → `domain_verified` | Owner, paid plan |
+| POST | `/api/sites/[id]/domain/attach` | Attach verified domain to the Vercel project → `domain_attached` | Owner, paid plan |
+| POST, DELETE | `/api/sites/[id]/hero-image` | Generate (OpenAI image) / remove hero image | Owner |
+| POST, DELETE | `/api/sites/[id]/logo` | Upload / remove logo | Owner |
+| POST | `/api/sites/[id]/publish` | Publish site (slug resolution, paid-plan check) | Owner, paid plan |
+| POST | `/api/sites/[id]/refresh-section` | AI-regenerate one section, optional hint | Owner |
+| GET | `/api/user/quota` | Current generation quota | User |
+| POST | `/api/user/reconcile-billing` | Re-sync plan/subscription from Stripe | User |
+| POST | `/api/webhooks/stripe` | Stripe events (signature-verified) | Stripe signature |
 
-**Request:**
+Admin UI: `/admin/billing` (page, allowlist-gated). The former `GET /api/admin/billing/duplicates` endpoint was removed in `f21df91`.
+
+### `POST /api/generate` — request / response shape
+
+**Request** (validated by `GenerateInputSchema` in `lib/schemas/website.ts`; strings are sanitised and capped at 100 chars):
 ```json
-{ "businessName": "Joe's Barber", "businessType": "barbershop", "city": "Brooklyn, NY" }
+{ "business_name": "Joe's Barber", "business_type": "barbershop", "city": "Brooklyn, NY", "language": "en" }
 ```
 
-**Response:**
+**Response** (abridged; the full shape is `WebsiteSchema` in `lib/schemas/website.ts`):
 ```json
 {
-  "hero": { "headline": "...", "subheadline": "...", "cta": "Book Now" },
-  "about": { "title": "About Us", "body": "..." },
-  "services": [{ "name": "Haircut", "price": "$30", "description": "..." }],
-  "contact": { "phone": "...", "address": "...", "hours": "..." },
-  "seo": { "title": "...", "description": "..." }
+  "success": true,
+  "website": {
+    "business_name": "...", "business_type": "...", "city": "...", "language": "en", "tagline": "...",
+    "hero": { "title": "...", "content": "...", "cta_text": "...", "cta_url": "..." },
+    "about": { "title": "...", "content": "...", "cta_text": "...", "cta_url": "..." },
+    "services": { "title": "...", "description": "...", "items": [{ "name": "...", "description": "..." }] },
+    "contact": { "title": "...", "phone": "...", "email": "...", "address": "...", "hours": "..." },
+    "color_scheme": { "primary": "#RRGGBB", "secondary": "#RRGGBB", "accent": "#RRGGBB", "neutral": "#RRGGBB" },
+    "fonts": { "heading": "...", "body": "..." },
+    "logo": { "position": "left", "width": 100 },
+    "layout": { "section_order": ["about", "services", "contact"], "section_backgrounds": { "about": "#ffffff", "services": "#f8fafc", "contact": "#ffffff" } },
+    "pages": { "home": { }, "about": { }, "contact": { } }
+  },
+  "remaining": 0,
+  "resetTime": 0
 }
 ```
 
-### `POST /api/sites`
-Creates or updates a site record in Supabase. Requires auth.
+Optional fields added after generation by the editor include `hero.hero_image_url`, `contact.map_embed_url`, `contact.booking_embed_url` and `contact.google_business_profile_embed_url`. Errors: 403 when the site limit is reached, 429 when the quota is exceeded, 500 on generation/validation failure, 503 if OpenAI isn't configured.
 
-### `POST /api/sites/[id]/publish`
-Sets site status to `published`, validates active subscription. Requires auth.
+### Stripe webhook events
 
-### `PATCH /api/sites/[id]/domain`
-Saves a custom domain against a site, validates paid entitlement, validates format, and stores `domain_verified = false`. Requires auth and paid plan.
-
-### `POST /api/sites/[id]/domain/verify`
-Runs DNS checks for the saved custom domain and updates `domain_verified`. Requires auth and paid plan.
-
-### `POST /api/sites/[id]/domain/attach`
-Attaches a verified custom domain to the configured Vercel project and stores `domain_attached = true`. Requires auth and paid plan.
-
-### `POST /api/billing/checkout`
-Creates a Stripe Checkout session and returns the URL. Requires auth.
-
-### `POST /api/billing/portal`
-Creates a Stripe Billing Portal session and returns the URL. Requires auth.
-
-### `POST /api/webhooks/stripe`
-Handles Stripe webhook events. Validates signature. Public (unauthenticated — verified by Stripe signature).
-
-**Handled events:**
 - `checkout.session.completed` → activate subscription, mark site published
-- `customer.subscription.updated` → sync subscription status
-- `customer.subscription.deleted` → set plan to free, unpublish site at period end
+- `customer.subscription.updated` → sync subscription status and plan (plan derived from the price ID via `planFromStripeStatus()` in `lib/stripe.ts`)
+- `customer.subscription.deleted` → reconcile the profile plan from remaining subscriptions; if it resolves to `free`, published sites are set back to `draft` when the event is processed
 
 ---
 
@@ -211,6 +231,8 @@ sequenceDiagram
 
 ### System Prompt Template
 
+> Historical draft. The live prompts are in `lib/ai/prompts.ts` (language-aware) and the output shape is enforced with a strict `json_schema` in `app/api/generate/route.ts` (see section 4).
+
 ```
 You are a professional website copywriter for local businesses.
 Generate a JSON website structure for the following business:
@@ -232,9 +254,9 @@ Do not include placeholder or fake data. Use realistic content appropriate for t
 ```
 
 ### Safeguards
-- Use `response_format: { type: "json_object" }` to enforce valid JSON.
+- Use `response_format: { type: "json_schema", strict: true }` to enforce the output shape (code uses `json_schema`, not `json_object`).
 - Validate the returned JSON against a Zod schema before saving.
-- If validation fails, return a 422 error and prompt the user to retry.
+- If validation fails, the route currently returns a 500 with the error message (not 422), after up to 2 retries on OpenAI call failures.
 - Rate-limit the `/api/generate` endpoint by IP and user context to control abuse while preserving onboarding UX.
 
 ---
@@ -261,13 +283,13 @@ User → Sign in with Google / Magic Link
 ## 7. Billing
 
 ### Stripe Products Setup
-- **Product:** SiteSpresso Starter
-- **Price:** $9.00/month, recurring
-- **Stripe Price ID:** stored in env var `STRIPE_STARTER_PRICE_ID`
+- **Plans:** Starter, Pro, Agency, each monthly and annual (`lib/stripe.ts`)
+- **Currency:** EUR. Default display prices in `lib/billing/plans.ts`: Starter €9/mo · €79/yr, Pro €19/mo · €159/yr, Agency €49/mo · €399/yr; overridden by live Stripe price amounts when available
+- **Price IDs:** stored in env vars `STRIPE_STARTER_PRICE_ID`, `STRIPE_STARTER_ANNUAL_PRICE_ID`, `STRIPE_PRO_PRICE_ID`, `STRIPE_PRO_ANNUAL_PRICE_ID`, `STRIPE_AGENCY_PRICE_ID`, `STRIPE_AGENCY_ANNUAL_PRICE_ID`. All six are configured in Vercel Production (owner-confirmed 2026-09-25)
 
 ### Checkout Flow
 1. User clicks "Publish" on free plan → modal appears
-2. Frontend calls `POST /api/billing/checkout` with `priceId` and `siteId`
+2. Frontend calls `POST /api/billing/checkout` with `plan` and `billing` (the server resolves the price ID from env)
 3. API creates Stripe Checkout session with `success_url` and `cancel_url`
 4. User is redirected to Stripe-hosted checkout
 5. On success, Stripe fires `checkout.session.completed` webhook
@@ -283,6 +305,11 @@ User → Sign in with Google / Magic Link
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_STARTER_PRICE_ID=
+STRIPE_STARTER_ANNUAL_PRICE_ID=
+STRIPE_PRO_PRICE_ID=
+STRIPE_PRO_ANNUAL_PRICE_ID=
+STRIPE_AGENCY_PRICE_ID=
+STRIPE_AGENCY_ANNUAL_PRICE_ID=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 ```
 
@@ -295,6 +322,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 - DNS: `*.sitespresso.com` → Vercel via CNAME
 
 ### Next.js Middleware
+
+> Simplified original sketch. The real `middleware.ts` also rewrites verified + attached custom domains (cached lookup), preserves page path suffixes (`/about`, `/contact`), reserves `www`, `app`, `api`, `admin`, and protects `/dashboard` and `/admin`.
 ```ts
 // middleware.ts
 export function middleware(request: NextRequest) {
@@ -322,20 +351,24 @@ export function middleware(request: NextRequest) {
 ### Vercel Project Setup
 - **Framework preset:** Next.js
 - **Environment variables:** set per-environment (preview / production)
-- **Domains:** `sitespresso.com`, `www.sitespresso.com`, `app.sitespresso.com`, `*.sitespresso.com`
+- **Domains:** `sitespresso.com` and `*.sitespresso.com` are verified in Vercel (owner-confirmed 2026-09-25). `app.sitespresso.com` resolves through the wildcard; `sitespresso.com` is canonical.
 - **Build command:** `next build`
 - **Output:** standard Next.js output (no `output: export`)
 
 ### Environments
 | Environment | Branch | URL |
 |---|---|---|
-| Production | `main` | `app.sitespresso.com` |
-| Preview | feature branches | `{branch}.sitespresso-git-*.vercel.app` |
+| Production | `main` | **`https://sitespresso.com`** (canonical; matches [PRODUCTION_DEPLOYMENT_RUNBOOK.md](PRODUCTION_DEPLOYMENT_RUNBOOK.md) and the `NEXT_PUBLIC_SITE_URL` fallback in code). `app.sitespresso.com` also returns 200 without a redirect, because it's served by the verified `*.sitespresso.com` wildcard; its canonical/robots metadata points to `sitespresso.com`. Whether `app.` should 301 to the apex is an open, owner-approval item ([NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 7). The GitHub repo homepage field is set to `sitespresso.vercel.app`. |
+| Preview | feature branches | Vercel preview deployments |
 
 ### CI/CD
 - Push to `main` → automatic Vercel production deploy
 - Pull requests → automatic Vercel preview deploy
-- No additional CI pipeline needed for MVP
+- GitHub Actions (`.github/workflows/`), on push and PR to `main`:
+  - `ci.yml`: root app `npm install && npm run build`, plus `templates/react-app` build and a static-template check
+  - `build-verify.yml`: `npm ci`, `npx tsc --noEmit`, `npm run lint`, `npm run build`, `.next/static` check
+  - `reliability.yml`: `npm ci`, `npm run test:reliability:ci` (PowerShell 7; cloud checks skipped)
+- No unit-test framework yet (see [NEXT_ACTIONS.md](../NEXT_ACTIONS.md) item 2)
 
 ---
 
@@ -348,7 +381,7 @@ export function middleware(request: NextRequest) {
 | **Unauthorized site access** | Supabase RLS enforces row-level ownership; server components use user JWT |
 | **Prompt injection** | User input sanitized before inclusion in AI prompt; input length capped at 100 chars per field |
 | **Slug hijacking** | Slugs validated as URL-safe, unique constraint in DB, reserved slug list (www, app, api, admin) |
-| **Mass generation abuse** | Rate limiting on `/api/generate` per IP and per user |
+| **Mass generation abuse** | Per-plan monthly quotas on `/api/generate`, keyed by user or IP (Redis, with in-memory fallback) |
 | **CSRF** | Next.js App Router server actions use built-in CSRF protection; Stripe webhook uses signature |
 | **XSS on published sites** | User-edited content rendered via React (auto-escaped); no `dangerouslySetInnerHTML` |
 | **SQL injection** | All DB access via Supabase client with parameterized queries |

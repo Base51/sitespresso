@@ -1,5 +1,8 @@
 # SiteSpresso — Implementation Backlog
 
+> **Status pointer:** The current, reconciled project status is in [ROADMAP.md](../ROADMAP.md), and the ordered next steps are in [NEXT_ACTIONS.md](../NEXT_ACTIONS.md). This backlog keeps the original task IDs referenced there.
+
+
 > Version: 1.1 | Status: Active | Date: 2026-06-22
 > Format: `[PRIORITY] Task — Status`
 > Priorities: **P0** (launch blocker) | **P1** (launch target) | **P2** (post-MVP)
@@ -17,7 +20,7 @@
 | M5 | Publishing & subdomain routing | Week 5 | Complete |
 | M6 | Billing (Stripe) | Week 5–6 | Complete |
 | M7 | Dashboard & account management | Week 6 | Complete |
-| M8 | QA, performance, security review | Week 6 | Complete |
+| M8 | QA, performance, security review | Week 6 | Complete (T-084–T-087 manual runs unrecorded; see ROADMAP.md) |
 | M9 | Production launch | Week 6 | In Progress (T-090 deferred pre-customer onboarding) |
 
 ---
@@ -147,10 +150,10 @@
 | T-082 | Review all Supabase queries — confirm RLS is enforced | P0 | T-011 | ✅ |
 | T-083 | Verify OpenAI and Stripe keys are never in client bundles | P0 | All API tasks | ✅ |
 | T-083a | Implement automatic cache cleanup to prevent dev server stale assets | P1 | T-001 | ✅ |
-| T-084 | Test slug conflict and reserved slug edge cases | P0 | T-051, T-052 | ✅ |
-| T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ✅ |
-| T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ✅ |
-| T-087 | Test generation failure and retry UX | P0 | T-040 | ✅ |
+| T-084 | Test slug conflict and reserved slug edge cases | P0 | T-051, T-052 | ✅ ⚠️ asserted, execution unrecorded ([ROADMAP.md](../ROADMAP.md)) |
+| T-085 | Test auth edge cases (expired session, sign-in redirect loop) | P0 | T-018 | ✅ ⚠️ asserted, execution unrecorded ([ROADMAP.md](../ROADMAP.md)) |
+| T-086 | Test Stripe webhook idempotency (duplicate events) | P0 | T-069 | ✅ ⚠️ asserted, execution unrecorded ([ROADMAP.md](../ROADMAP.md)) |
+| T-087 | Test generation failure and retry UX | P0 | T-040 | ✅ ⚠️ asserted, execution unrecorded ([ROADMAP.md](../ROADMAP.md)) |
 | T-088 | Cross-browser test: Chrome, Safari, Firefox (mobile + desktop) | P1 | All UI tasks | ✅ |
 | T-089 | WCAG 2.1 AA accessibility audit on intake form and dashboard | P1 | All UI tasks | ✅ |
 

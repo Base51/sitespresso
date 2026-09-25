@@ -1,6 +1,16 @@
 # Tier Implementation - Task Checklist & Tracking
 
-**Last Updated:** 2026-06-23  
+> **⚠️ Superseded / stale — see [ROADMAP.md](../ROADMAP.md).** This checklist was last updated 2026-06-23 and still shows "0% / Not Started". It no longer reflects the code.
+>
+> **Actual status (reconciled 2026-09-25 against the code tree):**
+> - M-101–M-106 are implemented in code: four tiers × monthly/annual price env keys (`lib/stripe.ts`), plan constants and labels (`lib/billing/plans.ts`, prices in **EUR**), `planFromStripeStatus(status, priceId)` / `planFromPriceId()` (`lib/stripe.ts`), checkout accepting `plan` + `billing` (`app/api/billing/checkout/route.ts`), and plan display/upgrade buttons (`app/dashboard/page.tsx`, `app/account/page.tsx`). The file names suggested below (`lib/billing/constants.ts`, `lib/supabase/types.ts`) were never created.
+> - All six Stripe price IDs are configured in Vercel Production (owner-confirmed 2026-09-25).
+> - M-201 custom domains: done, including DNS verify and Vercel attach (see [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md)).
+> - M-301 multi-site: per-plan site limits are done (`lib/billing/site-limits.ts`: Free 1, Starter 1, Pro 3, Agency unlimited). Bulk actions/export are not built.
+> - M-302 Agency features (teams, white-label, analytics API), M-107 pricing docs, Q-101/Q-102 tests and the `*_TIER_ENABLED` flags: not built. `npm run test` / `npm run type-check` scripts don't exist; use `npx tsc --noEmit`.
+
+
+**Last Updated:** 2026-06-23 
 **Overall Progress:** 0% (Planning phase)
 
 ---
@@ -8,9 +18,9 @@
 ## Phase 1: MVP Tier Setup (v1.0) — 2 Weeks
 
 ### M-101: Stripe Products & Price IDs
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 2h  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 2h 
 **Due:** [Set date]
 
 - [ ] Create Stripe product: `sitespresso-starter` (monthly $9)
@@ -23,7 +33,7 @@
 - [ ] Copy live mode price IDs to Vercel (production env)
 - [ ] Verify all 6 price IDs with Stripe CLI
 
-**Notes:**  
+**Notes:** 
 ```
 STRIPE_STARTER_PRICE_ID = ???
 STRIPE_STARTER_ANNUAL_PRICE_ID = ???
@@ -36,10 +46,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-102: Billing Constants & Types
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 3h  
-**Depends on:** M-101  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 3h 
+**Depends on:** M-101 
 **Due:** [Set date]
 
 - [ ] Create `lib/billing/constants.ts`
@@ -58,10 +68,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-103: `planFromStripeStatus()` Function Update
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 2h  
-**Depends on:** M-102  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 2h 
+**Depends on:** M-102 
 **Due:** [Set date]
 
 - [ ] Locate function (search: `planFromStripeStatus`)
@@ -85,10 +95,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-104: Checkout Route (`/api/billing/checkout`)
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 3h  
-**Depends on:** M-102, M-103  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 3h 
+**Depends on:** M-102, M-103 
 **Due:** [Set date]
 
 - [ ] Accept `?plan=` query param (starter, pro, agency)
@@ -112,10 +122,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-105: Webhook Handler (`/api/webhooks/stripe`)
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 2h  
-**Depends on:** M-103  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 2h 
+**Depends on:** M-103 
 **Due:** [Set date]
 
 - [ ] Extract `price_id` from Stripe event JSON
@@ -136,10 +146,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-106: Dashboard Plan Display Update
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 2h  
-**Depends on:** M-104  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 2h 
+**Depends on:** M-104 
 **Due:** [Set date]
 
 - [ ] Update plan display text (capitalize: "Starter", "Pro", "Agency")
@@ -160,10 +170,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-107: Documentation (Billing & Pricing)
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 1h  
-**Depends on:** M-106  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 1h 
+**Depends on:** M-106 
 **Due:** [Set date]
 
 - [ ] Create `docs/PRICING.md` (customer-facing)
@@ -179,10 +189,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ## Phase 2: Pro Tier Unlock (v1.1) — 2 Weeks
 
 ### M-201: Custom Domain Feature Implementation
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 20+ hours  
-**Depends on:** M-107 (Phase 1 complete)  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 20+ hours 
+**Depends on:** M-107 (Phase 1 complete) 
 **Due:** [Set date]
 
 **Major subtasks:** (see [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md) for details)
@@ -200,10 +210,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-202: Pro Tier Launch
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 2h  
-**Depends on:** M-201  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 2h 
+**Depends on:** M-201 
 **Due:** [Set date]
 
 - [ ] Set `PRO_TIER_ENABLED=true` in Vercel (production)
@@ -219,10 +229,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ## Phase 3: Agency Tier & Multi-Site (v1.2) — 2 Weeks
 
 ### M-301: Multi-Site Support
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 15+ hours  
-**Depends on:** M-201  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 15+ hours 
+**Depends on:** M-201 
 **Due:** [Set date]
 
 - [ ] Database: update site limits per tier
@@ -236,13 +246,13 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-302: Agency Tier Features (Team, White-label, API)
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 20+ hours  
-**Depends on:** M-301  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 20+ hours 
+**Depends on:** M-301 
 **Due:** [Set date]
 
-**Major subtasks:** (see AGENCY_FEATURES_IMPLEMENTATION.md for details)
+**Major subtasks:** (see `AGENCY_FEATURES_IMPLEMENTATION.md` — never written)
 - [ ] Team management: invite, roles (admin/editor/viewer)
 - [ ] White-label: custom company branding
 - [ ] Analytics API: export data (JSON/CSV)
@@ -252,10 +262,10 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### M-303: Agency Tier Launch
-**Status:** ⏳ Not Started  
-**Owner:** [Unassigned]  
-**Effort:** 1h  
-**Depends on:** M-302  
+**Status:** ⏳ Not Started 
+**Owner:** [Unassigned] 
+**Effort:** 1h 
+**Depends on:** M-302 
 **Due:** [Set date]
 
 - [ ] Set `AGENCY_TIER_ENABLED=true` in Vercel
@@ -269,8 +279,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ## Testing & QA
 
 ### Q-101: Unit Tests (Billing Logic)
-**Status:** ⏳ Not Started  
-**Parallel with:** M-103, M-104  
+**Status:** ⏳ Not Started 
+**Parallel with:** M-103, M-104 
 **Effort:** 4h
 
 - [ ] Test: `planFromStripeStatus()` all 4 tiers
@@ -284,8 +294,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### Q-102: Integration Tests (Stripe Sandbox)
-**Status:** ⏳ Not Started  
-**Parallel with:** M-104, M-105  
+**Status:** ⏳ Not Started 
+**Parallel with:** M-104, M-105 
 **Effort:** 6h
 
 - [ ] Test checkout: Free → Starter
@@ -300,8 +310,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### Q-103: Manual UAT
-**Status:** ⏳ Not Started  
-**Parallel with:** M-106, M-107  
+**Status:** ⏳ Not Started 
+**Parallel with:** M-106, M-107 
 **Effort:** 4h
 
 - [ ] Scenario: New user signs up → Free → Starter upgrade
@@ -317,8 +327,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ## Deployment
 
 ### D-101: Staging Deployment
-**Status:** ⏳ Not Started  
-**Depends on:** All Phase 1 tasks  
+**Status:** ⏳ Not Started 
+**Depends on:** All Phase 1 tasks 
 **Effort:** 1h
 
 - [ ] Set all `STRIPE_*` env vars in Vercel staging
@@ -332,8 +342,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ---
 
 ### D-102: Production Deployment
-**Status:** ⏳ Not Started  
-**Depends on:** D-101 + Q-103  
+**Status:** ⏳ Not Started 
+**Depends on:** D-101 + Q-103 
 **Effort:** 2h
 
 - [ ] Backup Supabase database (prod)
@@ -402,8 +412,8 @@ STRIPE_AGENCY_ANNUAL_PRICE_ID = ???
 ## Quick Links
 
 - Pricing plan: [TIER_IMPLEMENTATION_ROADMAP.md](./TIER_IMPLEMENTATION_ROADMAP.md)
-- Custom domains details: [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md) (TODO)
-- Agency features details: [AGENCY_FEATURES_IMPLEMENTATION.md](./AGENCY_FEATURES_IMPLEMENTATION.md) (TODO)
+- Custom domains details: [CUSTOM_DOMAINS_IMPLEMENTATION.md](./CUSTOM_DOMAINS_IMPLEMENTATION.md)
+- Agency features details: `AGENCY_FEATURES_IMPLEMENTATION.md` (never written)
 - Stripe dashboard: https://dashboard.stripe.com
 - Vercel dashboard: https://vercel.com/dashboard
 

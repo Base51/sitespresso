@@ -1,5 +1,10 @@
 # SiteSpresso Pricing Tier Implementation Roadmap
 
+> **⚠️ Superseded / stale — see [ROADMAP.md](../ROADMAP.md).** This plan (2026-06-23, "Planning") is kept for history. Prices below are in USD; the code bills in **EUR** (`lib/billing/plans.ts`).
+>
+> **Actual status (reconciled 2026-09-25 against the code tree):** Phase 1 (M-101–M-106) and M-201 custom domains are implemented, in different files than proposed here: `lib/stripe.ts`, `lib/billing/plans.ts`, `lib/billing/site-limits.ts`, `app/api/billing/checkout/route.ts`, `app/api/webhooks/stripe/route.ts`. M-301 is partly done (per-plan site limits). M-302/M-303, M-107, Q-101–Q-103 and the feature-flag env vars (`PRO_TIER_ENABLED`, `AGENCY_TIER_ENABLED`, `CHECKOUT_ENABLED`) are not implemented. `AGENCY_FEATURES_IMPLEMENTATION.md` was never written. All six tier price IDs are configured in Vercel Production (owner-confirmed 2026-09-25). Next steps are in [NEXT_ACTIONS.md](../NEXT_ACTIONS.md).
+
+
 **Version:** 1.0  
 **Created:** 2026-06-23  
 **Status:** Planning  
@@ -510,7 +515,7 @@ Unlock Agency-only features. This is a large feature set with multiple subtasks.
 - M-302d: Dedicated Slack support channel
 - M-302e: Priority feature request process
 
-**See:** [AGENCY_FEATURES_IMPLEMENTATION.md](./AGENCY_FEATURES_IMPLEMENTATION.md) (separate detailed doc)
+**See:** `AGENCY_FEATURES_IMPLEMENTATION.md` (never written) (separate detailed doc)
 
 **Acceptance Criteria:**
 - ✅ Agency users can invite team members
