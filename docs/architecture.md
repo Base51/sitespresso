@@ -77,7 +77,7 @@ create table public.profiles (
 ```
 
 ### `sites`
-Multiple sites per user, capped per plan in `lib/billing/site-limits.ts`: **Free 1, Starter 1, Pro 3, Agency unlimited**. Enforced in `app/api/generate/route.ts`, `components/SitePreview.tsx` (draft insert) and `components/DashboardContent.tsx`.
+Multiple sites per user, capped per plan in `lib/billing/site-limits.ts`: **Free 1, Starter 1, Pro 3, Agency unlimited**. Enforced in `app/api/generate/route.ts`, `components/SitePreview.tsx` (draft insert) and `components/DashboardContent.tsx`. The limit is enforced only in the app. No database constraint, trigger or RLS policy caps sites per user (`Own sites` only checks ownership), and the `SitePreview` check runs client-side before its draft insert.
 
 Other tables added by later migrations: `site_page_views` (analytics), `leads`, `referrals` (see `supabase/migrations/`).
 

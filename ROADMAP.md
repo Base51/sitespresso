@@ -32,7 +32,7 @@ Code bills in **EUR** (`BILLING_CURRENCY_CODE = 'EUR'`, symbol `€` in `lib/bil
 Notes on M8:
 
 - **T-084–T-087: ⚠️ asserted, execution unrecorded.** They are marked ✅ in `docs/tasks.md`, but the edge-case docs ([docs/t084-087-summary.md](docs/t084-087-summary.md), [docs/edge-case-test-execution.md](docs/edge-case-test-execution.md)) still list the manual tests as pending, and no execution record exists. The owner reviewed this on 2026-09-25: completion was asserted but can't be substantiated from the records. That doesn't prove the tests never ran. Since 2026-09-25, the T-084 slug cases (sanitisation, reserved slugs, conflict suffixes, the 10-attempt limit) are covered by Vitest unit tests against the real `lib/slug.ts` (`npm test`, run in CI). T-085–T-087 are still unrecorded manual checks. See [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 2.
-- The "37/37 unit tests" in those docs came from `scripts/test-slug-edge-cases.mjs`, which copied slug logic instead of importing `lib/slug.ts`. It has been replaced by `tests/unit/slug.test.ts` (`npm run test:edges` now runs that suite). The unit tests surfaced suspected bugs, including the Agency plan resolving to a 1-site limit. They're not fixed yet and need owner approval: see [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8.
+- The "37/37 unit tests" in those docs came from `scripts/test-slug-edge-cases.mjs`, which copied slug logic instead of importing `lib/slug.ts`. It has been replaced by `tests/unit/slug.test.ts` (`npm run test:edges` now runs that suite). The unit tests surfaced suspected bugs. The Agency 1-site-limit bug is fixed (owner-approved, 2026-09-25), and the slug issues still need owner approval: see [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8.
 
 ### M9 launch items done
 
@@ -65,7 +65,7 @@ Notes on M8:
 
 ## In progress 🔄
 
-- **T-108 Agency plan** — foundation shipped (per-plan site limits + dashboard limit UX; Agency tier purchasable when its Stripe prices are configured). Agency-specific features from `docs/TIER_IMPLEMENTATION_ROADMAP.md` M-302 (team members/roles, analytics export API) are not in the tree.
+- **T-108 Agency plan** — foundation shipped (per-plan site limits + dashboard limit UX; Agency tier purchasable when its Stripe prices are configured). Agency's **unlimited sites** has worked since the 2026-09-25 fix: previously `resolveSiteLimit()` turned Agency's `null` (unlimited) into 1 site ([NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8.1). Agency-specific features from `docs/TIER_IMPLEMENTATION_ROADMAP.md` M-302 (team members/roles, analytics export API) are not in the tree.
 - **M9 Production launch** — open only because T-090 is deferred (below).
 
 ---
