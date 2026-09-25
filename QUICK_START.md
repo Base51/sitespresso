@@ -26,6 +26,9 @@ npm start
 ## Testing & Validation
 
 ```bash
+# Unit tests (Vitest, no secrets needed)
+npm test
+
 # Check local environment health
 npm run dev:health
 
