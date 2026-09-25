@@ -7,9 +7,19 @@ const SITE_LIMIT_BY_PLAN: Record<Plan, number | null> = {
   agency: null,
 };
 
+// Safe fallback for a plan with no entry in SITE_LIMIT_BY_PLAN.
+const DEFAULT_SITE_LIMIT = 1;
+
+/**
+ * Returns the maximum number of sites for a plan, or `null` for unlimited.
+ * Unknown/missing plans normalise to `free` (1 site). `null` in SITE_LIMIT_BY_PLAN
+ * explicitly means unlimited, so don't use `??` here: it would turn `null` into the default.
+ */
 export function resolveSiteLimit(plan: unknown): number | null {
   const normalizedPlan = normalizePlan(plan);
-  return SITE_LIMIT_BY_PLAN[normalizedPlan] ?? 1;
+  return Object.prototype.hasOwnProperty.call(SITE_LIMIT_BY_PLAN, normalizedPlan)
+    ? SITE_LIMIT_BY_PLAN[normalizedPlan]
+    : DEFAULT_SITE_LIMIT;
 }
 
 export function isSiteLimitReached(plan: unknown, siteCount: number): boolean {

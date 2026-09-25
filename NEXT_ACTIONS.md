@@ -28,7 +28,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
   - the `/api/generate` retry logic, which is internal to the route and not exported;
   - Stripe sandbox integration tests (Q-102).
 - **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-087 (auth, webhook idempotency, generation-failure UX) are still unrecorded manual checks.
-- **Suspected bugs found (not fixed; see item 8):** tests are `it.skip`/`it.todo` in `tests/unit/`.
+- **Suspected bugs found (see item 8):** 8.1 (the Agency site limit) is now fixed. The slug issues are still `it.todo` in `tests/unit/slug.test.ts`.
 
 ## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
 
@@ -78,11 +78,16 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Production URL:** `https://sitespresso.com` is canonical. `app.sitespresso.com` also serves the app through the `*.sitespresso.com` wildcard, with canonical metadata pointing to the apex. Optional follow-up is in item 7.
 - **T-090:** still conditional. The `v1.0.0` release-candidate trigger is stale; the other re-open triggers remain (item 6).
 
-## 8. (Needs owner approval) Fix suspected bugs found by the unit tests
+## 8. Fix suspected bugs found by the unit tests (8.1 done; the rest need owner approval)
 
-These were found while writing the item 2 tests. App code was left unchanged. The matching tests are skipped or todo in `tests/unit/`, so un-skip them together with each fix.
+These were found while writing the item 2 tests. The matching tests are skipped or todo in `tests/unit/`, so un-skip them together with each fix.
 
-- **Agency site limit (billing behaviour, high impact):** `lib/billing/site-limits.ts` maps `agency` to `null` (unlimited), but `resolveSiteLimit()` returns `SITE_LIMIT_BY_PLAN[plan] ?? 1`, and `null ?? 1` is `1`. So Agency currently resolves to a **1-site limit**. `/api/generate` enforces it, as do the dashboard and preview UI, and `getSiteLimitMessage('agency')` shows "up to 1 site". Tests: `it.skip` in `tests/unit/site-limits.test.ts`.
+- **8.1 ✅ Done: Agency site limit** (owner-approved billing-behaviour fix, `fix/agency-unlimited-sites` PR, 2026-09-25).
+  - **The bug:** `lib/billing/site-limits.ts` maps `agency` to `null` (unlimited), but `resolveSiteLimit()` returned `SITE_LIMIT_BY_PLAN[plan] ?? 1`. Because `null ?? 1` is `1`, Agency was limited to 1 site.
+  - **The fix:** it now returns the configured value whenever the plan has an entry, so `null` means unlimited. Unknown or missing plans still normalise to `free` (1 site), and Free/Starter/Pro (1/1/3) are unchanged.
+  - **Callers:** `/api/generate`, `components/SitePreview.tsx` and `components/DashboardContent.tsx` already handled `null`, so none needed changing.
+  - **Database:** no migration, RLS policy or trigger limits sites per user, so no data migration is needed. Existing Agency accounts can create more sites as soon as this deploys.
+  - **Tests:** the 3 skipped tests are re-enabled and extended in `tests/unit/site-limits.test.ts`.
 - **Slug generation (`lib/slug.ts`, lower impact):** `\w` is ASCII-only.
   - Accented letters are dropped, not transliterated ("Café Lisboa" → `caf-lisboa`, "São Paulo" → `so-paulo`).
   - Names written entirely in a non-Latin script produce an empty slug, which the publish route doesn't reject.

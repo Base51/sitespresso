@@ -38,7 +38,7 @@ Notes:
 
 - Many npm scripts (`dev:clean`, `dev:health`, `test:smoke`, `test:reliability*`, `test:billing-config`, `test:supabase-isolation`, `test:release-version`) call PowerShell scripts, so **PowerShell 7 (`pwsh`) must be installed**, including on macOS/Linux.
 - `npm run test:reliability` (without `:ci`) also runs cloud checks that need Supabase/Vercel credentials and hit production. Run it only when those credentials are intentionally available.
-- Unit tests use Vitest (`vitest.config.ts`, `tests/unit/**/*.test.ts`). `npm test` runs once, and `npm run test:watch` watches. Keep them pure: no network or real credentials. Stub env with `vi.stubEnv`, use obviously fake IDs, and mock `@/lib/supabase/server` where needed. Tests marked `it.skip`/`it.todo` document suspected bugs ([NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8).
+- Unit tests use Vitest (`vitest.config.ts`, `tests/unit/**/*.test.ts`). `npm test` runs once, and `npm run test:watch` watches. Keep them pure: no network or real credentials. Stub env with `vi.stubEnv`, use obviously fake IDs, and mock `@/lib/supabase/server` where needed. Tests marked `it.todo` document suspected bugs that are still open ([NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8).
 - When adding or upgrading dependencies, use npm 10+ (the npm bundled with Node 20). Older npm 9.x (for example Debian's system npm) can crash with `Cannot read properties of null (reading 'edgesOut')`, so run `npx -y npm@10 install ...` instead.
 - For docs-only PRs, make sure `git diff --name-only main` lists only `.md` files and every relative link resolves.
 
