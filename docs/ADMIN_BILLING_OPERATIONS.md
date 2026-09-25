@@ -32,6 +32,10 @@ Open the internal billing operations page:
 2. One card per affected user with user id/email, active-like subscription count, and each subscription's Stripe subscription ID, price ID, status and last update
 3. An "Agency annual present" badge (`hasAgencyAnnual`) to speed up triage when Agency Annual is the plan to keep
 
+## Related admin-only endpoint
+
+`GET /api/debug/subscription` returns the **calling admin's own** plan/subscription rows and whether their latest price matches the configured Agency price env values. It uses the same allowlist through `requireAdminSession()`: 401 unauthenticated, 403 non-admin, 500 if the allowlist isn't configured. It's a self-diagnostic, not a lookup tool for other users.
+
 ## Access Outcomes
 
 1. Not signed in: redirected to login.
