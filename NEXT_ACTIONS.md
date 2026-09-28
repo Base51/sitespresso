@@ -79,6 +79,14 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Database side:** grants-only migration. **Production apply waits for the owner's "Apply migration".** Apply via the Supabase SQL Editor after the app is deployed.
 - **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
 
+## 10. In review: MVP legal copy drafts (docs only)
+
+- **Branch/PR:** `docs/legal-mvp-copy` (this PR).
+- **What:** Proposed Terms, Privacy, Refunds, Cookies, DPA, and Contact/Imprint under [`docs/legal/`](docs/legal/), plus change notes and billing-alignment flags. Does **not** change live `app/legal/**` pages.
+- **Owner still needs to provide:** legal entity name, registered address, VAT/NIF, and confirm refund stance.
+- **Follow-up after merge:** Builder copies approved wording into `app/legal/*/page.tsx` in a separate PR. Billing verifies [`docs/legal/BILLING_ALIGNMENT.md`](docs/legal/BILLING_ALIGNMENT.md) against sandbox checkout/portal. Lawyer review before Stripe live mode.
+- **Risk:** Low (docs only). Public site unchanged until the Builder follow-up PR.
+
 ## Owner confirmations (resolved 2026-09-25)
 
 - **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).
