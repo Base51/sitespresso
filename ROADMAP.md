@@ -1,6 +1,6 @@
 # SiteSpresso — Roadmap
 
-> Last reconciled: 2026-09-25 against `main` @ `50b7d24`.
+> Last reconciled: 2026-09-25 against `main` @ `005004c`.
 > Sources: [docs/tasks.md](docs/tasks.md) (task IDs), [docs/prd.md](docs/prd.md) (phase roadmap), and the code tree.
 > This file is the single source of truth for project status. Next concrete steps live in [NEXT_ACTIONS.md](NEXT_ACTIONS.md); working rules for agents/contributors live in [AGENTS.md](AGENTS.md).
 
@@ -66,6 +66,7 @@ Notes on M8:
 ## In progress 🔄
 
 - **T-108 Agency plan** — foundation shipped (per-plan site limits + dashboard limit UX; Agency tier purchasable when its Stripe prices are configured). Agency's **unlimited sites** has worked since the 2026-09-25 fix: previously `resolveSiteLimit()` turned Agency's `null` (unlimited) into 1 site ([NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 8.1). Agency-specific features from `docs/TIER_IMPLEMENTATION_ROADMAP.md` M-302 (team members/roles, analytics export API) are not in the tree.
+- **Server-side site creation and billing-column lockdown:** the app side shipped in PR #11 (`005004c`). Drafts are now created by `POST /api/sites`, which enforces the plan's site limit and inserts with the service role, and checkout saves `stripe_customer_id` with the service role. The grants migration `supabase/migrations/20260925150000_restrict_client_billing_and_site_inserts.sql` was **applied on production on 2026-09-25 at about 16:53 PT** from the Supabase SQL Editor (not recorded in Supabase's migration history). Clients can no longer set `profiles.plan` or `stripe_customer_id`, or insert `sites` directly. QA's post-migration retest passed. Plan, access matrix and rollback: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md); [NEXT_ACTIONS.md](NEXT_ACTIONS.md) item 9.
 - **M9 Production launch** — open only because T-090 is deferred (below).
 
 ---
