@@ -90,6 +90,14 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **App side (safe to deploy first):** the publish route and the three custom-domain routes write with the service role after their existing checks, with an extra `user_id` filter.
 - **Database side:** grants-only migration; clients keep UPDATE on `content` and `updated_at` only. **Production apply waits for the owner's "Apply migration".**
 
+## 11. In review: MVP legal copy drafts (docs only)
+
+- **Branch/PR:** `docs/legal-mvp-copy` (PR #15).
+- **What:** Proposed Terms, Privacy, Refunds, Cookies, DPA, and Contact/Imprint under [`docs/legal/`](docs/legal/), plus change notes and billing-alignment flags. Does **not** change live `app/legal/**` pages.
+- **Owner still needs to provide:** legal entity name, registered address, VAT/NIF, and confirm refund stance.
+- **Follow-up after merge:** Builder copies approved wording into `app/legal/*/page.tsx` in a separate PR. Billing verifies [`docs/legal/BILLING_ALIGNMENT.md`](docs/legal/BILLING_ALIGNMENT.md) against sandbox checkout/portal. Lawyer review before Stripe live mode.
+- **Risk:** Low (docs only). Public site unchanged until the Builder follow-up PR.
+
 ## Owner confirmations (resolved 2026-09-25)
 
 - **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).
