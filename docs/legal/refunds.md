@@ -23,6 +23,7 @@ When you cancel:
 
 - Your paid plan typically remains active until the end of the current paid period (Stripe `cancel_at_period_end` behaviour), unless the product UI states otherwise for a specific change.
 - After the paid period ends, the account returns to the Free plan and Free limits apply (including the publish paywall).
+- **When the paid plan ends, your published sites go offline.** They are switched back to draft and are no longer publicly reachable at their SiteSpresso address or custom domain. Your site content is kept, and you can republish by subscribing to a paid plan again from your SiteSpresso dashboard.
 - Cancellation stops future renewals. It does **not** automatically issue a cash refund for time already paid, except where this policy or mandatory law requires one.
 
 Upgrades and downgrades follow the billing portal and Stripe price-change rules shown at the time of the change. Billing should confirm immediate vs period-end effects before launch (see BILLING_ALIGNMENT.md).
