@@ -7,6 +7,7 @@ import { normalizePlan } from '@/lib/billing/plans';
 import { normalizeLanguage, type LanguageCode } from '@/lib/i18n/languages';
 import { isSiteLimitReached, resolveSiteLimit } from '@/lib/billing/site-limits';
 import { planFromPriceId } from '@/lib/stripe';
+import { classifyGenerationError } from '@/lib/ai/generation-error';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
@@ -208,7 +209,8 @@ async function callOpenAIWithRetry(
 
     return content;
   } catch (error) {
-    if (retryCount < MAX_RETRIES) {
+    // Don't burn retries on errors that can't recover (out of credit, bad key).
+    if (retryCount < MAX_RETRIES && classifyGenerationError(error).retryable) {
       await new Promise((resolve) =>
         setTimeout(resolve, RETRY_DELAY_MS * (retryCount + 1))
       );
@@ -287,7 +289,11 @@ export async function POST(request: NextRequest) {
     // Check if OpenAI API key is configured
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: 'AI generation service not configured' },
+        {
+          success: false,
+          error: 'Website generation is temporarily unavailable. Please try again later.',
+          code: 'ai_unavailable',
+        },
         { status: 503 }
       );
     }
@@ -425,14 +431,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const duration = Date.now() - startTime;
     timings.push({ name: 'error', durationMs: Date.now() - stepStart });
-    console.error(`❌ Generation failed after ${duration}ms:`, error);
+    const classified = classifyGenerationError(error);
+    console.error(
+      `❌ Generation failed after ${duration}ms (${classified.logReason}):`,
+      error,
+    );
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Generation failed'
+        error: classified.message,
+        code: classified.code,
       },
       {
-        status: 500,
+        status: classified.status,
         headers: {
           'X-Generation-Time-Ms': duration.toString(),
           'Server-Timing': toServerTiming(timings),
