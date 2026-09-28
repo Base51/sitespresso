@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { updateOwnedSite } from '@/lib/sites/update-owned-site';
 import { generateSlug, isReservedSlug, findUniqueSlug } from '@/lib/slug';
 import { checkRateLimit } from '@/lib/redis/rate-limiter';
 
@@ -92,14 +93,14 @@ export async function POST(
     }
 
     // Mark as published
-    const { error: updateError } = await supabase
-      .from('sites')
-      .update({
-        slug: finalSlug,
-        status: 'published',
-        published_at: new Date().toISOString(),
-      })
-      .eq('id', siteId);
+    // Server-only columns: clients have no UPDATE grant on these (see
+    // docs/RLS_SITES_STATUS_AND_DOMAINS.md). Ownership was checked above; the
+    // user_id filter keeps the service-role write scoped to the owner's row.
+    const { error: updateError } = await updateOwnedSite(siteId, user.id, {
+      slug: finalSlug,
+      status: 'published',
+      published_at: new Date().toISOString(),
+    });
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to publish' }, { status: 500 });

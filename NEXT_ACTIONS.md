@@ -1,6 +1,6 @@
 # SiteSpresso — Next Actions
 
-> Last reconciled: 2026-09-25 against `main` @ `50b7d24`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
+> Last reconciled: 2026-09-25 against `main` @ `005004c`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
 
 Ordered list of small follow-up PRs. Each one gets its own feature branch and PR against `main`. After each merge, update this file and [ROADMAP.md](ROADMAP.md).
 
@@ -27,7 +27,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
   - coverage targets;
   - the `/api/generate` retry logic, which is internal to the route and not exported;
   - Stripe sandbox integration tests (Q-102).
-- **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-087 (auth, webhook idempotency, generation-failure UX) are still unrecorded manual checks.
+- **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-086 (auth, webhook idempotency) are still unrecorded manual checks. T-087 (generation-failure UX): `/api/generate` now maps provider errors (quota, auth, rate limit, 5xx) to a fixed friendly message via `lib/ai/generation-error.ts`, so customers never see the raw OpenAI text. Manual confirmation of the live UX is still open.
 - **Suspected bugs found (see item 8):** all fixed. 8.1 was the Agency site limit, 8.2 slug generation.
 
 ## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
@@ -71,17 +71,28 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 
 ---
 
-## 9. In review: block client billing writes and direct site inserts (migration NOT applied)
+## 9. ✅ Done: app side merged (PR #11, `005004c`); migration applied on production (2026-09-25)
 
-- **Branch:** `fix/rls-plan-and-site-inserts`. Plan, SQL, access matrix, rollback and apply steps: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md).
+- **Merged:** PR #11 as merge commit `005004c` (2026-09-25, owner-approved, including the checkout change under AGENTS.md rule 5). Branch was `fix/rls-plan-and-site-inserts`. Plan, SQL, access matrix, rollback and apply steps: [docs/RLS_PLAN_AND_SITE_INSERTS.md](docs/RLS_PLAN_AND_SITE_INSERTS.md).
 - **Why:** the `for all` policies "Own profile" and "Own sites" let a signed-in user set `profiles.plan = 'agency'` (unlimited sites plus the agency generation quota) and insert `sites` rows past the limit.
 - **App side (safe to deploy first):** new `POST /api/sites` (limit check, then service-role insert), `SitePreview` uses it, checkout writes `stripe_customer_id` with the service role.
-- **Database side:** grants-only migration. **Production apply waits for the owner's "Apply migration".** Apply via the Supabase SQL Editor after the app is deployed.
+- **Database side:** grants-only migration `20260925150000_restrict_client_billing_and_site_inserts.sql`. **Applied on production 2026-09-25 at about 16:53 PT** from the Supabase SQL Editor, after the owner said "Apply migration" and a new draft had saved on production.
+- **Post-check:** the three queries in the plan doc matched: 22 table-level grant rows (no INSERT on `profiles` or `sites`, no table-level UPDATE on `profiles`, owner UPDATE on `sites` kept), `authenticated` can update only `email`, `full_name` and `style_presets`, and the three RLS policies are unchanged.
+- **QA post-migration retest: PASS** on a Free throwaway account: draft save, account name change, style preset save, and the dashboard still shows the 1/1 limit. The checkout test was skipped by the owner's decision, so no Stripe customer was created.
+- **Migration history:** Supabase's migration history does **not** record this migration, because it was run from the SQL Editor. A later `supabase db push` would re-run it; that is harmless because it only revokes and grants.
+- **Follow-up (not in scope):** owners can still UPDATE any column on their own `sites` rows, including `status`, so a client could publish without the publish route.
 - **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
 
-## 10. In review: MVP legal copy drafts (docs only)
+## 10. In review: server-only publish status and custom-domain status (migration NOT applied)
 
-- **Branch/PR:** `docs/legal-mvp-copy` (this PR).
+- **Branch:** `fix/server-only-publish-and-domain-status`. Plan, SQL, full writer list, access matrix, rollback and apply steps: [docs/RLS_SITES_STATUS_AND_DOMAINS.md](docs/RLS_SITES_STATUS_AND_DOMAINS.md).
+- **Why:** after PR #11, owners could still UPDATE any column on their own `sites` rows, so a Free user could set `status = 'published'` from the browser and skip the paywall, or mark a custom domain verified and attached without the DNS and Vercel checks.
+- **App side (safe to deploy first):** the publish route and the three custom-domain routes write with the service role after their existing checks, with an extra `user_id` filter.
+- **Database side:** grants-only migration; clients keep UPDATE on `content` and `updated_at` only. **Production apply waits for the owner's "Apply migration".**
+
+## 11. In review: MVP legal copy drafts (docs only)
+
+- **Branch/PR:** `docs/legal-mvp-copy` (PR #15).
 - **What:** Proposed Terms, Privacy, Refunds, Cookies, DPA, and Contact/Imprint under [`docs/legal/`](docs/legal/), plus change notes and billing-alignment flags. Does **not** change live `app/legal/**` pages.
 - **Owner still needs to provide:** legal entity name, registered address, VAT/NIF, and confirm refund stance.
 - **Follow-up after merge:** Builder copies approved wording into `app/legal/*/page.tsx` in a separate PR. Billing verifies [`docs/legal/BILLING_ALIGNMENT.md`](docs/legal/BILLING_ALIGNMENT.md) against sandbox checkout/portal. Lawyer review before Stripe live mode.

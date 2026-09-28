@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { updateOwnedSite } from '@/lib/sites/update-owned-site';
 import { attachDomainToVercelProject } from '@/lib/vercel-domains';
 
 export async function POST(
@@ -72,13 +73,13 @@ export async function POST(
       return NextResponse.json({ error: attach.message }, { status: 409 });
     }
 
-    const { error: updateError } = await supabase
-      .from('sites')
-      .update({
-        domain_attached: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', siteId);
+    // Server-only columns: clients have no UPDATE grant on these (see
+    // docs/RLS_SITES_STATUS_AND_DOMAINS.md). Ownership was checked above; the
+    // user_id filter keeps the service-role write scoped to the owner's row.
+    const { error: updateError } = await updateOwnedSite(siteId, user.id, {
+      domain_attached: true,
+      updated_at: new Date().toISOString(),
+    });
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to persist domain attach status.' }, { status: 500 });
