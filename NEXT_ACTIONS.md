@@ -27,7 +27,7 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
   - coverage targets;
   - the `/api/generate` retry logic, which is internal to the route and not exported;
   - Stripe sandbox integration tests (Q-102).
-- **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-087 (auth, webhook idempotency, generation-failure UX) are still unrecorded manual checks.
+- **Edge-case records:** `scripts/test-slug-edge-cases.mjs`, which copied the slug logic, was deleted. `npm run test:edges` now runs the real-module slug suite (`tests/unit/slug.test.ts`). For T-084.2–T-084.4 (slug conflicts, the 10-attempt limit, sanitisation), the automated tests replace the manual "code verified" records. T-084.1 is covered at the function level, and the publish-route error message isn't tested. T-085–T-086 (auth, webhook idempotency) are still unrecorded manual checks. T-087 (generation-failure UX): `/api/generate` now maps provider errors (quota, auth, rate limit, 5xx) to a fixed friendly message via `lib/ai/generation-error.ts`, so customers never see the raw OpenAI text. Manual confirmation of the live UX is still open.
 - **Suspected bugs found (see item 8):** all fixed. 8.1 was the Agency site limit, 8.2 slug generation.
 
 ## 3. ✅ Done: `app/api/debug/subscription` restricted to admins (option b)
