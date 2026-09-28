@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { updateOwnedSite } from '@/lib/sites/update-owned-site';
 import { verifyCustomDomainDns } from '@/lib/domains-server';
 
 export async function POST(
@@ -70,13 +71,13 @@ export async function POST(
       ? 'DNS check was inconclusive (no records observed right now). Keeping previously verified status.'
       : verification.reason;
 
-    const { error: updateError } = await supabase
-      .from('sites')
-      .update({
-        domain_verified: nextVerified,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', siteId);
+    // Server-only columns: clients have no UPDATE grant on these (see
+    // docs/RLS_SITES_STATUS_AND_DOMAINS.md). Ownership was checked above; the
+    // user_id filter keeps the service-role write scoped to the owner's row.
+    const { error: updateError } = await updateOwnedSite(siteId, user.id, {
+      domain_verified: nextVerified,
+      updated_at: new Date().toISOString(),
+    });
 
     if (updateError) {
       return NextResponse.json({ error: 'Failed to persist domain verification status.' }, { status: 500 });

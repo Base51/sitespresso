@@ -79,6 +79,13 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Database side:** grants-only migration. **Production apply waits for the owner's "Apply migration".** Apply via the Supabase SQL Editor after the app is deployed.
 - **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
 
+## 10. In review: server-only publish status and custom-domain status (migration NOT applied)
+
+- **Branch:** `fix/server-only-publish-and-domain-status`. Plan, SQL, full writer list, access matrix, rollback and apply steps: [docs/RLS_SITES_STATUS_AND_DOMAINS.md](docs/RLS_SITES_STATUS_AND_DOMAINS.md).
+- **Why:** after PR #11, owners could still UPDATE any column on their own `sites` rows, so a Free user could set `status = 'published'` from the browser and skip the paywall, or mark a custom domain verified and attached without the DNS and Vercel checks.
+- **App side (safe to deploy first):** the publish route and the three custom-domain routes write with the service role after their existing checks, with an extra `user_id` filter.
+- **Database side:** grants-only migration; clients keep UPDATE on `content` and `updated_at` only. **Production apply waits for the owner's "Apply migration".**
+
 ## Owner confirmations (resolved 2026-09-25)
 
 - **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).
