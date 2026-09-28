@@ -28,6 +28,7 @@ Compared on 2026-09-28 against https://sitespresso.com/legal/* (live "Last updat
 
 - Separate **cancellation** (access until end of paid period when canceled in the Stripe portal) from **refunds** (case-by-case).
 - Align with current portal behaviour: cancel at period end; plan drops to Free after the paid period.
+- State that published sites go offline (revert to draft) when a paid plan ends; content is kept and sites can be republished by subscribing again (matches `handleSubscriptionDeleted`).
 - Flag open questions for Billing in [BILLING_ALIGNMENT.md](BILLING_ALIGNMENT.md).
 
 ## cookies.md
