@@ -248,14 +248,33 @@ try {
     .single();
   const ownSiteUpdate = await user1Client
     .from('sites')
-    .update({ business_name: 'Private Site Edited' })
+    .update({ content: { title: 'Private Edited' }, updated_at: new Date().toISOString() })
     .eq('id', ownSeed.data?.id ?? '')
     .select('id');
   addResult(
-    'sites: own site update allowed',
+    'sites: own content update allowed',
     !ownSeed.error && !ownSiteUpdate.error && ownSiteUpdate.data?.length === 1,
     ownSeed.error?.message ?? ownSiteUpdate.error?.message ?? ''
   );
+
+  // Server-only columns (docs/RLS_SITES_STATUS_AND_DOMAINS.md): publishing and
+  // domain status must go through the server routes.
+  for (const [label, patch] of [
+    ['status', { status: 'published' }],
+    ['slug', { slug: `${privateSlug}-hijack` }],
+    ['published_at', { published_at: new Date().toISOString() }],
+    ['custom_domain', { custom_domain: 'rls-hijack.example.com' }],
+    ['domain_verified', { domain_verified: true }],
+    ['domain_attached', { domain_attached: true }],
+    ['business_name', { business_name: 'Private Site Edited' }],
+  ]) {
+    const blocked = await user1Client
+      .from('sites')
+      .update(patch)
+      .eq('id', ownSeed.data?.id ?? '')
+      .select('id');
+    addResult(`sites: own ${label} update blocked (server route only)`, Boolean(blocked.error), blocked.error?.message ?? '');
+  }
 
   const foreignSiteInsert = await user1Client.from('sites').insert({
     user_id: user2.id,
