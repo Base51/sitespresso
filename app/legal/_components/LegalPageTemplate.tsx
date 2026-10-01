@@ -35,7 +35,7 @@ export default function LegalPageTemplate({
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="text-sm text-brand-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                className="text-sm text-brand-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
               >
                 {section.title}
               </a>

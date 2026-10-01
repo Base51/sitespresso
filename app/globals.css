@@ -3,21 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  /* Approved D2 "Braces & Steam" brand tokens (docs/DESIGN.md §3–§4). HSL channels, used as hsl(var(--x)).
+     Cyan (--accent, --ring) is accent-only: steam, links, focus ring, small highlights. Never large surfaces
+     or primary buttons. Text on primary (orange), cyan and danger fills uses --on-primary (navy), never white. */
   :root {
-    --background: 222 47% 11%;
-    --background-soft: 220 38% 16%;
-    --surface: 220 33% 18%;
-    --surface-strong: 219 37% 24%;
-    --foreground: 210 40% 98%;
-    --muted: 215 20% 70%;
-    --muted-strong: 214 18% 84%;
-    --border: 218 28% 31%;
-    --ring: 30 96% 61%;
-    --primary: 30 96% 61%;
-    --primary-strong: 22 96% 53%;
-    --accent: 175 55% 43%;
-    --danger: 0 72% 59%;
-    --success: 153 55% 45%;
+    --background: 222 47% 11%; /* #0F1729 */
+    --background-soft: 220 38% 16%; /* #192438 */
+    --surface: 220 33% 18%; /* #1F293D */
+    --surface-strong: 219 37% 24%; /* #273654 */
+    --foreground: 210 40% 98%; /* #F8FAFC */
+    --muted: 215 20% 70%; /* #A3B0C2 */
+    --muted-strong: 214 18% 84%; /* #CFD5DE */
+    --border: 218 28% 31%; /* #394965 */
+    --ring: 194 97% 50%; /* #06C3FB cyan focus ring, 8.7:1 on --background; pair with a 2px --background offset */
+    --primary: 30 96% 61%; /* #FB9C3C */
+    --primary-strong: 22 96% 53%; /* #FA6814 */
+    --on-primary: 222 47% 11%; /* #0F1729 navy text on primary/cyan/danger fills, 8.45:1 on --primary */
+    --accent: 194 97% 50%; /* #06C3FB */
+    --danger: 0 84% 68%; /* #F26B6B, navy label 6.0:1 */
+    --success: 158 58% 48%; /* #34C38F */
   }
 
   * {
@@ -31,15 +35,15 @@
   body {
     min-height: 100vh;
     background:
-      radial-gradient(circle at top, rgba(249, 164, 27, 0.16), transparent 28%),
-      radial-gradient(circle at 85% 18%, rgba(45, 212, 191, 0.12), transparent 22%),
+      radial-gradient(circle at top, hsl(var(--primary) / 0.16), transparent 28%),
+      radial-gradient(circle at 85% 18%, hsl(var(--accent) / 0.12), transparent 22%),
       linear-gradient(180deg, hsl(var(--background-soft)) 0%, hsl(var(--background)) 40%, hsl(var(--background)) 100%);
     color: hsl(var(--foreground));
     @apply antialiased;
   }
 
   ::selection {
-    background: hsla(var(--primary), 0.35);
+    background: hsl(var(--primary) / 0.35);
     color: hsl(var(--foreground));
   }
 }

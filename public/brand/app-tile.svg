@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512" role="img" aria-label="SiteSpresso app icon">
+  <!-- D2 v2 master app tile (512): navy #0F1729 braces AND steam on orange #FB9C3C = 8.45:1 (graphics need 3:1). White steam was evaluated and rejected: 2.12:1. Use at 64px and above; below 64 use app-tile-small-v2.svg. -->
+  <rect width="64" height="64" rx="15" fill="#FB9C3C"/>
+  <g transform="translate(7.21 11.84) scale(0.37)"><g fill="none" stroke="#0F1729" stroke-width="9" stroke-linejoin="round"><path d="M34 17h-5c-8 0-12 4-12 12v15c0 8-3.5 13-9 14 5.5 1 9 6 9 14v15c0 8 4 12 12 12h5"/><path d="M34 17h-5c-8 0-12 4-12 12v15c0 8-3.5 13-9 14 5.5 1 9 6 9 14v15c0 8 4 12 12 12h5" transform="matrix(-1 0 0 1 134 0)"/></g><g fill="#0F1729"><path d="M79 4C65 12 48 24 48 37c0 11 9 17 19 23s14 12 14 20c0 5-1.5 9.5-4 14 9-4 18-10 18-19 0-11-9-17-20-23-10-6-14-10-14-17 0-10 7-21 18-31z"/><path d="M42 48c1 10 9 16 19 22 11 7 15 15 11 24-3 6-11 9-21 11 6-4 12-8 12-15 0-7-6-12-13-17-7-5-10-15-8-25z"/></g></g>
+</svg>

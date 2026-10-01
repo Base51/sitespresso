@@ -15,7 +15,7 @@ function cx(...values: Array<string | false | null | undefined>): string {
 }
 
 const controlClass =
-  'w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-brand-text placeholder:text-brand-muted outline-none transition focus:border-brand-primary/60 focus-visible:ring-2 focus-visible:ring-brand-primary/25 disabled:cursor-not-allowed disabled:opacity-55';
+  'w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-brand-text placeholder:text-brand-muted outline-none transition focus:border-brand-ring/60 focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:cursor-not-allowed disabled:opacity-55';
 
 export default function Input(props: InputProps): JSX.Element {
   const { label, error, hint, className } = props;

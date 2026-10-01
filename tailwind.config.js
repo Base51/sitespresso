@@ -18,6 +18,8 @@ module.exports = {
           border: 'hsl(var(--border))',
           primary: 'hsl(var(--primary))',
           'primary-strong': 'hsl(var(--primary-strong))',
+          'on-primary': 'hsl(var(--on-primary))',
+          ring: 'hsl(var(--ring))',
           accent: 'hsl(var(--accent))',
           danger: 'hsl(var(--danger))',
           success: 'hsl(var(--success))'
@@ -31,7 +33,9 @@ module.exports = {
         xl2: '1.25rem'
       },
       fontFamily: {
-        display: ['Georgia', 'Cambria', 'Times New Roman', 'serif']
+        // Fonts are loaded with next/font in app/layout.tsx and exposed as CSS variables.
+        display: ['var(--font-outfit)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif']
       }
     }
   },

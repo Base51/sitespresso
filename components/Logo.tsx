@@ -1,34 +1,129 @@
 import Link from 'next/link';
 
+/**
+ * SiteSpresso logo: the approved D2 "Braces & Steam" brand, dark colourway (docs/DESIGN.md §3).
+ * Geometry and colours come from the brand kit files in public/brand/ (mark-on-dark.svg,
+ * lockup-compact-on-dark.svg, lockup-full-on-dark.svg). The wordmark is outlined, so it renders
+ * the same without Outfit installed. Don't recolour, stretch or rebuild the mark elsewhere.
+ */
+
+export type LogoVariant = 'mark' | 'compact' | 'full';
+
 type LogoProps = {
   href?: string;
+  /**
+   * Kept for existing callers (page headers). Renders the compact lockup (mark + wordmark, no
+   * tagline), which is the navbar/app-header variant in DESIGN.md §3.2. Same as the default.
+   */
   compact?: boolean;
+  /**
+   * `compact` (default): mark + wordmark, no tagline, 100–239px wide. Navbars, headers, login card.
+   * `mark`: mark only, at least 20px tall (collapsed sidebars, avatars, loaders).
+   * `full`: mark + wordmark + tagline. Only where it renders at least 240px wide; never in a navbar.
+   */
+  variant?: LogoVariant;
+  className?: string;
 };
 
-function Mark(): JSX.Element {
+// Brand kit colours, dark colourway (DESIGN.md §3.2). Fixed on purpose: the logo is not themeable.
+const BRACES = '#FFFFFF';
+const STEAM = '#06C3FB';
+const WORD_SITE = '#F8FAFC';
+const WORD_SPRESSO = '#FB9C3C';
+
+const BRACE_PATH = 'M34 17h-5c-8 0-12 4-12 12v15c0 8-3.5 13-9 14 5.5 1 9 6 9 14v15c0 8 4 12 12 12h5';
+const STEAM_PATHS = [
+  'M79 4C65 12 48 24 48 37c0 11 9 17 19 23s14 12 14 20c0 5-1.5 9.5-4 14 9-4 18-10 18-19 0-11-9-17-20-23-10-6-14-10-14-17 0-10 7-21 18-31z',
+  'M42 48c1 10 9 16 19 22 11 7 15 15 11 24-3 6-11 9-21 11 6-4 12-8 12-15 0-7-6-12-13-17-7-5-10-15-8-25z'
+] as const;
+const WORDMARK_SITE_PATH =
+  'M78.02 34.4Q76.42 34.4 74.94 33.98Q73.46 33.56 72.22 32.78Q70.98 32 70.06 30.88L72.86 28.08Q73.86 29.24 75.16 29.82Q76.46 30.4 78.1 30.4Q79.58 30.4 80.34 29.96Q81.1 29.52 81.1 28.68Q81.1 27.8 80.38 27.32Q79.66 26.84 78.52 26.5Q77.38 26.16 76.12 25.8Q74.86 25.44 73.72 24.82Q72.58 24.2 71.86 23.12Q71.14 22.04 71.14 20.32Q71.14 18.48 72 17.16Q72.86 15.84 74.44 15.12Q76.02 14.4 78.22 14.4Q80.54 14.4 82.32 15.22Q84.1 16.04 85.3 17.68L82.5 20.48Q81.66 19.44 80.58 18.92Q79.5 18.4 78.1 18.4Q76.78 18.4 76.06 18.8Q75.34 19.2 75.34 19.96Q75.34 20.76 76.06 21.2Q76.78 21.64 77.92 21.96Q79.06 22.28 80.32 22.66Q81.58 23.04 82.72 23.7Q83.86 24.36 84.58 25.46Q85.3 26.56 85.3 28.32Q85.3 31.12 83.34 32.76Q81.38 34.4 78.02 34.4ZM89.28 34V14.8H93.68V34H89.28ZM91.48 11.28Q90.36 11.28 89.62 10.52Q88.88 9.76 88.88 8.64Q88.88 7.52 89.62 6.76Q90.36 6 91.48 6Q92.64 6 93.36 6.76Q94.08 7.52 94.08 8.64Q94.08 9.76 93.36 10.52Q92.64 11.28 91.48 11.28ZM101.82 34V6.8H106.22V34H101.82ZM97.22 18.8V14.8H110.82V18.8H97.22ZM122.68 34.4Q119.8 34.4 117.5 33.1Q115.2 31.8 113.86 29.52Q112.52 27.24 112.52 24.4Q112.52 21.56 113.84 19.3Q115.16 17.04 117.42 15.72Q119.68 14.4 122.44 14.4Q125.12 14.4 127.18 15.64Q129.24 16.88 130.42 19.04Q131.6 21.2 131.6 23.96Q131.6 24.44 131.54 24.94Q131.48 25.44 131.36 26.04H115.6V22.44H129.08L127.44 23.88Q127.36 22.12 126.76 20.92Q126.16 19.72 125.06 19.08Q123.96 18.44 122.36 18.44Q120.68 18.44 119.44 19.16Q118.2 19.88 117.52 21.18Q116.84 22.48 116.84 24.28Q116.84 26.08 117.56 27.44Q118.28 28.8 119.6 29.54Q120.92 30.28 122.64 30.28Q124.12 30.28 125.38 29.76Q126.64 29.24 127.52 28.24L130.32 31.08Q128.92 32.72 126.92 33.56Q124.92 34.4 122.68 34.4Z';
+const WORDMARK_SPRESSO_PATH =
+  'M141.7 34.4Q140.1 34.4 138.62 33.98Q137.14 33.56 135.9 32.78Q134.66 32 133.74 30.88L136.54 28.08Q137.54 29.24 138.84 29.82Q140.14 30.4 141.78 30.4Q143.26 30.4 144.02 29.96Q144.78 29.52 144.78 28.68Q144.78 27.8 144.06 27.32Q143.34 26.84 142.2 26.5Q141.06 26.16 139.8 25.8Q138.54 25.44 137.4 24.82Q136.26 24.2 135.54 23.12Q134.82 22.04 134.82 20.32Q134.82 18.48 135.68 17.16Q136.54 15.84 138.12 15.12Q139.7 14.4 141.9 14.4Q144.22 14.4 146 15.22Q147.78 16.04 148.98 17.68L146.18 20.48Q145.34 19.44 144.26 18.92Q143.18 18.4 141.78 18.4Q140.46 18.4 139.74 18.8Q139.02 19.2 139.02 19.96Q139.02 20.76 139.74 21.2Q140.46 21.64 141.6 21.96Q142.74 22.28 144 22.66Q145.26 23.04 146.4 23.7Q147.54 24.36 148.26 25.46Q148.98 26.56 148.98 28.32Q148.98 31.12 147.02 32.76Q145.06 34.4 141.7 34.4ZM163.2 34.4Q161 34.4 159.28 33.46Q157.56 32.52 156.58 30.88Q155.6 29.24 155.6 27.16V21.64Q155.6 19.56 156.6 17.92Q157.6 16.28 159.32 15.34Q161.04 14.4 163.2 14.4Q165.8 14.4 167.9 15.74Q170 17.08 171.22 19.34Q172.44 21.6 172.44 24.44Q172.44 27.24 171.22 29.5Q170 31.76 167.9 33.08Q165.8 34.4 163.2 34.4ZM152.92 42V14.8H157.32V19.96L156.56 24.64L157.32 29.28V42H152.92ZM162.48 30.24Q164.08 30.24 165.3 29.5Q166.52 28.76 167.22 27.44Q167.92 26.12 167.92 24.4Q167.92 22.68 167.22 21.36Q166.52 20.04 165.3 19.3Q164.08 18.56 162.48 18.56Q160.88 18.56 159.64 19.3Q158.4 20.04 157.72 21.36Q157.04 22.68 157.04 24.4Q157.04 26.12 157.72 27.44Q158.4 28.76 159.64 29.5Q160.88 30.24 162.48 30.24ZM176.42 34V14.8H180.82V34H176.42ZM180.82 23.32 179.3 22.56Q179.3 18.92 180.92 16.66Q182.54 14.4 185.82 14.4Q187.26 14.4 188.42 14.92Q189.58 15.44 190.58 16.6L187.7 19.56Q187.18 19 186.54 18.76Q185.9 18.52 185.06 18.52Q183.22 18.52 182.02 19.68Q180.82 20.84 180.82 23.32ZM201.36 34.4Q198.48 34.4 196.18 33.1Q193.88 31.8 192.54 29.52Q191.2 27.24 191.2 24.4Q191.2 21.56 192.52 19.3Q193.84 17.04 196.1 15.72Q198.36 14.4 201.12 14.4Q203.8 14.4 205.86 15.64Q207.92 16.88 209.1 19.04Q210.28 21.2 210.28 23.96Q210.28 24.44 210.22 24.94Q210.16 25.44 210.04 26.04H194.28V22.44H207.76L206.12 23.88Q206.04 22.12 205.44 20.92Q204.84 19.72 203.74 19.08Q202.64 18.44 201.04 18.44Q199.36 18.44 198.12 19.16Q196.88 19.88 196.2 21.18Q195.52 22.48 195.52 24.28Q195.52 26.08 196.24 27.44Q196.96 28.8 198.28 29.54Q199.6 30.28 201.32 30.28Q202.8 30.28 204.06 29.76Q205.32 29.24 206.2 28.24L209 31.08Q207.6 32.72 205.6 33.56Q203.6 34.4 201.36 34.4ZM220.38 34.4Q218.78 34.4 217.3 33.98Q215.82 33.56 214.58 32.78Q213.34 32 212.42 30.88L215.22 28.08Q216.22 29.24 217.52 29.82Q218.82 30.4 220.46 30.4Q221.94 30.4 222.7 29.96Q223.46 29.52 223.46 28.68Q223.46 27.8 222.74 27.32Q222.02 26.84 220.88 26.5Q219.74 26.16 218.48 25.8Q217.22 25.44 216.08 24.82Q214.94 24.2 214.22 23.12Q213.5 22.04 213.5 20.32Q213.5 18.48 214.36 17.16Q215.22 15.84 216.8 15.12Q218.38 14.4 220.58 14.4Q222.9 14.4 224.68 15.22Q226.46 16.04 227.66 17.68L224.86 20.48Q224.02 19.44 222.94 18.92Q221.86 18.4 220.46 18.4Q219.14 18.4 218.42 18.8Q217.7 19.2 217.7 19.96Q217.7 20.76 218.42 21.2Q219.14 21.64 220.28 21.96Q221.42 22.28 222.68 22.66Q223.94 23.04 225.08 23.7Q226.22 24.36 226.94 25.46Q227.66 26.56 227.66 28.32Q227.66 31.12 225.7 32.76Q223.74 34.4 220.38 34.4ZM237.88 34.4Q236.28 34.4 234.8 33.98Q233.32 33.56 232.08 32.78Q230.84 32 229.92 30.88L232.72 28.08Q233.72 29.24 235.02 29.82Q236.32 30.4 237.96 30.4Q239.44 30.4 240.2 29.96Q240.96 29.52 240.96 28.68Q240.96 27.8 240.24 27.32Q239.52 26.84 238.38 26.5Q237.24 26.16 235.98 25.8Q234.72 25.44 233.58 24.82Q232.44 24.2 231.72 23.12Q231 22.04 231 20.32Q231 18.48 231.86 17.16Q232.72 15.84 234.3 15.12Q235.88 14.4 238.08 14.4Q240.4 14.4 242.18 15.22Q243.96 16.04 245.16 17.68L242.36 20.48Q241.52 19.44 240.44 18.92Q239.36 18.4 237.96 18.4Q236.64 18.4 235.92 18.8Q235.2 19.2 235.2 19.96Q235.2 20.76 235.92 21.2Q236.64 21.64 237.78 21.96Q238.92 22.28 240.18 22.66Q241.44 23.04 242.58 23.7Q243.72 24.36 244.44 25.46Q245.16 26.56 245.16 28.32Q245.16 31.12 243.2 32.76Q241.24 34.4 237.88 34.4ZM257.9 34.4Q255.1 34.4 252.82 33.06Q250.54 31.72 249.2 29.44Q247.86 27.16 247.86 24.36Q247.86 21.56 249.2 19.32Q250.54 17.08 252.82 15.74Q255.1 14.4 257.9 14.4Q260.74 14.4 263.02 15.72Q265.3 17.04 266.64 19.3Q267.98 21.56 267.98 24.36Q267.98 27.16 266.64 29.44Q265.3 31.72 263.02 33.06Q260.74 34.4 257.9 34.4ZM257.9 30.16Q259.54 30.16 260.8 29.42Q262.06 28.68 262.76 27.36Q263.46 26.04 263.46 24.36Q263.46 22.68 262.74 21.4Q262.02 20.12 260.78 19.38Q259.54 18.64 257.9 18.64Q256.3 18.64 255.04 19.38Q253.78 20.12 253.08 21.4Q252.38 22.68 252.38 24.36Q252.38 26.04 253.08 27.36Q253.78 28.68 255.04 29.42Q256.3 30.16 257.9 30.16Z';
+
+function cx(...values: Array<string | false | null | undefined>): string {
+  return values.filter(Boolean).join(' ');
+}
+
+function MarkShapes(): JSX.Element {
   return (
-    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary via-orange-400 to-brand-accent text-sm font-black text-slate-950 shadow-glow">
-      SS
-    </span>
+    <>
+      <g fill="none" stroke={BRACES} strokeWidth="9" strokeLinejoin="round">
+        <path d={BRACE_PATH} />
+        <path d={BRACE_PATH} transform="matrix(-1 0 0 1 134 0)" />
+      </g>
+      <g fill={STEAM}>
+        <path d={STEAM_PATHS[0]} />
+        <path d={STEAM_PATHS[1]} />
+      </g>
+    </>
   );
 }
 
-export default function Logo({ href, compact = false }: LogoProps): JSX.Element {
-  const content = (
-    <span className="inline-flex items-center gap-3">
-      <Mark />
-      {!compact ? (
-        <span className="flex flex-col leading-none">
-          <span className="font-display text-xl font-semibold tracking-tight text-brand-text">SiteSpresso</span>
-          <span className="text-[11px] uppercase tracking-[0.24em] text-brand-muted">launch faster</span>
-        </span>
-      ) : null}
-    </span>
+function LogoGraphic({ variant, className }: { variant: LogoVariant; className?: string }): JSX.Element {
+  if (variant === 'mark') {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 134 108"
+        role="img"
+        aria-label="SiteSpresso"
+        className={cx('block h-8 w-auto shrink-0', className)}
+      >
+        <MarkShapes />
+      </svg>
+    );
+  }
+
+  if (variant === 'full') {
+    // Full lockup with the tagline "AI websites, brewed instantly.", rendered 259×56 (≥ 240px wide).
+    // A plain <img> on purpose: the static SVG gains nothing from next/image, and importing it here
+    // would add next/image to every page that renders the (default) compact lockup.
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src="/brand/lockup-full-on-dark.svg"
+        alt="SiteSpresso – AI websites, brewed instantly."
+        width={259}
+        height={56}
+        className={cx('block h-14 w-auto shrink-0', className)}
+      />
+    );
+  }
+
+  // Compact lockup: 32px tall, about 181px wide (inside the 100–239px rule).
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 272 48"
+      role="img"
+      aria-label="SiteSpresso"
+      className={cx('block h-8 w-auto shrink-0', className)}
+    >
+      <g transform="translate(0.48 0.26) scale(0.4356)">
+        <MarkShapes />
+      </g>
+      <g aria-hidden="true">
+        <path fill={WORD_SITE} d={WORDMARK_SITE_PATH} />
+        <path fill={WORD_SPRESSO} d={WORDMARK_SPRESSO_PATH} />
+      </g>
+    </svg>
   );
+}
+
+export default function Logo({ href, variant = 'compact', className }: LogoProps): JSX.Element {
+  const content = <LogoGraphic variant={variant} className={className} />;
 
   if (!href) {
     return content;
   }
 
-  return <Link href={href}>{content}</Link>;
+  return (
+    <Link
+      href={href}
+      className="inline-flex rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
+    >
+      {content}
+    </Link>
+  );
 }

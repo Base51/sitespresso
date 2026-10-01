@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="SiteSpresso app icon">
+  <!-- D2 v2 small app tile for 32-63px (below 32 use favicon-v2.svg) (same colours as the master, favicon geometry: 2px strokes at 16px grid). Navy on orange 8.45:1. For browser tabs use favicon-v2.svg. -->
+  <rect width="64" height="64" rx="14" fill="#FB9C3C"/>
+  <g fill="none" stroke-linejoin="round" stroke-linecap="round"><g stroke="#0F1729" stroke-width="8" stroke-linecap="butt"><path d="M21 12h-4c-3 0-5 2-5 5v9c0 3-1.5 5.3-4 6 2.5.7 4 3 4 6v9c0 3 2 5 5 5h4"/><path d="M21 12h-4c-3 0-5 2-5 5v9c0 3-1.5 5.3-4 6 2.5.7 4 3 4 6v9c0 3 2 5 5 5h4" transform="matrix(-1 0 0 1 64 0)"/></g><path d="M40 15c-9 0-15 4-15 10 0 6 14 7 14 14 0 6-6 10-15 10" stroke="#0F1729" stroke-width="8"/></g>
+</svg>
