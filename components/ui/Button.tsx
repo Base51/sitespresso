@@ -16,13 +16,13 @@ function cx(...values: Array<string | false | null | undefined>): string {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-brand-primary text-slate-950 shadow-glow hover:bg-brand-primary-strong focus-visible:ring-brand-primary/40',
+    'bg-brand-primary text-brand-on-primary shadow-glow hover:bg-brand-primary-strong',
   secondary:
-    'border border-brand-border bg-white/5 text-brand-text hover:border-brand-primary/50 hover:bg-white/10 focus-visible:ring-brand-primary/30',
+    'border border-brand-border bg-white/5 text-brand-text hover:border-brand-primary/50 hover:bg-white/10',
   ghost:
-    'text-brand-muted-strong hover:bg-white/6 hover:text-brand-text focus-visible:ring-brand-primary/30',
+    'text-brand-muted-strong hover:bg-white/6 hover:text-brand-text',
   danger:
-    'bg-brand-danger text-white hover:bg-rose-500 focus-visible:ring-rose-500/30'
+    'bg-brand-danger text-brand-on-primary hover:brightness-110'
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -44,7 +44,7 @@ export default function Button({
     <button
       type={type}
       className={cx(
-        'inline-flex items-center justify-center rounded-xl font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-55',
+        'inline-flex items-center justify-center rounded-xl font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg disabled:cursor-not-allowed disabled:opacity-55',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',

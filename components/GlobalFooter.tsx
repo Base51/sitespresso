@@ -52,7 +52,7 @@ export default function GlobalFooter(): JSX.Element {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="inline-flex rounded-md border border-white/10 bg-white/5 p-2 text-brand-muted transition hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  className="inline-flex rounded-md border border-white/10 bg-white/5 p-2 text-brand-muted transition hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
                 >
                   <span className="inline-flex h-4 min-w-4 items-center justify-center text-[10px] font-semibold uppercase" aria-hidden="true">
                     {fallbackText}
@@ -69,7 +69,7 @@ export default function GlobalFooter(): JSX.Element {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-brand-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  className="text-brand-muted transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg"
                 >
                   {item.label}
                 </Link>

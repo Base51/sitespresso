@@ -105,6 +105,24 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Production URL:** `https://sitespresso.com` is canonical. `app.sitespresso.com` also serves the app through the `*.sitespresso.com` wildcard, with canonical metadata pointing to the apex. Optional follow-up is in item 7.
 - **T-090:** still conditional. The `v1.0.0` release-candidate trigger is stale; the other re-open triggers remain (item 6).
 
+## 13. In review: apply the approved D2 brand (logo, favicon, colours, fonts)
+
+- **Branch/PR:** `feat/brand-d2`. Opening the PR was owner-approved on 2026-10-01. The brand itself (D2 "Braces & Steam", orange-led) was approved on 2026-09-29.
+- **Spec:** `docs/DESIGN.md` §3 (brand), §4 (Target token column), §5 (typography) and backlog items B1–B9. The doc itself is proposed in the separate `docs/design-system` PR (item 12).
+- **What changed (app chrome only):**
+  - **B1** `components/Logo.tsx` renders the D2 compact lockup (mark + outlined "sitespresso" wordmark, no tagline) as inline SVG; `variant="mark"` and `variant="full"` (with tagline, ≥ 240px only) are available. The existing `href`/`compact` props still work, so no caller changed.
+  - **B2** `public/favicon.svg` (it drew an "E") replaced by the D2 favicon; PNG favicons 16/32/48 and a full-bleed 180px `public/apple-touch-icon.png` added.
+  - **B3** `app/globals.css`: `--accent` and `--ring` cyan `#06C3FB`, `--danger` `#F26B6B`, `--success` `#34C38F`, new `--on-primary` navy `#0F1729`; body glows now use `hsl(var(--primary) / 0.16)` and `hsl(var(--accent) / 0.12)`.
+  - **B4** `tailwind.config.js`: `brand-on-primary`, `brand-ring`; `font-display` = Outfit, `font-sans` = Inter (CSS variables).
+  - **B5** `app/layout.tsx`: Outfit (500/600) and Inter via `next/font/google`; `metadata.icons` lists the SVG + PNG favicons and the apple-touch icon.
+  - **B6** `::selection` fixed to `hsl(var(--primary) / 0.35)`.
+  - **B7** navy labels on fills: primary Button, dashboard "View live site", editor preview page tabs, landing "Popular" and paywall "Selected" badges (were white, 2.1:1), danger Button (navy on `#F26B6B`, 6.0:1).
+  - **B8** focus rings: `ring-brand-ring` + 2px `brand-bg` offset in Button, Input, the dashboard domain field, GlobalFooter, legal page links and the Logo link.
+  - **B9** brand-kit SVGs (mark, compact and full lockups in dark/light/brand colourways, app tiles, favicon) plus PNGs in `public/brand/`.
+- **Not in scope (follow-ups):** customer published sites (`app/sites/[slug]`, `color_scheme`) are untouched; the editor token migration (EditorSidebar, FontSelector, ColorPicker raw `slate-*`/`cyan-*`/`blue-*` classes), the off-brand blue on the landing loading/error/preview stages, `hover:bg-white/6` dead classes and the redundant `body { @apply text-slate-100 }` stay as DESIGN.md §13 items 2, 3, 7, 8 and 14. After both PRs merge, flip DESIGN.md §3 to "Implemented" and link `public/brand/`.
+- **Verify on the Vercel preview:** landing (navbar logo, hero in Outfit, pricing badges, primary buttons), login, dashboard, editor (preview tabs, sidebar), one published site (`/sites/<slug>`, `/about`, `/contact`) to confirm it looks unchanged, favicon in a light and a dark tab, keyboard focus (cyan ring).
+- **Risk:** Low–medium (visual only; no data, billing or routing changes).
+
 ## 8. ✅ Done: fixed the bugs found by the unit tests
 
 These were found while writing the item 2 tests. Both fixes were owner-approved. No tests remain skipped or todo.

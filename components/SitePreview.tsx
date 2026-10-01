@@ -568,7 +568,7 @@ export default function SitePreview({
                   onClick={() => setSelectedPage(page)}
                   className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition ${
                     selectedPage === page
-                      ? 'bg-brand-primary text-slate-950'
+                      ? 'bg-brand-primary text-brand-on-primary'
                       : 'text-slate-300 hover:bg-slate-700/70'
                   }`}
                 >

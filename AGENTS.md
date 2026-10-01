@@ -65,5 +65,6 @@ CI workflows (`.github/workflows/`):
 | Custom domains | `lib/domains.ts`, `lib/domains-server.ts`, `lib/vercel-domains.ts`, `app/api/sites/[id]/domain/**` |
 | Supabase | `lib/supabase/*`, `supabase/migrations/*.sql` |
 | UI components | `components/`, `components/ui/` |
+| Brand (logo, icons, tokens, fonts) | `components/Logo.tsx`, `public/brand/`, `public/favicon.svg`, `public/apple-touch-icon.png`, `:root` tokens in `app/globals.css`, `tailwind.config.js` (`brand-*`, `font-display`/`font-sans`), `app/layout.tsx` (`next/font`, `metadata.icons`) |
 | Scripts | `scripts/*.ps1` (pwsh), `scripts/*.ts` (tsx); unit tests in `tests/unit/` (Vitest) |
 | Templates (project-factory legacy) | `templates/`, `prompts/` |

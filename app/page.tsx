@@ -366,7 +366,7 @@ export default function Home() {
                           </p>
                         </div>
                         {featured && (
-                          <span className="rounded-full bg-brand-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white">
+                          <span className="rounded-full bg-brand-primary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-on-primary">
                             Popular
                           </span>
                         )}
