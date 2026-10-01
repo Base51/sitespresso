@@ -10,6 +10,7 @@ SiteSpresso is an AI-powered website builder for local businesses. An owner ente
 - [NEXT_ACTIONS.md](NEXT_ACTIONS.md): ordered next PRs
 - [AGENTS.md](AGENTS.md): working rules, verification commands, key paths
 - [QUICK_START.md](QUICK_START.md): install and daily commands
+- [docs/DESIGN.md](docs/DESIGN.md): design system (app UI tokens, components, states, customer-site styling) and the approved D2 brand
 - [docs/](docs/): architecture, PRD, runbooks, audits ([docs/architecture.md](docs/architecture.md), [docs/tasks.md](docs/tasks.md))
 
 ## Local Development
