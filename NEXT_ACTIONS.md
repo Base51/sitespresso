@@ -98,6 +98,14 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Follow-up after merge:** Builder copies approved wording into `app/legal/*/page.tsx` in a separate PR. Billing verifies [`docs/legal/BILLING_ALIGNMENT.md`](docs/legal/BILLING_ALIGNMENT.md) against sandbox checkout/portal. Lawyer review before Stripe live mode.
 - **Risk:** Low (docs only). Public site unchanged until the Builder follow-up PR.
 
+## 12. In review: design system doc (docs only)
+
+- **Branch/PR:** `docs/design-system`. Opening the PR was owner-approved on 2026-10-01.
+- **What:** adds [docs/DESIGN.md](docs/DESIGN.md) v0.2: the two visual systems (app UI vs customer published sites), current colour tokens with D2 target values, typography, components, states, customer-site styling, an accessibility checklist, do/don't table, a migration backlog (§13) and the design review process. Linked from [README.md](README.md). No code changes.
+- **Brand:** records the owner-approved D2 "Braces & Steam" brand (approved 2026-09-29) as **not yet implemented**. Implementation is items B1–B9 in its own PR (`feat/brand-d2`). After that PR merges, flip DESIGN.md §3 status to "Implemented" and link the `public/brand/` assets.
+- **Owner sign-off still needed:** proposed rules P1–P17 (listed at the end of DESIGN.md), for example tokens-only colours, no hand-rolled controls, a single selected colour, a `--warning` token, preview/published parity and hex validation.
+- **Risk:** Low (docs only).
+
 ## Owner confirmations (resolved 2026-09-25)
 
 - **Stripe price IDs:** all six tier price IDs are configured in Vercel Production (owner-confirmed).
