@@ -23,7 +23,8 @@ Owner marks who acts: **Owner** = Leonardo, **Builder** = code/doc PRs and migra
 | B7 | OpenAI spending alert or auto top-up. A quota outage takes generation down for everyone. | Owner | Open |
 | B8 | Read-only access for Monitor: Vercel logs, Stripe webhook deliveries, OpenAI usage. | Owner | Open |
 | B9 | Legal pages: owner provides legal entity name, registered address, VAT/NIF and refund stance (`docs/legal/BILLING_ALIGNMENT.md` row 8); Billing closes rows 1–3 after B3; lawyer review; then Builder copies the approved text into `app/legal/*/page.tsx` (item 11). | Owner, Billing, Builder | Waiting on owner |
-| B10 | Stripe live-mode switch: live keys, live prices, live webhook. Billing posts the steps; the owner runs them. Last, after B1–B9. | Owner | Not started |
+| B10 | Stripe live-mode switch: live keys, live prices, live webhook, and the **customer portal set up again in live mode** (sandbox settings don't carry over: allow Starter → Pro switches, choose immediate vs end-of-period cancellation; `docs/legal/BILLING_ALIGNMENT.md` rows 1–3 depend on these). Then the owner approves **one named real checkout**, refunds it, and checks the webhook returns 200. Billing posts the steps; the owner runs them. Last, after B1–B9 and B11. | Owner | Not started |
+| B11 | Visible beta notice while Stripe is in sandbox: the homepage pricing and upgrade button show paid plans with no beta note, so a real visitor would hit a test checkout. Docs drafts the wording and a beta clause for the Terms draft (needs the owner's go); Builder then adds it to the app. | Owner go, Docs, Builder | Proposed |
 
 ### Small code follow-ups (no migrations)
 
