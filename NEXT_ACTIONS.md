@@ -1,10 +1,50 @@
 # SiteSpresso — Next Actions
 
-> Last reconciled: 2026-09-25 against `main` @ `005004c`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
+> Last reconciled: 2026-10-08 against `main` @ `c51581e`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
 
-Ordered list of small follow-up PRs. Each one gets its own feature branch and PR against `main`. After each merge, update this file and [ROADMAP.md](ROADMAP.md).
+**Current status: beta.** Production runs on `https://sitespresso.com`, but Stripe is still in **sandbox (test) mode**, so nobody can pay yet. The list below is what's left before the Stripe live-mode switch. Every code change still gets its own feature branch and PR against `main`. After each merge, update this file and [ROADMAP.md](ROADMAP.md).
 
 ---
+
+## Beta to-do (reconciled 2026-10-08)
+
+Owner marks who acts: **Owner** = Leonardo, **Builder** = code/doc PRs and migration SQL, **QA** = throwaway-account tests, **Billing** = Stripe checklist, **Monitor** = health watch, **Reviewer** = PR reviews, **Docs** = legal/marketing copy.
+
+### Blocking the Stripe live switch (in order)
+
+| # | Item | Who | Status |
+|---|---|---|---|
+| B1 | Close out migration `20260928160000` (server-only publish/domain columns). Applied on production 2026-09-28 at about 16:45 PT from the SQL Editor; QA's production retest passed. The three post-check results still need pasting so the Reviewer can sign it off. Expected: 10 grant rows with no UPDATE for anon/authenticated, column UPDATE only on `content` and `updated_at`, the same two policies. See item 10. | Owner, then Reviewer | Applied, verification open |
+| B2 | Clear the Stripe sandbox Checkout block. Stripe's hosted Checkout asks QA's automated browser for a phone number and shows an AI-agent step; our code doesn't request either. Options: owner completes that one form by hand, or changes the sandbox settings. | Owner | Blocked |
+| B3 | Q-102 sandbox paid journey (planned steps): Free → Starter with a test card, Starter → Pro in the portal, paid publish and live Home/About/Contact, custom-domain save, cancel back to Free (sites return to draft), webhooks return 200. This is also the first real test of paid publish and domains since migration `20260928160000`. | QA, Billing | Waits on B2 |
+| B4 | T-085–T-087 manual checks. T-085 sign-in edge cases. T-086 webhook resend idempotency needs the owner's OK for one sandbox resend. T-087 live check of the friendly generation error (PR #13), and the Generate ×3 rate-limit test needs the owner's OK to spend OpenAI credit. | QA, Owner OK | Open |
+| B5 | T-090: separate production Supabase project before the first paying customer (item 6). Also revoke the default `TRUNCATE`/`TRIGGER` grants for anon/authenticated as part of it. | Owner approval, Builder | Not started |
+| B6 | Custom email provider (SMTP) in Supabase so sign-in emails don't hit the built-in mailer's rate limit. | Owner | Open |
+| B7 | OpenAI spending alert or auto top-up. A quota outage takes generation down for everyone. | Owner | Open |
+| B8 | Read-only access for Monitor: Vercel logs, Stripe webhook deliveries, OpenAI usage. | Owner | Open |
+| B9 | Legal pages: owner provides legal entity name, registered address, VAT/NIF and refund stance (`docs/legal/BILLING_ALIGNMENT.md` row 8); Billing closes rows 1–3 after B3; lawyer review; then Builder copies the approved text into `app/legal/*/page.tsx` (item 11). | Owner, Billing, Builder | Waiting on owner |
+| B10 | Stripe live-mode switch: live keys, live prices, live webhook. Billing posts the steps; the owner runs them. Last, after B1–B9. | Owner | Not started |
+
+### Small code follow-ups (no migrations)
+
+| # | Item | Who |
+|---|---|---|
+| C1 | Unit tests for `app/api/sites/[id]/domain`, `domain/attach` and `domain/verify` (Reviewer note on PR #14). | Builder |
+| C2 | `hero-image` route returns the raw database error to the browser; replace with a fixed message and log the detail server-side. | Builder |
+| C3 | Route-level test for `/api/generate` error handling (Reviewer note on PR #13). | Builder |
+| C4 | Review and merge-decide open PRs [#16](https://github.com/Base51/sitespresso/pull/16) (`DESIGN.md`) and [#17](https://github.com/Base51/sitespresso/pull/17) (brand logo, colours, fonts). | Reviewer, Owner |
+
+### Housekeeping (low priority)
+
+- Rename `vitest.config.ts` to `vitest.config.mts` (Vite's CJS deprecation warning).
+- Fix the 4 broken links in [docs/t084-087-summary.md](docs/t084-087-summary.md).
+- `templates/nextjs-app/supabase/migrations/` still has the old weak policies.
+- Decide on `app.sitespresso.com` → apex redirect (item 7, needs owner approval).
+
+---
+
+## History
+
 
 ## 1. ✅ Done: removed the dead admin "View JSON" link and fixed the admin billing runbook
 
@@ -83,20 +123,23 @@ Ordered list of small follow-up PRs. Each one gets its own feature branch and PR
 - **Follow-up (not in scope):** owners can still UPDATE any column on their own `sites` rows, including `status`, so a client could publish without the publish route.
 - **Out of scope, noted:** `templates/nextjs-app/supabase/migrations/` has the same weak policies; no DB-level race protection on the site count.
 
-## 10. In review: server-only publish status and custom-domain status (migration NOT applied)
+## 10. ✅ Done: server-only publish status and custom-domain status (PR #14, `15120a9`); migration applied on production (2026-09-28)
 
-- **Branch:** `fix/server-only-publish-and-domain-status`. Plan, SQL, full writer list, access matrix, rollback and apply steps: [docs/RLS_SITES_STATUS_AND_DOMAINS.md](docs/RLS_SITES_STATUS_AND_DOMAINS.md).
+- **Merged:** PR #14 as `15120a9` (2026-09-28, owner-approved). Plan, SQL, full writer list, access matrix, rollback and apply steps: [docs/RLS_SITES_STATUS_AND_DOMAINS.md](docs/RLS_SITES_STATUS_AND_DOMAINS.md).
 - **Why:** after PR #11, owners could still UPDATE any column on their own `sites` rows, so a Free user could set `status = 'published'` from the browser and skip the paywall, or mark a custom domain verified and attached without the DNS and Vercel checks.
-- **App side (safe to deploy first):** the publish route and the three custom-domain routes write with the service role after their existing checks, with an extra `user_id` filter.
-- **Database side:** grants-only migration; clients keep UPDATE on `content` and `updated_at` only. **Production apply waits for the owner's "Apply migration".**
+- **App side:** the publish route and the three custom-domain routes write with the service role (`lib/sites/update-owned-site.ts`) after their existing checks, with an extra `user_id` filter.
+- **Database side:** grants-only migration `20260928160000_restrict_client_site_status_and_domain_updates.sql`. **Applied on production 2026-09-28 at about 16:45 PT** from the Supabase SQL Editor after the owner said "Apply migration". The pre-check matched (table-level UPDATE for anon and authenticated, all 14 columns updatable). Not recorded in Supabase's migration history.
+- **Post-check: not yet pasted** (beta to-do B1). QA's post-migration production retest passed.
+- **Not yet exercised:** paid publish and custom-domain save after the migration (beta to-do B3).
 
-## 11. In review: MVP legal copy drafts (docs only)
+## 11. ✅ Merged: MVP legal copy drafts (docs only, PR #15, `c51581e`)
 
-- **Branch/PR:** `docs/legal-mvp-copy` (PR #15).
-- **What:** Proposed Terms, Privacy, Refunds, Cookies, DPA, and Contact/Imprint under [`docs/legal/`](docs/legal/), plus change notes and billing-alignment flags. Does **not** change live `app/legal/**` pages.
-- **Owner still needs to provide:** legal entity name, registered address, VAT/NIF, and confirm refund stance.
-- **Follow-up after merge:** Builder copies approved wording into `app/legal/*/page.tsx` in a separate PR. Billing verifies [`docs/legal/BILLING_ALIGNMENT.md`](docs/legal/BILLING_ALIGNMENT.md) against sandbox checkout/portal. Lawyer review before Stripe live mode.
-- **Risk:** Low (docs only). Public site unchanged until the Builder follow-up PR.
+- **What:** Proposed Terms, Privacy, Refunds, Cookies, DPA, and Contact/Imprint under [`docs/legal/`](docs/legal/), plus change notes and billing-alignment flags. Refunds now states that published sites go back to draft when a paid plan ends. Live `app/legal/**` pages are unchanged.
+- **Still open:** beta to-do B9 (owner details and refund stance, Billing rows 1–3, lawyer review, then the Builder copy-over PR).
+
+## 12. ✅ Done: friendly generation errors (PR #13, `e84c2e6`)
+
+- `/api/generate` maps OpenAI errors (such as an exhausted quota) through `lib/ai/generation-error.ts` to a friendly message instead of showing the raw provider error. No DB change. Live confirmation is beta to-do B4 (T-087).
 
 ## Owner confirmations (resolved 2026-09-25)
 
