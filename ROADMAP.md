@@ -1,6 +1,6 @@
 # SiteSpresso — Roadmap
 
-> Last reconciled: 2026-09-28 against `main` @ `c51581e`.
+> Last reconciled: 2026-10-08 against `main` @ `c51581e`.
 > **Current status: beta.** Production is live on `https://sitespresso.com` with Stripe in sandbox (test) mode. What's left before live payments is the beta to-do in [NEXT_ACTIONS.md](NEXT_ACTIONS.md).
 > Sources: [docs/tasks.md](docs/tasks.md) (task IDs), [docs/prd.md](docs/prd.md) (phase roadmap), and the code tree.
 > This file is the single source of truth for project status. Next concrete steps live in [NEXT_ACTIONS.md](NEXT_ACTIONS.md); working rules for agents/contributors live in [AGENTS.md](AGENTS.md).

@@ -1,12 +1,12 @@
 # SiteSpresso — Next Actions
 
-> Last reconciled: 2026-09-28 against `main` @ `c51581e`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
+> Last reconciled: 2026-10-08 against `main` @ `c51581e`. Status context: [ROADMAP.md](ROADMAP.md). Working rules: [AGENTS.md](AGENTS.md).
 
 **Current status: beta.** Production runs on `https://sitespresso.com`, but Stripe is still in **sandbox (test) mode**, so nobody can pay yet. The list below is what's left before the Stripe live-mode switch. Every code change still gets its own feature branch and PR against `main`. After each merge, update this file and [ROADMAP.md](ROADMAP.md).
 
 ---
 
-## Beta to-do (reconciled 2026-09-28)
+## Beta to-do (reconciled 2026-10-08)
 
 Owner marks who acts: **Owner** = Leonardo, **Builder** = code/doc PRs and migration SQL, **QA** = throwaway-account tests, **Billing** = Stripe checklist, **Monitor** = health watch, **Reviewer** = PR reviews, **Docs** = legal/marketing copy.
 
